@@ -40,15 +40,20 @@ final public class PuzzleCollectionViewLayoutInvalidationContext : UICollectionV
         self.invalidationInfo = invalidationInfo
         super.init()
     }
-    
-    //TODO: implement copy with zone
 }
 
 final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayoutAttributes {
     var cachedSize: CGSize? = nil
     var info: Any? = nil
     
-    //TODO: implement copy with zone
+    public override func copy(with zone: NSZone? = nil) -> Any {
+        let c = super.copy(with: zone)
+        if let c = c as? PuzzleCollectionViewLayoutAttributes {
+            c.cachedSize = self.cachedSize
+            c.info = self.info
+        }
+        return c
+    }
 }
 
 //MARK: - CollectionViewDataSourcePuzzleLayout

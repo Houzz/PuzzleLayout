@@ -45,14 +45,6 @@ public protocol PuzzlePieceSectionLayout : NSObjectProtocol {
     var separatorLineInsets: UIEdgeInsets { get } ///If not implemented & separatorLineType != .none, left=15.
     var separatorLineColor: UIColor { get } ///If not implemented & separatorLineType != .none, color=0xD6D6D6
     // --------
-    
-    //Section top & bottom gutters
-    var topGutterHeight: CGFloat { get }
-    var topGutterColor: UIColor { get } ///If not implemented & separatorLineType != .none, color=0xD6D6D6
-    
-    var bottomGutterHeight: CGFloat { get }
-    var bottomGutterColor: UIColor { get } ///If not implemented & separatorLineType != .none, color=0xD6D6D6
-    // --------
 }
 
 //MARK: - Default implementation
@@ -80,13 +72,5 @@ extension PuzzlePieceSectionLayout {
     public var separatorLineStyle: PuzzlePieceSeparatorLineStyle { return .none }
     public var separatorLineInsets: UIEdgeInsets { return UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) }
     public var separatorLineColor: UIColor { return UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1) }
-    // --------
-    
-    //Section top & bottom gutters
-    public var topGutterHeight: CGFloat { return 0 }
-    public var topGutterColor: UIColor { return UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1) }
-    
-    public var bottomGutterHeight: CGFloat { return 0 }
-    public var bottomGutterColor: UIColor { return UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1) }
     // --------
 }

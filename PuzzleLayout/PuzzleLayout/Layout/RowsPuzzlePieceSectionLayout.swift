@@ -14,8 +14,28 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 
     public var identifier: String?
     
-    public var sectionInsets = UIEdgeInsets.zero //TODO: invalidate
-    public var interitemSpacing: CGFloat = 0 //TODO: invalidate
+    public var sectionInsets = UIEdgeInsets.zero {
+        didSet {
+            if let ctx = invalidationContext(with: kInvalidateForSectionInsets, for: self) {
+                parentLayout!.invalidateLayout(with: ctx)
+            }
+            else {
+                updateAllRowsForSectionInsetsChange()
+            }
+        }
+    }
+    
+    public var interitemSpacing: CGFloat = 0 {
+        didSet {
+            if let ctx = invalidationContext(with: kInvalidateForInteritemSpacing, for: self) {
+                parentLayout!.invalidateLayout(with: ctx)
+            }
+            else {
+                updateAllRowsOriginY()
+            }
+        }
+    }
+    
     public var estimatedItemHeight: CGFloat = 44 {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange, for: self) {
@@ -49,10 +69,37 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         }
     }
     
-    public var separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem //TODO: invalidate
-    public var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) //TODO: invalidate
-    public var showTopGutter: Bool = false //TODO: invalidate
-    public var showBottomGutter: Bool = false //TODO: invalidate
+    public var separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem {
+        didSet {
+            if let ctx = self.invalidationContextForSeparatorLines(of: self) {
+                parentLayout!.invalidateLayout(with: ctx)
+            }
+        }
+    }
+
+    public var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) {
+        didSet {
+            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines(of: self) {
+                parentLayout!.invalidateLayout(with: ctx)
+            }
+        }
+    }
+    
+    public var showTopGutter: Bool = false {
+        didSet {
+            if sectionInsets.top != 0, let ctx = self.invalidationContextForTopGutter(of: self) {
+                parentLayout!.invalidateLayout(with: ctx)
+            }
+        }
+    }
+    
+    public var showBottomGutter: Bool = false {
+        didSet {
+            if sectionInsets.bottom != 0, let ctx = self.invalidationContextForBottomGutter(of: self) {
+                parentLayout!.invalidateLayout(with: ctx)
+            }
+        }
+    }
     
     //MARK: - Private properties
     private var rowsInfo: [RowInfo]!
@@ -106,8 +153,18 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         else if context.invalidateEverything || context.invalidateDataSourceCounts {
             fixRowsList()
         }
-        else if (info as? String) == kInvalidateHeaderForPreferredHeight {
-            updateRows(forHeader: true)
+        else if let invalidationStr = info as? String {
+            switch invalidationStr {
+            case kInvalidateForEstimatedHeightChange:
+                updateRowsUsingEstimatedHeight()
+            case kInvalidateHeaderForPreferredHeight:
+                updateRows(forHeader: true)
+            case kInvalidateForSectionInsets:
+                updateAllRowsForSectionInsetsChange()
+            case kInvalidateForInteritemSpacing:
+                updateAllRowsOriginY()
+            default: break
+            }
         }
         else if let itemIndexPath = info as? IndexPath {
             updateRows(forIndexPath: itemIndexPath)
@@ -129,12 +186,49 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
+        if showTopGutter && sectionInsets.top != 0 {
+            let originY: CGFloat = headerInfo?.frame.maxY ?? 0
+            let topGutterFrame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: sectionInsets.top)
+            if rect.intersects(topGutterFrame) {
+                let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionTopGutter, with: IndexPath(item: 0, section: sectionIndex))
+                gutterAttributes.frame = topGutterFrame
+                gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                attributesInRect.append(gutterAttributes)
+            }
+        }
+        
         for row in 0 ..< numberOfItemsInSection {
             let rowInfo = rowsInfo[row]
             if rect.intersects(rowInfo.frame) {
                 attributesInRect.append(layoutAttributesForItem(at: IndexPath(item: row, section: sectionIndex))!)
             } else if rect.maxY < rowInfo.frame.minY {
                 break
+            }
+        }
+        
+        //DEBUG
+        showBottomGutter = true
+        if showBottomGutter && sectionInsets.bottom != 0 {
+            let maxY: CGFloat
+            if let footer = footerInfo {
+                maxY = footer.frame.minY
+            } else if let lastRowFrame = rowsInfo.last?.frame {
+                maxY = lastRowFrame.maxY
+            } else if let header = headerInfo {
+                maxY = header.frame.maxY
+            }
+            else {
+                maxY = 0
+            }
+            
+            let bottonGutterFrame = CGRect(x: 0, y: maxY - sectionInsets.bottom, width: collectionViewWidth, height: sectionInsets.bottom)
+            if rect.intersects(bottonGutterFrame) {
+                let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionBottomGutter, with: IndexPath(item: 0, section: sectionIndex))
+                gutterAttributes.frame = bottonGutterFrame
+                gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                attributesInRect.append(gutterAttributes)
             }
         }
         
@@ -178,6 +272,42 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         default:
             return nil
         }
+    }
+    
+    public func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        if elementKind == PuzzleCollectionElementKindSectionTopGutter {
+            if showTopGutter && sectionInsets.top != 0 {
+                let originY: CGFloat = headerInfo?.frame.maxY ?? 0
+                let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
+                gutterAttributes.frame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: sectionInsets.top)
+                gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                return gutterAttributes
+            }
+        }
+        else if elementKind == PuzzleCollectionElementKindSectionBottomGutter {
+            if showBottomGutter && sectionInsets.bottom != 0 {
+                let maxY: CGFloat
+                if let footer = footerInfo {
+                    maxY = footer.frame.minY
+                } else if let lastRowFrame = rowsInfo.last?.frame {
+                    maxY = lastRowFrame.maxY
+                } else if let header = headerInfo {
+                    maxY = header.frame.maxY
+                }
+                else {
+                    maxY = 0
+                }
+                
+                let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
+                gutterAttributes.frame = CGRect(x: 0, y: maxY - sectionInsets.bottom, width: collectionViewWidth, height: sectionInsets.bottom)
+                gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                return gutterAttributes
+            }
+        }
+        
+        return nil
     }
     
     //Bounds Invalidation
@@ -251,14 +381,10 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         return info
     }
     
-    //Section top & bottom gutters
-    public var topGutterHeight: CGFloat { return showTopGutter ? sectionInsets.top : 0 }
-    public var bottomGutterHeight: CGFloat { return showTopGutter ? sectionInsets.bottom : 0 }
-    // --------
-    
     //MARK: - 
     public func resetLayout() {
         if let ctx = self.invalidationContext(with: kInvalidateForResetLayout, for: self) {
+            ctx.invalidateSectionLayoutData = self
             parentLayout!.invalidateLayout(with: ctx)
         }
     }
@@ -346,8 +472,10 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             }
         }
         
-        lastOriginY -= interitemSpacing
-        lastOriginY += sectionInsets.bottom
+        if rowsInfo.isEmpty == false {
+            lastOriginY -= interitemSpacing
+            lastOriginY += sectionInsets.bottom
+        }
 
         // Update section footer if needed
         if estimatedFooterHeight != kEstimatedHeaderFooterHeightNone {
@@ -385,8 +513,10 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         
         if footerInfo != nil {
             //No need to make those computation if no footer
-            lastOriginY -= interitemSpacing
-            lastOriginY += sectionInsets.bottom
+            if rowsInfo.isEmpty == false {
+                lastOriginY -= interitemSpacing
+                lastOriginY += sectionInsets.bottom
+            }
             
             footerInfo!.frame.origin.y = lastOriginY
             if footerInfo!.estimatedHeight {
@@ -404,6 +534,51 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         }
         
         footerInfo?.frame.size.width = collectionViewWidth
+    }
+    
+    private func updateAllRowsOriginY() {
+        var lastOriginY = headerInfo?.frame.maxY ?? 0
+        lastOriginY += sectionInsets.top
+        
+        for row in 0 ..< rowsInfo.count {
+            rowsInfo[row].frame.origin.y = lastOriginY
+            lastOriginY += rowsInfo[row].frame.height + interitemSpacing
+        }
+        
+        if footerInfo != nil {
+            //No need to make those computation if no footer
+            if rowsInfo.isEmpty == false {
+                lastOriginY -= interitemSpacing
+                lastOriginY += sectionInsets.bottom
+            }
+            
+            footerInfo!.frame.origin.y = lastOriginY
+        }
+    }
+    
+    private func updateAllRowsForSectionInsetsChange() {
+        headerInfo?.frame.size.width = collectionViewWidth
+        let rowWidth = collectionViewWidth - (sectionInsets.left + sectionInsets.right)
+        
+        var lastOriginY = headerInfo?.frame.maxY ?? 0
+        lastOriginY += sectionInsets.top
+        
+        for row in 0 ..< rowsInfo.count {
+            rowsInfo[row].frame.size.width = rowWidth
+            rowsInfo[row].frame.origin.y = lastOriginY
+            lastOriginY += rowsInfo[row].frame.height + interitemSpacing
+        }
+        
+        if footerInfo != nil {
+            //No need to make those computation if no footer
+            if rowsInfo.isEmpty == false {
+                lastOriginY -= interitemSpacing
+                lastOriginY += sectionInsets.bottom
+            }
+            
+            footerInfo!.frame.origin.y = lastOriginY
+            footerInfo!.frame.size.width = collectionViewWidth
+        }
     }
     
     private func updateRows(forIndexPath indexPath: IndexPath? = nil, forHeader invalidateHeader: Bool = false) {
@@ -467,3 +642,5 @@ fileprivate struct RowInfo: CustomStringConvertible {
 private let kInvalidateForResetLayout = "reset"
 private let kInvalidateForEstimatedHeightChange = "estimatedHeight"
 private let kInvalidateHeaderForPreferredHeight = "Invalidate_Header"
+private let kInvalidateForSectionInsets = "Invalidate_SectionInsets"
+private let kInvalidateForInteritemSpacing = "Invalidate_InteritemSpacing"

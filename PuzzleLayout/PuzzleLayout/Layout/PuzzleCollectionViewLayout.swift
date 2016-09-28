@@ -13,11 +13,11 @@ final public class PuzzleCollectionViewLayoutInvalidationContext : UICollectionV
     fileprivate var invalidationInfo: [Int:Any] = [:]
     public let invalidateSectionsLayout: Bool
     public let invalidateForWidthChange: Bool
+    public var invalidateSectionLayoutData: PuzzlePieceSectionLayout? = nil
     
     override init() {
         self.invalidateSectionsLayout = false
         self.invalidateForWidthChange = false
-        
         super.init()
     }
     
@@ -40,11 +40,15 @@ final public class PuzzleCollectionViewLayoutInvalidationContext : UICollectionV
         self.invalidationInfo = invalidationInfo
         super.init()
     }
+    
+    //TODO: implement copy with zone
 }
 
 final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayoutAttributes {
     var cachedSize: CGSize? = nil
     var info: Any? = nil
+    
+    //TODO: implement copy with zone
 }
 
 //MARK: - CollectionViewDataSourcePuzzleLayout
@@ -67,7 +71,7 @@ extension PuzzlePieceSectionLayout {
         return parentLayout?.collectionView?.traitCollection ?? UITraitCollection(traitsFrom: [UITraitCollection(horizontalSizeClass: .unspecified),UITraitCollection(verticalSizeClass: .unspecified)])
     }
     
-    func invalidationContext(with info: Any, for layout: PuzzlePieceSectionLayout) -> PuzzleCollectionViewLayoutInvalidationContext? {
+    fileprivate func sectionIndex(for layout: PuzzlePieceSectionLayout) -> Int? {
         guard let parentLayout = parentLayout else {
             return nil
         }
@@ -79,10 +83,50 @@ extension PuzzlePieceSectionLayout {
             return nil
         }
         
+        return sectionIndex
+    }
+    
+    func invalidationContext(with info: Any?, for layout: PuzzlePieceSectionLayout) -> PuzzleCollectionViewLayoutInvalidationContext? {
+        guard let sectionIndex = sectionIndex(for: layout) else {
+            return nil
+        }
+        
         return PuzzleCollectionViewLayoutInvalidationContext(invalidationInfo: [sectionIndex:info])
     }
     
-    //TODO: add function to invalidate seprator line for section
+    func invalidationContextForSeparatorLines(of layout: PuzzlePieceSectionLayout) -> PuzzleCollectionViewLayoutInvalidationContext? {
+        guard let sectionIndex = sectionIndex(for: layout) else {
+            return nil
+        }
+        
+        let layoutInfo = parentLayout!.sectionsLayoutInfo[sectionIndex]
+        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+        ctx.invalidateSectionLayoutData = layout
+        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<layoutInfo.numberOfItemsInSection!))
+        return ctx
+    }
+    
+    func invalidationContextForTopGutter(of layout: PuzzlePieceSectionLayout) -> PuzzleCollectionViewLayoutInvalidationContext? {
+        guard let sectionIndex = sectionIndex(for: layout) else {
+            return nil
+        }
+        
+        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+        ctx.invalidateSectionLayoutData = layout
+        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSectionTopGutter, at: [IndexPath(item: 0, section: sectionIndex)])
+        return ctx
+    }
+    
+    func invalidationContextForBottomGutter(of layout: PuzzlePieceSectionLayout) -> PuzzleCollectionViewLayoutInvalidationContext? {
+        guard let sectionIndex = sectionIndex(for: layout) else {
+            return nil
+        }
+        
+        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+        ctx.invalidateSectionLayoutData = layout
+        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSectionBottomGutter, at: [IndexPath(item: 0, section: sectionIndex)])
+        return ctx
+    }
 }
 
 
@@ -92,9 +136,10 @@ extension PuzzlePieceSectionLayout {
 
 //MARK: - PuzzleCollectionViewLayout
 private let PuzzleCollectionElementKindSeparatorLine = "!_SeparatorLine_!"
-private let PuzzleCollectionElementKindSectionTopGutter = "!_SectionTopGutter_!"
-private let PuzzleCollectionElementKindSectionBottomGutter = "!_SectionBottomGutter_!"
-private let PuzzleCollectionColoredViewZIndex = 2
+public let PuzzleCollectionElementKindSectionTopGutter = "!_SectionTopGutter_!"
+public let PuzzleCollectionElementKindSectionBottomGutter = "!_SectionBottomGutter_!"
+public let PuzzleCollectionColoredViewZIndex = 2
+public let PuzzleCollectionColoredViewColorKey = "!_BackgroundColor_!"
 
 public let PuzzleCollectionElementKindSectionHeader: String = UICollectionElementKindSectionHeader
 public let PuzzleCollectionElementKindSectionFooter: String = UICollectionElementKindSectionFooter
@@ -162,6 +207,13 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         if ctx.invalidateEverything || ctx.invalidateDataSourceCounts || ctx.invalidateSectionsLayout {
             prepareSectionsLayout()
         }
+        else if let layoutToInvalidate = ctx.invalidateSectionLayoutData {
+            if let index = sectionsLayoutInfo.index(where: { (info:SectionInfo) -> Bool in
+                return layoutToInvalidate === info.layout
+            }) {
+                sectionsLayoutInfo[index].updateSectionInfo()
+            }
+        }
         
         let invalidationInfo: [Int:Any]? = ctx.invalidationInfo
         for sectionInfo in sectionsLayoutInfo {
@@ -217,12 +269,10 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSeparatorLine, with: item.indexPath)
                                 separatorLine.frame = separatorFrame
                                 separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
-                                separatorLine.info = layoutInfo.separatorLineColor
+                                separatorLine.info = [PuzzleCollectionColoredViewColorKey : layoutInfo.separatorLineColor]
                                 attributes.append(separatorLine)
                             }
                         }
-                        
-                        //TODO: add gutters if needed
                     }
                 }
             }
@@ -279,18 +329,10 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
                 separatorLine.frame = CGRect(x: item.frame.minX + layoutInfo.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layoutInfo.separatorLineInsets.left + layoutInfo.separatorLineInsets.right), height: 0.5)
                 separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
-                separatorLine.info = layoutInfo.separatorLineColor
+                separatorLine.info = [PuzzleCollectionColoredViewColorKey : layoutInfo.separatorLineColor]
                 return separatorLine
             }
             else { return nil }
-        }
-        else if elementKind == PuzzleCollectionElementKindSectionTopGutter {
-            //TODO: Implement me
-            return nil
-        }
-        else if elementKind == PuzzleCollectionElementKindSectionBottomGutter {
-            //TODO: Implement me
-            return nil
         }
         else {
             let layoutInfo = sectionsLayoutInfo[indexPath.section]
@@ -528,8 +570,6 @@ fileprivate struct SectionInfo  {
     var separatorLineType: PuzzlePieceSeparatorLineStyle = .none
     var separatorLineInsets: UIEdgeInsets = .zero
     var separatorLineColor: UIColor?
-    var topGutterColor: UIColor?
-    var bottomGutterColor: UIColor?
     
     var sectionIndex: Int!
     var numberOfItemsInSection: Int!
@@ -546,7 +586,10 @@ fileprivate struct SectionInfo  {
     mutating func update(withSectionIndex sectionIndex: Int, numberOfItemsInSection: Int) {
         self.sectionIndex = sectionIndex
         self.numberOfItemsInSection = numberOfItemsInSection
-        
+        updateSectionInfo()
+    }
+    
+    mutating func updateSectionInfo() {
         self.separatorLineType = layout.separatorLineStyle
         self.separatorLineColor = layout.separatorLineColor
         if self.separatorLineType == .none {
@@ -555,9 +598,6 @@ fileprivate struct SectionInfo  {
         else {
             self.separatorLineInsets = layout.separatorLineInsets
         }
-        
-        self.topGutterColor = layout.topGutterColor
-        self.bottomGutterColor = layout.bottomGutterColor
     }
     
     var isNull: Bool {
@@ -573,7 +613,13 @@ fileprivate struct InvalidationInfoForBoundsChange {
 
 fileprivate class ColoredDecorationView : UICollectionReusableView {
     fileprivate override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
-        
-        backgroundColor = (layoutAttributes as? PuzzleCollectionViewLayoutAttributes)?.info as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
+        let dict = (layoutAttributes as! PuzzleCollectionViewLayoutAttributes).info as? [AnyHashable:Any]
+        backgroundColor = dict?[PuzzleCollectionColoredViewColorKey] as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
+    }
+}
+
+fileprivate extension IndexPath {
+    static func indexPaths(for section: Int, itemsRange: CountableRange<Int>) -> [IndexPath] {
+        return itemsRange.map({ item -> IndexPath in return IndexPath(item: item, section: section) })
     }
 }

@@ -114,7 +114,7 @@ class Cell : UICollectionViewCell {
     private var widthLayout: NSLayoutConstraint!
     override func systemLayoutSizeFitting(_ targetSize: CGSize) -> CGSize {
         if widthLayout == nil {
-            widthLayout = self.contentView.widthAnchor.constraint(equalToConstant: targetSize.width)
+            widthLayout = self.widthAnchor.constraint(equalToConstant: targetSize.width)
         }
         else {
             widthLayout.constant = targetSize.width

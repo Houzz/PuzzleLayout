@@ -10,10 +10,9 @@ import UIKit
 
 public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
 
-@objc public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
+public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 
-    public var sectionSeparatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem //TODO: invalidate
-    public var sectionSeparatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) //TODO: invalidate
+    public var identifier: String?
     
     public var sectionInsets = UIEdgeInsets.zero //TODO: invalidate
     public var interitemSpacing: CGFloat = 0 //TODO: invalidate
@@ -50,6 +49,12 @@ public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
         }
     }
     
+    public var separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem //TODO: invalidate
+    public var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) //TODO: invalidate
+    public var showTopGutter: Bool = false //TODO: invalidate
+    public var showBottomGutter: Bool = false //TODO: invalidate
+    
+    //MARK: - Private properties
     private var rowsInfo: [RowInfo]!
     private var headerInfo: RowInfo?
     private var footerInfo: RowInfo?
@@ -70,10 +75,9 @@ public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
     }
     
     //MARK: - PuzzlePieceSectionLayout
-    public var identifier: String?
     public weak var parentLayout: PuzzleCollectionViewLayout?
     
-    @objc public var heightOfSection: CGFloat {
+    public var heightOfSection: CGFloat {
         var maxY: CGFloat = 0
         if let footer = footerInfo {
             maxY = footer.frame.maxY
@@ -86,7 +90,7 @@ public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
         return maxY
     }
     
-    @objc public func prepare(for numberOfItemsInSection: Int, withInvalidation context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {
+    public func prepare(for numberOfItemsInSection: Int, withInvalidation context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {
         
         self.numberOfItemsInSection = numberOfItemsInSection
         if (info as? String) == kInvalidateForResetLayout {
@@ -115,7 +119,7 @@ public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
         }
     }
     
-    @objc public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
+    public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
         var attributesInRect = [PuzzleCollectionViewLayoutAttributes]()
         guard numberOfItemsInSection != 0 else {
             return []
@@ -141,7 +145,7 @@ public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
         return attributesInRect
     }
     
-    @objc public func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+    public func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         let rowInfo = rowsInfo[indexPath.item]
         let itemAttributes = PuzzleCollectionViewLayoutAttributes(forCellWith: indexPath)
         itemAttributes.frame = rowInfo.frame
@@ -151,7 +155,7 @@ public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
         return itemAttributes
     }
     
-    @objc public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+    public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         switch elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let headerInfo = headerInfo {
@@ -247,14 +251,10 @@ public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
         return info
     }
     
-    //Seprator line
-    @objc public var separatorLineStyle: PuzzlePieceSeparatorLineStyle {
-        return sectionSeparatorLineStyle
-    }
-    
-    @objc public var separatorLineInsets: UIEdgeInsets {
-        return sectionSeparatorLineInsets
-    }
+    //Section top & bottom gutters
+    public var topGutterHeight: CGFloat { return showTopGutter ? sectionInsets.top : 0 }
+    public var bottomGutterHeight: CGFloat { return showTopGutter ? sectionInsets.bottom : 0 }
+    // --------
     
     //MARK: - 
     public func resetLayout() {

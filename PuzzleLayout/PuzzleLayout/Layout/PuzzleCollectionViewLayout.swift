@@ -48,7 +48,7 @@ final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayout
 }
 
 //MARK: - CollectionViewDataSourcePuzzleLayout
-@objc protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
+protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, collectionViewLayout layout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout
 }
 
@@ -166,7 +166,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let invalidationInfo: [Int:Any]? = ctx.invalidationInfo
         for sectionInfo in sectionsLayoutInfo {
             let index = sectionInfo.sectionIndex!
-            sectionInfo.layout.prepare?(for: sectionInfo.numberOfItemsInSection!, withInvalidation: ctx, and: invalidationInfo?[index])
+            sectionInfo.layout.prepare(for: sectionInfo.numberOfItemsInSection!, withInvalidation: ctx, and: invalidationInfo?[index])
         }
         
         super.invalidateLayout(with: context)
@@ -200,7 +200,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 var items: [PuzzleCollectionViewLayoutAttributes]
                 
                 //"layoutAttributesForElements(atSection:in:) is required when 'dataRequiredForLayoutAttributes' == .none"
-                items = layout.layoutAttributesForElements!(in: rectInSectionBounds, sectionIndex: sectionIndex)
+                items = layout.layoutAttributesForElements(in: rectInSectionBounds, sectionIndex: sectionIndex)
                 if items.isEmpty == false {
                     //Update for each layout attributes its origin Y
                     for item in items {
@@ -248,7 +248,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let layoutInfo = sectionsLayoutInfo[indexPath.section]
         let layout = layoutInfo.layout
         
-        if let item = layout.layoutAttributesForItem!(at: indexPath) {
+        if let item = layout.layoutAttributesForItem(at: indexPath) {
             let lastY = self.lastY(forSectionAt: indexPath.section)
             item.center.y += lastY
             return item
@@ -261,7 +261,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let layoutInfo = sectionsLayoutInfo[indexPath.section]
         let layout = layoutInfo.layout
         
-        if let item = layout.layoutAttributesForSupplementaryView!(ofKind: elementKind, at: indexPath) {
+        if let item = layout.layoutAttributesForSupplementaryView(ofKind: elementKind, at: indexPath) {
             let lastY = self.lastY(forSectionAt: indexPath.section)
             item.center.y += lastY
             return item
@@ -296,7 +296,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             let layoutInfo = sectionsLayoutInfo[indexPath.section]
             let layout = layoutInfo.layout
             
-            if let item = layout.layoutAttributesForDecorationView!(ofKind: elementKind, at: indexPath) {
+            if let item = layout.layoutAttributesForDecorationView(ofKind: elementKind, at: indexPath) {
                 let lastY = self.lastY(forSectionAt: indexPath.section)
                 item.center.y += lastY
                 return item
@@ -324,7 +324,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             var invalidationInfo = InvalidationInfoForBoundsChange()
             for sectionInfo in sectionsLayoutInfo {
                 let layout = sectionInfo.layout
-                guard (layout.mayRequireInvalidationOnOriginChange?() ?? false) else {
+                guard layout.mayRequireInvalidationOnOriginChange() else {
                     continue
                 }
                 
@@ -396,14 +396,14 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         
         //Check if the section layout which generate 'originalAttributes' want to invalidate it for 'preferredAttributes'
         let layoutInfo = sectionsLayoutInfo[originalAttributes.indexPath.section]
-        return layoutInfo.layout.shouldInvalidate?(forPreferredAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) ?? false
+        return layoutInfo.layout.shouldInvalidate(forPreferredAttributes: preferredAttributes, withOriginalAttributes: originalAttributes)
     }
     
     override public func invalidationContext(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutInvalidationContext {
         let ctx = super.invalidationContext(forPreferredLayoutAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) as! PuzzleCollectionViewLayoutInvalidationContext
         let sectionIndex = originalAttributes.indexPath.section
         let layoutInfo = sectionsLayoutInfo[sectionIndex]
-        if let info = layoutInfo.layout.invalidationInfo?(forPreferredAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) {
+        if let info = layoutInfo.layout.invalidationInfo(forPreferredAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) {
             ctx.invalidationInfo[sectionIndex] = info
         }
         return ctx
@@ -547,13 +547,13 @@ fileprivate struct SectionInfo  {
         self.sectionIndex = sectionIndex
         self.numberOfItemsInSection = numberOfItemsInSection
         
-        self.separatorLineType = layout.separatorLineStyle ?? .none
+        self.separatorLineType = layout.separatorLineStyle
         self.separatorLineColor = layout.separatorLineColor
         if self.separatorLineType == .none {
             self.separatorLineInsets = .zero
         }
         else {
-            self.separatorLineInsets = layout.separatorLineInsets ?? UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0)
+            self.separatorLineInsets = layout.separatorLineInsets
         }
         
         self.topGutterColor = layout.topGutterColor

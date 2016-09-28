@@ -87,12 +87,8 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     let backgrounds: [UIColor] = [
         .red,
         .green,
-        .blue,
         .cyan,
-        .yellow,
-        .magenta,
-        .orange,
-        .purple
+        .gray
     ]
     
     //MARK: - CollectionViewDataSourcePuzzleLayout
@@ -101,7 +97,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     }
 }
 
-@objc class Cell : UICollectionViewCell {
+class Cell : UICollectionViewCell {
     @IBOutlet weak var lbl: UILabel!
     
     var indexPath: IndexPath?
@@ -131,7 +127,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     }
 }
 
-@objc class HeaderFooter : UICollectionReusableView {
+class HeaderFooter : UICollectionReusableView {
     @IBOutlet weak var lbl: UILabel!
 }
 

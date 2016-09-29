@@ -350,16 +350,18 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         var info: Any? = nil
         switch elementCategory {
         case .cell(let indexPath):
-            let rowInfo = rowsInfo[indexPath.item]
-            rowsInfo[indexPath.item] = RowInfo(estimatedHeight: false, frame: CGRect(origin: rowInfo.frame.origin, size: preferredSize))
+            rowsInfo[indexPath.item].frame.size = preferredSize
+            rowsInfo[indexPath.item].estimatedHeight = false
             info = indexPath
         case .supplementaryView(_, let elementKind):
             if elementKind == UICollectionElementKindSectionHeader {
-                headerInfo = RowInfo(estimatedHeight: false, frame: CGRect(origin: headerInfo!.frame.origin, size: preferredSize))
+                headerInfo!.frame.size = preferredSize
+                headerInfo!.estimatedHeight = false
                 info = kInvalidateHeaderForPreferredHeight
             }
             else if elementKind == UICollectionElementKindSectionFooter {
-                footerInfo = RowInfo(estimatedHeight: false, frame: CGRect(origin: footerInfo!.frame.origin, size: preferredSize))
+                footerInfo!.frame.size = preferredSize
+                footerInfo!.estimatedHeight = false
             }
             
         default: break
@@ -513,14 +515,22 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     }
     
     private func updateAllRowsWidth() {
-        headerInfo?.frame.size.width = collectionViewWidth
+        if headerInfo != nil {
+            headerInfo!.frame.size.width = collectionViewWidth
+            headerInfo!.estimatedHeight = true
+        }
+        
         let rowWidth = collectionViewWidth - (sectionInsets.left + sectionInsets.right)
         
         for row in 0 ..< rowsInfo.count {
             rowsInfo[row].frame.size.width = rowWidth
+            rowsInfo[row].estimatedHeight = true
         }
         
-        footerInfo?.frame.size.width = collectionViewWidth
+        if footerInfo != nil {
+            footerInfo!.frame.size.width = collectionViewWidth
+            footerInfo?.estimatedHeight = true
+        }
     }
     
     private func updateAllRowsOriginY() {
@@ -618,7 +628,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 
 //MARK: - Utils
 fileprivate struct RowInfo: CustomStringConvertible {
-    let estimatedHeight: Bool
+    var estimatedHeight: Bool
     var frame: CGRect
     
     var description: String {

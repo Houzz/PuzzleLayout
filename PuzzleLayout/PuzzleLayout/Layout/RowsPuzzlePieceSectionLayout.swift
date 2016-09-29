@@ -320,33 +320,22 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     }
     
     //PreferredAttributes Invalidation
-    public func shouldInvalidate(forPreferredAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
-        let indexPath = preferredAttributes.indexPath
-        let rowInfo: RowInfo?
-        switch preferredAttributes.representedElementCategory {
-        case .cell:
-            rowInfo = (indexPath.item < numberOfItemsInSection) ? rowsInfo[indexPath.item] : nil
-        case .supplementaryView:
-            if preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionHeader {
-                rowInfo = headerInfo
-            }
-            else if preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionFooter {
-                rowInfo = footerInfo
-            }
-            else { rowInfo = nil }
-        default:
-            rowInfo = nil
+    public func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
+        var shouldInvalidate = false
+        switch elementCategory {
+        case .cell(let indexPath):
+            shouldInvalidate = (indexPath.item < numberOfItemsInSection)
+        case .supplementaryView(_, let elementKind):
+            shouldInvalidate = (
+                (elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil)
+                || (elementKind == PuzzleCollectionElementKindSectionFooter && footerInfo != nil)
+                )
+        default: break
         }
         
-        if let rowInfo = rowInfo {
-            if preferredAttributes.frame.minX < 0 {
-                return false
-            }
-            
-            preferredAttributes.frame.origin.x = sectionInsets.left
-            if originalAttributes.frame.height != preferredAttributes.frame.height {
-                preferredAttributes.frame.size.width = collectionViewWidth - (sectionInsets.left + sectionInsets.right)
-                preferredAttributes.frame.origin = CGPoint(x: sectionInsets.left, y: rowInfo.frame.minY)
+        if shouldInvalidate {
+            if originalSize.height != preferredSize.height {
+                preferredSize.width = originalSize.width
                 return true
             }
             else {
@@ -356,23 +345,21 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         else { return false }
     }
 
-    public func invalidationInfo(forPreferredAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Any? {
+    public func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
         
-        let indexPath = preferredAttributes.indexPath
         var info: Any? = nil
-        switch preferredAttributes.representedElementCategory {
-        case .cell:
-            rowsInfo[indexPath.item] = RowInfo(estimatedHeight: false, frame: preferredAttributes.frame)
+        switch elementCategory {
+        case .cell(let indexPath):
+            let rowInfo = rowsInfo[indexPath.item]
+            rowsInfo[indexPath.item] = RowInfo(estimatedHeight: false, frame: CGRect(origin: rowInfo.frame.origin, size: preferredSize))
             info = indexPath
-            (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
-        case .supplementaryView:
-            if preferredAttributes.representedElementKind == UICollectionElementKindSectionHeader {
-                headerInfo = RowInfo(estimatedHeight: false, frame: preferredAttributes.frame)
+        case .supplementaryView(_, let elementKind):
+            if elementKind == UICollectionElementKindSectionHeader {
+                headerInfo = RowInfo(estimatedHeight: false, frame: CGRect(origin: headerInfo!.frame.origin, size: preferredSize))
                 info = kInvalidateHeaderForPreferredHeight
-                (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
-            } else if preferredAttributes.representedElementKind == UICollectionElementKindSectionFooter {
-                footerInfo = RowInfo(estimatedHeight: false, frame: preferredAttributes.frame)
-                (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
+            }
+            else if elementKind == UICollectionElementKindSectionFooter {
+                footerInfo = RowInfo(estimatedHeight: false, frame: CGRect(origin: footerInfo!.frame.origin, size: preferredSize))
             }
             
         default: break

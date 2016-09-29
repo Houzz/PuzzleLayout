@@ -440,17 +440,42 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             }
         }
         
-        
         //Check if the section layout which generate 'originalAttributes' want to invalidate it for 'preferredAttributes'
         let layoutInfo = sectionsLayoutInfo[originalAttributes.indexPath.section]
-        return layoutInfo.layout.shouldInvalidate(forPreferredAttributes: preferredAttributes, withOriginalAttributes: originalAttributes)
+        let invalidationType: InvalidationElementCategory
+        switch preferredAttributes.representedElementCategory {
+        case .cell:
+            invalidationType = .cell(indexPath: originalAttributes.indexPath)
+        case .supplementaryView:
+            invalidationType = .supplementaryView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+        case .decorationView:
+            invalidationType = .decorationView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+        }
+        
+        if layoutInfo.layout.shouldInvalidate(for: invalidationType, forPreferredSize: &preferredAttributes.size, withOriginalSize: originalAttributes.size) {
+            preferredAttributes.center = originalAttributes.center
+            return true
+        }
+        else { return false }
     }
     
     override public func invalidationContext(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutInvalidationContext {
         let ctx = super.invalidationContext(forPreferredLayoutAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) as! PuzzleCollectionViewLayoutInvalidationContext
         let sectionIndex = originalAttributes.indexPath.section
         let layoutInfo = sectionsLayoutInfo[sectionIndex]
-        if let info = layoutInfo.layout.invalidationInfo(forPreferredAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) {
+        
+        let invalidationType: InvalidationElementCategory
+        switch preferredAttributes.representedElementCategory {
+        case .cell:
+            invalidationType = .cell(indexPath: originalAttributes.indexPath)
+        case .supplementaryView:
+            invalidationType = .supplementaryView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+        case .decorationView:
+            invalidationType = .decorationView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+        }
+        
+        (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
+        if let info = layoutInfo.layout.invalidationInfo(for: invalidationType, forPreferredSize: preferredAttributes.size, withOriginalSize: originalAttributes.size) {
             ctx.invalidationInfo[sectionIndex] = info
         }
         return ctx

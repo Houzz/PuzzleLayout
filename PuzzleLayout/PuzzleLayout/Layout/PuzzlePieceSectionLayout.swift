@@ -14,6 +14,14 @@ public enum PuzzlePieceSeparatorLineStyle : Int {
     case all
 }
 
+public enum InvalidationElementCategory {
+    case cell(indexPath: IndexPath)
+    
+    case supplementaryView(indexPath: IndexPath, elementKind: String)
+    
+    case decorationView(indexPath: IndexPath, elementKind: String)
+}
+
 public protocol PuzzlePieceSectionLayout : NSObjectProtocol {
     ///Can used to reuse layouts
     var identifier: String? { get }
@@ -36,8 +44,8 @@ public protocol PuzzlePieceSectionLayout : NSObjectProtocol {
     // --------
     
     //Item attributes invalidation
-    func shouldInvalidate(forPreferredAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool
-    func invalidationInfo(forPreferredAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Any?
+    func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool
+    func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any?
     // --------
     
     //Seprator line
@@ -64,8 +72,8 @@ extension PuzzlePieceSectionLayout {
     // --------
     
     //Item attributes invalidation
-    public func shouldInvalidate(forPreferredAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool { return false }
-    public func invalidationInfo(forPreferredAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Any? { return nil }
+    public func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool { return false }
+    public func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? { return nil }
     // --------
     
     //Seprator line

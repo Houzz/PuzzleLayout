@@ -101,20 +101,28 @@ class Cell : UICollectionViewCell {
     @IBOutlet weak var lbl: UILabel!
     
     var indexPath: IndexPath?
+    private var cachedSize: CGSize?
+    
     override func prepareForReuse() {
-        super.prepareForReuse()
+        cachedSize = nil
         indexPath = nil
+        super.prepareForReuse()
     }
     
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
         indexPath = layoutAttributes.indexPath
+        cachedSize = (layoutAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize
     }
     
     private var widthLayout: NSLayoutConstraint!
     override func systemLayoutSizeFitting(_ targetSize: CGSize) -> CGSize {
+        if let cachedSize = cachedSize , cachedSize.width == targetSize.width {
+            return cachedSize
+        }
+        
         if widthLayout == nil {
-            widthLayout = self.widthAnchor.constraint(equalToConstant: targetSize.width)
+            widthLayout = self.contentView.widthAnchor.constraint(equalToConstant: targetSize.width)
         }
         else {
             widthLayout.constant = targetSize.width

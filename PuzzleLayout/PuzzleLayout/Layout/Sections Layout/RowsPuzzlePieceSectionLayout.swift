@@ -16,7 +16,11 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var sectionInsets = UIEdgeInsets.zero {
         didSet {
-            if let ctx = invalidationContext(with: kInvalidateForSectionInsets, for: self) {
+            if let ctx = self.invalidationContext {
+                
+            }
+            
+            if let ctx = invalidationContext(with: kInvalidateForSectionInsets) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -27,7 +31,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var interitemSpacing: CGFloat = 0 {
         didSet {
-            if let ctx = invalidationContext(with: kInvalidateForInteritemSpacing, for: self) {
+            if let ctx = invalidationContext(with: kInvalidateForInteritemSpacing) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -38,7 +42,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var estimatedItemHeight: CGFloat = 44 {
         didSet {
-            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange, for: self) {
+            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -49,7 +53,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 
     public var estimatedHeaderHeight: CGFloat = kEstimatedHeaderFooterHeightNone {
         didSet {
-            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange, for: self) {
+            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -60,7 +64,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var estimatedFooterHeight: CGFloat = kEstimatedHeaderFooterHeightNone {
         didSet {
-            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange, for: self) {
+            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -71,7 +75,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem {
         didSet {
-            if let ctx = self.invalidationContextForSeparatorLines(of: self) {
+            if let ctx = self.invalidationContextForSeparatorLines {
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }
@@ -79,7 +83,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 
     public var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) {
         didSet {
-            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines(of: self) {
+            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines {
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }
@@ -87,7 +91,9 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var showTopGutter: Bool = false {
         didSet {
-            if sectionInsets.top != 0, let ctx = self.invalidationContextForTopGutter(of: self) {
+            if sectionInsets.top != 0, let ctx = self.invalidationContext {
+                ctx.invalidateSectionLayoutData = self
+                ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSectionTopGutter, at: [indexPath(forIndex: 0)!])
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }
@@ -95,7 +101,9 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var showBottomGutter: Bool = false {
         didSet {
-            if sectionInsets.bottom != 0, let ctx = self.invalidationContextForBottomGutter(of: self) {
+            if sectionInsets.bottom != 0, let ctx = self.invalidationContext {
+                ctx.invalidateSectionLayoutData = self
+                ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSectionBottomGutter, at: [indexPath(forIndex: 0)!])
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }
@@ -372,7 +380,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     //MARK: - 
     public func resetLayout() {
-        if let ctx = self.invalidationContext(with: kInvalidateForResetLayout, for: self) {
+        if let ctx = self.invalidationContext(with: kInvalidateForResetLayout) {
             ctx.invalidateSectionLayoutData = self
             parentLayout!.invalidateLayout(with: ctx)
         }

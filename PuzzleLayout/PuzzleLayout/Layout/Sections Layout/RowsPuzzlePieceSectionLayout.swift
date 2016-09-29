@@ -16,10 +16,6 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var sectionInsets = UIEdgeInsets.zero {
         didSet {
-            if let ctx = self.invalidationContext {
-                
-            }
-            
             if let ctx = invalidationContext(with: kInvalidateForSectionInsets) {
                 parentLayout!.invalidateLayout(with: ctx)
             }

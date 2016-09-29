@@ -13,87 +13,6 @@ protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, collectionViewLayout layout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout
 }
 
-//MARK: - SectionPuzzleLayout extension
-extension PuzzlePieceSectionLayout {
-    var sectionWidth: CGFloat {
-        if let collectionView = parentLayout?.collectionView {
-            return collectionView.bounds.width - collectionView.contentInset.left - collectionView.contentInset.right
-        }
-        else {
-            return 0
-        }
-    }
-    
-    var traitCollection: UITraitCollection {
-        return parentLayout?.collectionView?.traitCollection ?? UITraitCollection(traitsFrom: [UITraitCollection(horizontalSizeClass: .unspecified),UITraitCollection(verticalSizeClass: .unspecified)])
-    }
-    
-    func indexPath(forIndex index: Int) -> IndexPath? {
-        guard let sectionIndex = sectionIndex else {
-            return nil
-        }
-        
-        return IndexPath(item: index, section: sectionIndex)
-    }
-    
-    fileprivate var sectionIndex: Int? {
-        guard let parentLayout = parentLayout else {
-            return nil
-        }
-        
-        guard let sectionIndex = parentLayout.sectionsLayoutInfo.index(where: { (info:SectionInfo) -> Bool in
-            return self === info.layout
-        }) else {
-            print("Can't create invalidation context before layout was placed on 'PuzzleCollectionViewLayout'")
-            return nil
-        }
-        
-        return sectionIndex
-    }
-    
-    var invalidationContext: PuzzleCollectionViewLayoutInvalidationContext? {
-        guard let _ = parentLayout else { return nil }
-        
-        return PuzzleCollectionViewLayoutInvalidationContext()
-    }
-    
-    func invalidationContext(with info: Any) -> PuzzleCollectionViewLayoutInvalidationContext? {
-        guard let sectionIndex = sectionIndex else {
-            return nil
-        }
-        
-        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
-        ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
-        return ctx
-    }
-    
-    @discardableResult
-    func setInvalidationInfo(_ info: Any?, at context: PuzzleCollectionViewLayoutInvalidationContext) -> Bool {
-        guard let sectionIndex = sectionIndex else {
-            return false
-        }
-        context.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
-        return true
-    }
-    
-    var invalidationContextForSeparatorLines: PuzzleCollectionViewLayoutInvalidationContext? {
-        guard let sectionIndex = sectionIndex else {
-            return nil
-        }
-        
-        let layoutInfo = parentLayout!.sectionsLayoutInfo[sectionIndex]
-        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
-        ctx.invalidateSectionLayoutData = self
-        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<layoutInfo.numberOfItemsInSection!))
-        return ctx
-    }
-}
-
-
-
-
-
-
 //MARK: - PuzzleCollectionViewLayout
 public let PuzzleCollectionElementKindSeparatorLine = "!_SeparatorLine_!"
 public let PuzzleCollectionElementKindSectionTopGutter = "!_SectionTopGutter_!"
@@ -607,5 +526,82 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
     fileprivate override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         let dict = (layoutAttributes as! PuzzleCollectionViewLayoutAttributes).info as? [AnyHashable:Any]
         backgroundColor = dict?[PuzzleCollectionColoredViewColorKey] as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
+    }
+}
+
+
+//MARK: - SectionPuzzleLayout extension
+extension PuzzlePieceSectionLayout {
+    var sectionWidth: CGFloat {
+        if let collectionView = parentLayout?.collectionView {
+            return collectionView.bounds.width - collectionView.contentInset.left - collectionView.contentInset.right
+        }
+        else {
+            return 0
+        }
+    }
+    
+    var traitCollection: UITraitCollection {
+        return parentLayout?.collectionView?.traitCollection ?? UITraitCollection(traitsFrom: [UITraitCollection(horizontalSizeClass: .unspecified),UITraitCollection(verticalSizeClass: .unspecified)])
+    }
+    
+    func indexPath(forIndex index: Int) -> IndexPath? {
+        guard let sectionIndex = sectionIndex else {
+            return nil
+        }
+        
+        return IndexPath(item: index, section: sectionIndex)
+    }
+    
+    fileprivate var sectionIndex: Int? {
+        guard let parentLayout = parentLayout else {
+            return nil
+        }
+        
+        guard let sectionIndex = parentLayout.sectionsLayoutInfo.index(where: { (info:SectionInfo) -> Bool in
+            return self === info.layout
+        }) else {
+            print("Can't create invalidation context before layout was placed on 'PuzzleCollectionViewLayout'")
+            return nil
+        }
+        
+        return sectionIndex
+    }
+    
+    var invalidationContext: PuzzleCollectionViewLayoutInvalidationContext? {
+        guard let _ = parentLayout else { return nil }
+        
+        return PuzzleCollectionViewLayoutInvalidationContext()
+    }
+    
+    func invalidationContext(with info: Any) -> PuzzleCollectionViewLayoutInvalidationContext? {
+        guard let sectionIndex = sectionIndex else {
+            return nil
+        }
+        
+        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+        ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
+        return ctx
+    }
+    
+    @discardableResult
+    func setInvalidationInfo(_ info: Any?, at context: PuzzleCollectionViewLayoutInvalidationContext) -> Bool {
+        guard let sectionIndex = sectionIndex else {
+            return false
+        }
+        context.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
+        return true
+    }
+    
+    var invalidationContextForSeparatorLines: PuzzleCollectionViewLayoutInvalidationContext? {
+        guard let sectionIndex = sectionIndex else {
+            return nil
+        }
+        
+        let layoutInfo = parentLayout!.sectionsLayoutInfo[sectionIndex]
+        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+        ctx.invalidateSectionLayoutData = self
+        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<layoutInfo.numberOfItemsInSection!))
+        return ctx
     }
 }

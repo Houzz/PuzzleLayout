@@ -71,7 +71,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     public var separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem {
         didSet {
-            if let ctx = self.invalidationContextForSeparatorLines {
+            if let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle, oldStyle: oldValue) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }
@@ -79,7 +79,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 
     public var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) {
         didSet {
-            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines {
+            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }

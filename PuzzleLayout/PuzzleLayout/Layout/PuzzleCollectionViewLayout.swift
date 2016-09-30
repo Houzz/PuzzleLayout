@@ -61,6 +61,26 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }).first?.layout
     }
     
+    public var separatorLineColor: UIColor? {
+        didSet {
+            let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+            for (sectionIndex, sectionInfo) in sectionsLayoutInfo.enumerated() {
+                switch sectionInfo.separatorLineType {
+                case .allButLastItem:
+                    if sectionInfo.numberOfItemsInSection > 0 {
+                        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<(sectionInfo.numberOfItemsInSection-1)))
+                    }
+                case .all:
+                    if sectionInfo.numberOfItemsInSection != 0 {
+                        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<sectionInfo.numberOfItemsInSection))
+                    }
+                default: break
+                }
+            }
+            invalidateLayout(with: ctx)
+        }
+    }
+    
     //MARK: - Override
     override public class var layoutAttributesClass : AnyClass {
         return PuzzleCollectionViewLayoutAttributes.self
@@ -96,10 +116,11 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             }
         }
         
-        let invalidationInfo: [Int:Any]? = ctx.invalidationInfo
+        let invalidationInfo = ctx.invalidationInfo
         for sectionInfo in sectionsLayoutInfo {
             let index = sectionInfo.sectionIndex!
-            sectionInfo.layout.prepare(for: sectionInfo.numberOfItemsInSection!, withInvalidation: ctx, and: invalidationInfo?[index])
+            //TODO: should update a section layout if none of ctx.invalidateEverything, ctx.invalidateDataSourceCounts, ctx.invalidateSectionsLayout is true & sectionInfo.numberOfItemsInSection hasn't change and no invalidationInfo[index] ?
+            sectionInfo.layout.prepare(for: sectionInfo.numberOfItemsInSection, withInvalidation: ctx, and: invalidationInfo[index])
         }
         
         super.invalidateLayout(with: context)
@@ -141,7 +162,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                         attributes.append(item)
                         
                         //Add separator lines if needed
-                        if item.representedElementCategory != .cell || layoutInfo.separatorLineType == .none || (layoutInfo.separatorLineType == .allButLastItem && item.indexPath.item + 1 == layoutInfo.numberOfItemsInSection!) {
+                        if item.representedElementCategory != .cell || layoutInfo.separatorLineType == .none || (layoutInfo.separatorLineType == .allButLastItem && item.indexPath.item + 1 == layoutInfo.numberOfItemsInSection) {
                             //No separator line
                         }
                         else {
@@ -150,7 +171,9 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSeparatorLine, with: item.indexPath)
                                 separatorLine.frame = separatorFrame
                                 separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
-                                separatorLine.info = [PuzzleCollectionColoredViewColorKey : layoutInfo.separatorLineColor]
+                                if let color = layoutInfo.separatorLineColor ?? separatorLineColor {
+                                    separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
+                                }
                                 attributes.append(separatorLine)
                             }
                         }
@@ -203,14 +226,16 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     public override func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         if elementKind == PuzzleCollectionElementKindSeparatorLine {
             let layoutInfo = sectionsLayoutInfo[indexPath.section]
-            if layoutInfo.separatorLineType == .none || (layoutInfo.separatorLineType == .allButLastItem && indexPath.item + 1 == layoutInfo.numberOfItemsInSection!) {
+            if layoutInfo.separatorLineType == .none || (layoutInfo.separatorLineType == .allButLastItem && indexPath.item + 1 == layoutInfo.numberOfItemsInSection) {
                 return nil
             }
             else if let item = layoutAttributesForItem(at: indexPath) {
                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
                 separatorLine.frame = CGRect(x: item.frame.minX + layoutInfo.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layoutInfo.separatorLineInsets.left + layoutInfo.separatorLineInsets.right), height: 0.5)
                 separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
-                separatorLine.info = [PuzzleCollectionColoredViewColorKey : layoutInfo.separatorLineColor]
+                if let color = layoutInfo.separatorLineColor ?? separatorLineColor {
+                    separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
+                }
                 return separatorLine
             }
             else { return nil }
@@ -329,7 +354,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }
         
         if layoutInfo.layout.shouldInvalidate(for: invalidationType, forPreferredSize: &preferredAttributes.size, withOriginalSize: originalAttributes.size) {
-            preferredAttributes.center = originalAttributes.center
+            preferredAttributes.frame.origin.y = originalAttributes.frame.origin.y
             return true
         }
         else { return false }
@@ -483,7 +508,7 @@ fileprivate struct SectionInfo  {
     var separatorLineColor: UIColor?
     
     var sectionIndex: Int!
-    var numberOfItemsInSection: Int!
+    var numberOfItemsInSection: Int = 0
     
     init(layout: PuzzlePieceSectionLayout, parentLayout: PuzzleCollectionViewLayout) {
         _layout = layout
@@ -532,7 +557,7 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
 
 //MARK: - SectionPuzzleLayout extension
 extension PuzzlePieceSectionLayout {
-    var sectionWidth: CGFloat {
+    public var sectionWidth: CGFloat {
         if let collectionView = parentLayout?.collectionView {
             return collectionView.bounds.width - collectionView.contentInset.left - collectionView.contentInset.right
         }
@@ -541,11 +566,11 @@ extension PuzzlePieceSectionLayout {
         }
     }
     
-    var traitCollection: UITraitCollection {
+    public var traitCollection: UITraitCollection {
         return parentLayout?.collectionView?.traitCollection ?? UITraitCollection(traitsFrom: [UITraitCollection(horizontalSizeClass: .unspecified),UITraitCollection(verticalSizeClass: .unspecified)])
     }
     
-    func indexPath(forIndex index: Int) -> IndexPath? {
+    public func indexPath(forIndex index: Int) -> IndexPath? {
         guard let sectionIndex = sectionIndex else {
             return nil
         }
@@ -568,13 +593,13 @@ extension PuzzlePieceSectionLayout {
         return sectionIndex
     }
     
-    var invalidationContext: PuzzleCollectionViewLayoutInvalidationContext? {
+    public var invalidationContext: PuzzleCollectionViewLayoutInvalidationContext? {
         guard let _ = parentLayout else { return nil }
         
         return PuzzleCollectionViewLayoutInvalidationContext()
     }
     
-    func invalidationContext(with info: Any) -> PuzzleCollectionViewLayoutInvalidationContext? {
+    public func invalidationContext(with info: Any) -> PuzzleCollectionViewLayoutInvalidationContext? {
         guard let sectionIndex = sectionIndex else {
             return nil
         }
@@ -585,7 +610,7 @@ extension PuzzlePieceSectionLayout {
     }
     
     @discardableResult
-    func setInvalidationInfo(_ info: Any?, at context: PuzzleCollectionViewLayoutInvalidationContext) -> Bool {
+    public func setInvalidationInfo(_ info: Any?, at context: PuzzleCollectionViewLayoutInvalidationContext) -> Bool {
         guard let sectionIndex = sectionIndex else {
             return false
         }
@@ -593,15 +618,30 @@ extension PuzzlePieceSectionLayout {
         return true
     }
     
-    var invalidationContextForSeparatorLines: PuzzleCollectionViewLayoutInvalidationContext? {
+    public func invalidationContextForSeparatorLines(for newStyle: PuzzlePieceSeparatorLineStyle, oldStyle: PuzzlePieceSeparatorLineStyle? = nil) -> PuzzleCollectionViewLayoutInvalidationContext? {
+        let _oldStyle = oldStyle ?? newStyle
+        if newStyle == _oldStyle && newStyle == .none {
+            return nil
+        }
+        
         guard let sectionIndex = sectionIndex else {
             return nil
         }
         
         let layoutInfo = parentLayout!.sectionsLayoutInfo[sectionIndex]
+        if layoutInfo.numberOfItemsInSection == 0 {
+            return nil
+        }
+        else if layoutInfo.numberOfItemsInSection == 1 {
+            if (_oldStyle == .none && newStyle == .allButLastItem) || (_oldStyle == .allButLastItem && newStyle == .none) {
+                return nil
+            }
+        }
+        
         let ctx = PuzzleCollectionViewLayoutInvalidationContext()
         ctx.invalidateSectionLayoutData = self
-        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<layoutInfo.numberOfItemsInSection!))
+        let numberOfItems = (newStyle == .all || _oldStyle == .all) ? layoutInfo.numberOfItemsInSection : (layoutInfo.numberOfItemsInSection - 1)
+        ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<numberOfItems))
         return ctx
     }
 }

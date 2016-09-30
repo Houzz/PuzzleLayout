@@ -51,7 +51,7 @@ public protocol PuzzlePieceSectionLayout : NSObjectProtocol {
     //Seprator line
     var separatorLineStyle: PuzzlePieceSeparatorLineStyle { get }
     var separatorLineInsets: UIEdgeInsets { get } ///If not implemented & separatorLineType != .none, left=15.
-    var separatorLineColor: UIColor { get } ///If not implemented & separatorLineType != .none, color=0xD6D6D6
+    var separatorLineColor: UIColor? { get } ///If not implemented & separatorLineType != .none, color=0xD6D6D6
     // --------
 }
 
@@ -79,6 +79,6 @@ extension PuzzlePieceSectionLayout {
     //Seprator line
     public var separatorLineStyle: PuzzlePieceSeparatorLineStyle { return .none }
     public var separatorLineInsets: UIEdgeInsets { return UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) }
-    public var separatorLineColor: UIColor { return UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1) }
+    public var separatorLineColor: UIColor? { return nil }
     // --------
 }

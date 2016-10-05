@@ -196,9 +196,13 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             if rect.intersects(topGutterFrame) {
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionTopGutter, with: IndexPath(item: 0, section: sectionIndex))
                 gutterAttributes.frame = topGutterFrame
-                if let separatorLineColor = separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                if let gutterColor = separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
+                else if let gutterColor = parentLayout?.separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
+                }
+                
                 gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
                 attributesInRect.append(gutterAttributes)
             }
@@ -232,9 +236,13 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             if rect.intersects(bottonGutterFrame) {
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionBottomGutter, with: IndexPath(item: 0, section: sectionIndex))
                 gutterAttributes.frame = bottonGutterFrame
-                if let separatorLineColor = separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                if let gutterColor = separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
+                else if let gutterColor = parentLayout?.separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
+                }
+                
                 gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
                 attributesInRect.append(gutterAttributes)
             }
@@ -288,9 +296,13 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
                 let originY: CGFloat = headerInfo?.frame.maxY ?? 0
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
                 gutterAttributes.frame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: sectionInsets.top)
-                if let separatorLineColor = separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                if let gutterColor = separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
+                else if let gutterColor = parentLayout?.separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
+                }
+                
                 gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
                 return gutterAttributes
             }
@@ -311,9 +323,13 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
                 
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
                 gutterAttributes.frame = CGRect(x: 0, y: maxY - sectionInsets.bottom, width: collectionViewWidth, height: sectionInsets.bottom)
-                if let separatorLineColor = separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : separatorLineColor]
+                if let gutterColor = separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
+                else if let gutterColor = parentLayout?.separatorLineColor {
+                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
+                }
+                
                 gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
                 return gutterAttributes
             }

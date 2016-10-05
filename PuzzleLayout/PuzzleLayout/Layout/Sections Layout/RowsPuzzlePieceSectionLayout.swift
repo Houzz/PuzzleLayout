@@ -129,11 +129,11 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     public var heightOfSection: CGFloat {
         var maxY: CGFloat = 0
         if let footer = footerInfo {
-            maxY = footer.frame.maxY
-        } else if let lastRowFrame = rowsInfo.last?.frame {
-            maxY = lastRowFrame.maxY + sectionInsets.bottom
+            maxY = footer.maxOriginY
+        } else if let lastItem = rowsInfo.last {
+            maxY = lastItem.maxOriginY + sectionInsets.bottom
         } else if let header = headerInfo {
-            maxY = header.frame.maxY + sectionInsets.bottom
+            maxY = header.maxOriginY + sectionInsets.bottom
         }
         
         return maxY
@@ -184,12 +184,12 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             return []
         }
         
-        if let headerInfo = headerInfo, headerInfo.frame.intersects(rect) {
+        if let headerInfo = headerInfo, headerInfo.intersects(with: rect) {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
         if showTopGutter && sectionInsets.top != 0 {
-            let originY: CGFloat = headerInfo?.frame.maxY ?? 0
+            let originY: CGFloat = headerInfo?.maxOriginY ?? 0
             let topGutterFrame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: sectionInsets.top)
             if rect.intersects(topGutterFrame) {
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionTopGutter, with: IndexPath(item: 0, section: sectionIndex))
@@ -208,9 +208,9 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         
         for row in 0 ..< numberOfItemsInSection {
             let rowInfo = rowsInfo[row]
-            if rect.intersects(rowInfo.frame) {
+            if rowInfo.intersects(with: rect) {
                 attributesInRect.append(layoutAttributesForItem(at: IndexPath(item: row, section: sectionIndex))!)
-            } else if rect.maxY < rowInfo.frame.minY {
+            } else if rect.maxY < rowInfo.originY {
                 break
             }
         }
@@ -218,11 +218,11 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         if showBottomGutter && sectionInsets.bottom != 0 {
             let maxY: CGFloat
             if let footer = footerInfo {
-                maxY = footer.frame.minY
-            } else if let lastRowFrame = rowsInfo.last?.frame {
-                maxY = lastRowFrame.maxY
+                maxY = footer.originY
+            } else if let lastItem = rowsInfo.last {
+                maxY = lastItem.maxOriginY
             } else if let header = headerInfo {
-                maxY = header.frame.maxY
+                maxY = header.maxOriginY
             }
             else {
                 maxY = 0
@@ -244,7 +244,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             }
         }
         
-        if let footerInfo = footerInfo, footerInfo.frame.intersects(rect) {
+        if let footerInfo = footerInfo, footerInfo.intersects(with: rect) {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
@@ -254,9 +254,10 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     public func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         let rowInfo = rowsInfo[indexPath.item]
         let itemAttributes = PuzzleCollectionViewLayoutAttributes(forCellWith: indexPath)
-        itemAttributes.frame = rowInfo.frame
+        let frame = CGRect(x: sectionInsets.left, y: rowInfo.originY, width: collectionViewWidth - (sectionInsets.left + sectionInsets.right), height: rowInfo.height)
+        itemAttributes.frame = frame
         if rowInfo.estimatedHeight == false {
-            itemAttributes.cachedSize = rowInfo.frame.size
+            itemAttributes.cachedSize = frame.size
         }
         return itemAttributes
     }
@@ -265,19 +266,21 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         switch elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let headerInfo = headerInfo {
-                let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath as IndexPath)
-                itemAttributes.frame = headerInfo.frame
+                let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
+                let frame = CGRect(x: 0, y: headerInfo.originY, width: collectionViewWidth, height: headerInfo.height)
+                itemAttributes.frame = frame
                 if headerInfo.estimatedHeight == false {
-                    itemAttributes.cachedSize = headerInfo.frame.size
+                    itemAttributes.cachedSize = frame.size
                 }
                 return itemAttributes
             } else { return nil }
         case PuzzleCollectionElementKindSectionFooter:
             if let footerInfo = footerInfo {
-                let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath as IndexPath)
-                itemAttributes.frame = footerInfo.frame
+                let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
+                let frame = CGRect(x: 0, y: footerInfo.originY, width: collectionViewWidth, height: footerInfo.height)
+                itemAttributes.frame = frame
                 if footerInfo.estimatedHeight == false {
-                    itemAttributes.cachedSize = footerInfo.frame.size
+                    itemAttributes.cachedSize = frame.size
                 }
                 return itemAttributes
             } else { return nil }
@@ -289,7 +292,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     public func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         if elementKind == PuzzleCollectionElementKindSectionTopGutter {
             if showTopGutter && sectionInsets.top != 0 {
-                let originY: CGFloat = headerInfo?.frame.maxY ?? 0
+                let originY: CGFloat = headerInfo?.maxOriginY ?? 0
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
                 gutterAttributes.frame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: sectionInsets.top)
                 if let gutterColor = separatorLineColor {
@@ -307,11 +310,11 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             if showBottomGutter && sectionInsets.bottom != 0 {
                 let maxY: CGFloat
                 if let footer = footerInfo {
-                    maxY = footer.frame.minY
-                } else if let lastRowFrame = rowsInfo.last?.frame {
-                    maxY = lastRowFrame.maxY
+                    maxY = footer.originY
+                } else if let lastItem = rowsInfo.last {
+                    maxY = lastItem.maxOriginY
                 } else if let header = headerInfo {
-                    maxY = header.frame.maxY
+                    maxY = header.maxOriginY
                 }
                 else {
                     maxY = 0
@@ -374,17 +377,17 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         var info: Any? = nil
         switch elementCategory {
         case .cell(let indexPath):
-            rowsInfo[indexPath.item].frame.size = preferredSize
+            rowsInfo[indexPath.item].height = preferredSize.height
             rowsInfo[indexPath.item].estimatedHeight = false
             info = indexPath
         case .supplementaryView(_, let elementKind):
             if elementKind == UICollectionElementKindSectionHeader {
-                headerInfo!.frame.size = preferredSize
+                headerInfo!.height = preferredSize.height
                 headerInfo!.estimatedHeight = false
                 info = kInvalidateHeaderForPreferredHeight
             }
             else if elementKind == UICollectionElementKindSectionFooter {
-                footerInfo!.frame.size = preferredSize
+                footerInfo!.height = preferredSize.height
                 footerInfo!.estimatedHeight = false
             }
             
@@ -406,10 +409,10 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     private func prepareRowsFromScratch() {
         var lastOriginY: CGFloat = 0
         
-        rowsInfo = [RowInfo](repeating: RowInfo(estimatedHeight: true, frame: CGRect.zero), count: numberOfItemsInSection)
+        rowsInfo = [RowInfo](repeating: RowInfo(estimatedHeight: true, originY: 0, height: 0), count: numberOfItemsInSection)
         
         if estimatedHeaderHeight != kEstimatedHeaderFooterHeightNone {
-            headerInfo = RowInfo(estimatedHeight: true, frame: CGRect(x: 0, y: lastOriginY, width: collectionViewWidth, height: estimatedHeaderHeight))
+            headerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedHeaderHeight)
             lastOriginY += estimatedHeaderHeight
         }
         
@@ -418,7 +421,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             lastOriginY += sectionInsets.top
             
             for row in 0 ..< numberOfItemsInSection {
-                rowsInfo[row] = RowInfo(estimatedHeight: true, frame: CGRect(x: sectionInsets.left, y: lastOriginY, width: collectionViewWidth - (sectionInsets.left + sectionInsets.right), height: estimatedItemHeight))
+                rowsInfo[row] = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedItemHeight)
                 lastOriginY += estimatedItemHeight + interitemSpacing
             }
             
@@ -427,7 +430,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         }
         
         if estimatedFooterHeight != kEstimatedHeaderFooterHeightNone {
-            footerInfo = RowInfo(estimatedHeight: true, frame: CGRect(x: 0, y: lastOriginY, width: collectionViewWidth, height: estimatedFooterHeight))
+            footerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedFooterHeight)
             lastOriginY += estimatedFooterHeight
         }
     }
@@ -447,13 +450,13 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         // Update section header if needed
         if estimatedHeaderHeight != kEstimatedHeaderFooterHeightNone {
             if headerInfo == nil {
-                headerInfo = RowInfo(estimatedHeight: true, frame: CGRect(x: 0, y: lastOriginY, width: collectionViewWidth, height: estimatedHeaderHeight))
+                headerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedHeaderHeight)
             }
             else if headerInfo!.estimatedHeight {
-                headerInfo!.frame.size.height = estimatedHeaderHeight
+                headerInfo!.height = estimatedHeaderHeight
             }
             
-            lastOriginY += headerInfo!.frame.height
+            lastOriginY += headerInfo!.height
         }
         else if headerInfo != nil {
             headerInfo = nil
@@ -464,10 +467,9 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         lastOriginY += sectionInsets.top
         for row in 0 ..< rowsToUpdate {
             var rowInfo = rowsInfo[row]
-            rowInfo.frame.size.width = collectionViewWidth - (sectionInsets.left + sectionInsets.right)
-            rowInfo.frame.origin = CGPoint(x: sectionInsets.left, y: lastOriginY)
+            rowInfo.originY = lastOriginY
             rowsInfo[row] = rowInfo
-            lastOriginY += rowInfo.frame.height + interitemSpacing
+            lastOriginY += rowInfo.height + interitemSpacing
         }
         
         if oldRows > updatedRows {
@@ -477,10 +479,10 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         }
         else if oldRows < updatedRows {
             
-            rowsInfo! += [RowInfo](repeating: RowInfo(estimatedHeight: true, frame: CGRect.zero), count: (updatedRows - oldRows))
+            rowsInfo! += [RowInfo](repeating: RowInfo(estimatedHeight: true, originY: 0, height: 0), count: (updatedRows - oldRows))
             
             for row in oldRows ..< updatedRows {
-                rowsInfo[row] = RowInfo(estimatedHeight: true, frame: CGRect(x: sectionInsets.left, y: lastOriginY, width: collectionViewWidth - (sectionInsets.left + sectionInsets.right), height: estimatedItemHeight))
+                rowsInfo[row] = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedItemHeight)
                 lastOriginY += estimatedItemHeight + interitemSpacing
             }
         }
@@ -493,14 +495,14 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         // Update section footer if needed
         if estimatedFooterHeight != kEstimatedHeaderFooterHeightNone {
             if footerInfo == nil {
-                footerInfo = RowInfo(estimatedHeight: true, frame: CGRect(x: 0, y: lastOriginY, width: collectionViewWidth, height: estimatedFooterHeight))
+                footerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedFooterHeight)
             }
             else if footerInfo!.estimatedHeight {
-                footerInfo!.frame.size.height = estimatedFooterHeight
+                footerInfo!.height = estimatedFooterHeight
             }
             
-            footerInfo!.frame.origin.y = lastOriginY
-            lastOriginY += footerInfo!.frame.height
+            footerInfo!.originY = lastOriginY
+            lastOriginY += footerInfo!.height
         }
         else if footerInfo != nil {
             footerInfo = nil
@@ -509,18 +511,18 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     
     private func updateRowsUsingEstimatedHeight() {
         if headerInfo?.estimatedHeight ?? false {
-            headerInfo!.frame.size.height = estimatedHeaderHeight
+            headerInfo!.height = estimatedHeaderHeight
         }
         
-        var lastOriginY: CGFloat = (headerInfo?.frame.height ?? 0) + sectionInsets.top
+        var lastOriginY: CGFloat = (headerInfo?.height ?? 0) + sectionInsets.top
         
         for row in 0 ..< rowsInfo.count {
             var rowInfo = rowsInfo[row]
             if rowInfo.estimatedHeight {
-                rowInfo.frame.size.height = estimatedItemHeight
+                rowInfo.height = estimatedItemHeight
                 rowsInfo[row] = rowInfo
             }
-            lastOriginY += rowInfo.frame.height + interitemSpacing
+            lastOriginY += rowInfo.height + interitemSpacing
         }
         
         
@@ -531,39 +533,34 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
                 lastOriginY += sectionInsets.bottom
             }
             
-            footerInfo!.frame.origin.y = lastOriginY
+            footerInfo!.originY = lastOriginY
             if footerInfo!.estimatedHeight {
-                footerInfo!.frame.size.height = estimatedFooterHeight
+                footerInfo!.height = estimatedFooterHeight
             }
         }
     }
     
     private func updateAllRowsWidth() {
         if headerInfo != nil {
-            headerInfo!.frame.size.width = collectionViewWidth
             headerInfo!.estimatedHeight = true
         }
         
-        let rowWidth = collectionViewWidth - (sectionInsets.left + sectionInsets.right)
-        
         for row in 0 ..< rowsInfo.count {
-            rowsInfo[row].frame.size.width = rowWidth
             rowsInfo[row].estimatedHeight = true
         }
         
         if footerInfo != nil {
-            footerInfo!.frame.size.width = collectionViewWidth
             footerInfo?.estimatedHeight = true
         }
     }
     
     private func updateAllRowsOriginY() {
-        var lastOriginY = headerInfo?.frame.maxY ?? 0
+        var lastOriginY = headerInfo?.maxOriginY ?? 0
         lastOriginY += sectionInsets.top
         
         for row in 0 ..< rowsInfo.count {
-            rowsInfo[row].frame.origin.y = lastOriginY
-            lastOriginY += rowsInfo[row].frame.height + interitemSpacing
+            rowsInfo[row].originY = lastOriginY
+            lastOriginY += rowsInfo[row].height + interitemSpacing
         }
         
         if footerInfo != nil {
@@ -573,21 +570,18 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
                 lastOriginY += sectionInsets.bottom
             }
             
-            footerInfo!.frame.origin.y = lastOriginY
+            footerInfo!.originY = lastOriginY
         }
     }
     
     private func updateAllRowsForSectionInsetsChange() {
-        headerInfo?.frame.size.width = collectionViewWidth
-        let rowWidth = collectionViewWidth - (sectionInsets.left + sectionInsets.right)
         
-        var lastOriginY = headerInfo?.frame.maxY ?? 0
+        var lastOriginY = headerInfo?.maxOriginY ?? 0
         lastOriginY += sectionInsets.top
         
         for row in 0 ..< rowsInfo.count {
-            rowsInfo[row].frame.size.width = rowWidth
-            rowsInfo[row].frame.origin.y = lastOriginY
-            lastOriginY += rowsInfo[row].frame.height + interitemSpacing
+            rowsInfo[row].originY = lastOriginY
+            lastOriginY += rowsInfo[row].height + interitemSpacing
         }
         
         if footerInfo != nil {
@@ -597,8 +591,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
                 lastOriginY += sectionInsets.bottom
             }
             
-            footerInfo!.frame.origin.y = lastOriginY
-            footerInfo!.frame.size.width = collectionViewWidth
+            footerInfo!.originY = lastOriginY
         }
     }
     
@@ -612,16 +605,16 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         var lastOriginY: CGFloat = 0
         let firstItemForInvalidation: Int
         if let indexPath = indexPath {
-            lastOriginY = rowsInfo[indexPath.item].frame.maxY
+            lastOriginY = rowsInfo[indexPath.item].maxOriginY
             firstItemForInvalidation = indexPath.item + 1
         }
         else if invalidateHeader {
             firstItemForInvalidation = 0
             if let headerInfo = headerInfo {
-                lastOriginY = headerInfo.frame.maxY + sectionInsets.top
+                lastOriginY = headerInfo.maxOriginY + sectionInsets.top
             }
             else {
-                lastOriginY = rowsInfo.first?.frame.maxY ?? sectionInsets.top
+                lastOriginY = rowsInfo.first?.maxOriginY ?? sectionInsets.top
             }
         }
         else {
@@ -635,8 +628,8 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             }
             
             for index in firstItemForInvalidation..<numberOfItemsInSection {
-                rowsInfo[index].frame.origin.y = lastOriginY
-                lastOriginY = rowsInfo[index].frame.maxY + interitemSpacing
+                rowsInfo[index].originY = lastOriginY
+                lastOriginY = rowsInfo[index].maxOriginY + interitemSpacing
             }
             
             lastOriginY -= interitemSpacing
@@ -644,7 +637,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         
         if footerInfo != nil {
             lastOriginY += sectionInsets.bottom
-            footerInfo!.frame.origin.y = lastOriginY
+            footerInfo!.originY = lastOriginY
         }
     }
 }
@@ -653,10 +646,18 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 //MARK: - Utils
 fileprivate struct RowInfo: CustomStringConvertible {
     var estimatedHeight: Bool
-    var frame: CGRect
+    var originY: CGFloat
+    var height: CGFloat
+    var maxOriginY: CGFloat {
+        return originY + height
+    }
+    
+    func intersects(with rect: CGRect) -> Bool {
+        return !(originY >= rect.maxY || maxOriginY <= rect.minY)
+    }
     
     var description: String {
-        return "Row Info: estimated:\(estimatedHeight) ; frame: \(frame)"
+        return "Row Info: estimated:\(estimatedHeight) ; origin Y: \(originY) ; Height: \(height)"
     }
 }
 

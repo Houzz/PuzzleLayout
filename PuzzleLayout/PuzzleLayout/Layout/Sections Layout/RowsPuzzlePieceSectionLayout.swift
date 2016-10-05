@@ -8,9 +8,7 @@
 
 import UIKit
 
-public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
-
-    public var identifier: String?
+public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
     
     public var sectionInsets = UIEdgeInsets.zero {
         didSet {
@@ -67,20 +65,9 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         }
     }
     
-    public var separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem {
-        didSet {
-            if let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle, oldStyle: oldValue) {
-                parentLayout!.invalidateLayout(with: ctx)
-            }
-        }
-    }
-
-    public var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) {
-        didSet {
-            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle) {
-                parentLayout!.invalidateLayout(with: ctx)
-            }
-        }
+    ///Default: allButLastItem
+    override public var separatorLineStyle: PuzzlePieceSeparatorLineStyle {
+        willSet {}
     }
     
     public var showTopGutter: Bool = false {
@@ -109,10 +96,10 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
     private var footerInfo: RowInfo?
     
     private var collectionViewWidth: CGFloat = 0
-    private var numberOfItemsInSection: Int = 0
     
     override init() {
         super.init()
+        separatorLineStyle = .allButLastItem
     }
     
     init(estimatedItemHeight: CGFloat, sectionInsets: UIEdgeInsets = .zero, estimatedHeaderHeight: CGFloat = kEstimatedHeaderFooterHeightNone, estimatedFooterHeight: CGFloat = kEstimatedHeaderFooterHeightNone) {
@@ -121,12 +108,11 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         self.estimatedHeaderHeight = estimatedHeaderHeight
         self.estimatedFooterHeight = estimatedFooterHeight
         super.init()
+        separatorLineStyle = .allButLastItem
     }
     
     //MARK: - PuzzlePieceSectionLayout
-    public weak var parentLayout: PuzzleCollectionViewLayout?
-    
-    public var heightOfSection: CGFloat {
+    public override var heightOfSection: CGFloat {
         var maxY: CGFloat = 0
         if let footer = footerInfo {
             maxY = footer.maxOriginY
@@ -139,9 +125,8 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         return maxY
     }
     
-    public func prepare(for numberOfItemsInSection: Int, withInvalidation context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {
+    public override func prepare(with context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {
         
-        self.numberOfItemsInSection = numberOfItemsInSection
         if (info as? String) == kInvalidateForResetLayout {
             rowsInfo = nil
             headerInfo = nil
@@ -178,7 +163,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         }
     }
     
-    public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
+    override public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
         var attributesInRect = [PuzzleCollectionViewLayoutAttributes]()
         guard numberOfItemsInSection != 0 else {
             return []
@@ -251,7 +236,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         return attributesInRect
     }
     
-    public func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+    override public func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         let rowInfo = rowsInfo[indexPath.item]
         let itemAttributes = PuzzleCollectionViewLayoutAttributes(forCellWith: indexPath)
         let frame = CGRect(x: sectionInsets.left, y: rowInfo.originY, width: collectionViewWidth - (sectionInsets.left + sectionInsets.right), height: rowInfo.height)
@@ -262,7 +247,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         return itemAttributes
     }
     
-    public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+    override public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         switch elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let headerInfo = headerInfo {
@@ -272,6 +257,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
                 if headerInfo.estimatedHeight == false {
                     itemAttributes.cachedSize = frame.size
                 }
+                
                 return itemAttributes
             } else { return nil }
         case PuzzleCollectionElementKindSectionFooter:
@@ -289,7 +275,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         }
     }
     
-    public func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+    override public func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         if elementKind == PuzzleCollectionElementKindSectionTopGutter {
             if showTopGutter && sectionInsets.top != 0 {
                 let originY: CGFloat = headerInfo?.maxOriginY ?? 0
@@ -337,17 +323,8 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         return nil
     }
     
-    //Bounds Invalidation
-    public func shouldInvalidate(forNewBounds newBounds: CGRect, currentBounds: CGRect) -> Bool {
-        return false
-    }
-    
-    public func invalidationInfo(forNewBounds newBounds: CGRect, currentBounds: CGRect) -> Any? {
-        return nil
-    }
-    
     //PreferredAttributes Invalidation
-    public func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
+    override public func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
         var shouldInvalidate = false
         switch elementCategory {
         case .cell(let indexPath):
@@ -372,7 +349,7 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
         else { return false }
     }
 
-    public func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
+    override public func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
         
         var info: Any? = nil
         switch elementCategory {

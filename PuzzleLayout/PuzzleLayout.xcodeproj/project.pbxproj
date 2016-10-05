@@ -18,6 +18,8 @@
 		0FC35FD91D9D30F400ACACCE /* IndexPath+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FD71D9D30F400ACACCE /* IndexPath+Extension.swift */; };
 		0FC35FDB1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FDA1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift */; };
 		0FC35FDD1D9D311B00ACACCE /* PuzzleCollectionViewLayoutAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FDC1D9D311B00ACACCE /* PuzzleCollectionViewLayoutAttributes.swift */; };
+		0FC35FE31DA4E49200ACACCE /* ColumnBasedPuzzlePieceSectionLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FE21DA4E49200ACACCE /* ColumnBasedPuzzlePieceSectionLayout.swift */; };
+		0FC35FE51DA4E4CE00ACACCE /* PuzzleCollectionViewLayout+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FE41DA4E4CE00ACACCE /* PuzzleCollectionViewLayout+Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +36,8 @@
 		0FC35FD71D9D30F400ACACCE /* IndexPath+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "IndexPath+Extension.swift"; sourceTree = "<group>"; };
 		0FC35FDA1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleCollectionViewLayoutInvalidationContext.swift; sourceTree = "<group>"; };
 		0FC35FDC1D9D311B00ACACCE /* PuzzleCollectionViewLayoutAttributes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleCollectionViewLayoutAttributes.swift; sourceTree = "<group>"; };
+		0FC35FE21DA4E49200ACACCE /* ColumnBasedPuzzlePieceSectionLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColumnBasedPuzzlePieceSectionLayout.swift; sourceTree = "<group>"; };
+		0FC35FE41DA4E4CE00ACACCE /* PuzzleCollectionViewLayout+Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "PuzzleCollectionViewLayout+Constants.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				0FC35FD51D9D30F400ACACCE /* RowsPuzzlePieceSectionLayout.swift */,
+				0FC35FE21DA4E49200ACACCE /* ColumnBasedPuzzlePieceSectionLayout.swift */,
 			);
 			path = "Sections Layout";
 			sourceTree = "<group>";
@@ -102,6 +107,7 @@
 				0FC35FD71D9D30F400ACACCE /* IndexPath+Extension.swift */,
 				0FC35FDA1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift */,
 				0FC35FDC1D9D311B00ACACCE /* PuzzleCollectionViewLayoutAttributes.swift */,
+				0FC35FE41DA4E4CE00ACACCE /* PuzzleCollectionViewLayout+Constants.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -185,6 +191,8 @@
 				0FC35FDD1D9D311B00ACACCE /* PuzzleCollectionViewLayoutAttributes.swift in Sources */,
 				0FC35FDB1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift in Sources */,
 				0FC35FD81D9D30F400ACACCE /* RowsPuzzlePieceSectionLayout.swift in Sources */,
+				0FC35FE51DA4E4CE00ACACCE /* PuzzleCollectionViewLayout+Constants.swift in Sources */,
+				0FC35FE31DA4E49200ACACCE /* ColumnBasedPuzzlePieceSectionLayout.swift in Sources */,
 				0F0AAD151D9BF02B00C94758 /* AppDelegate.swift in Sources */,
 				0FC35FD91D9D30F400ACACCE /* IndexPath+Extension.swift in Sources */,
 			);

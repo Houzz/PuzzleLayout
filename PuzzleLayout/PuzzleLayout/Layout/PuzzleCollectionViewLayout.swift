@@ -14,15 +14,6 @@ protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
 }
 
 //MARK: - PuzzleCollectionViewLayout
-public let PuzzleCollectionElementKindSeparatorLine = "!_SeparatorLine_!"
-public let PuzzleCollectionElementKindSectionTopGutter = "!_SectionTopGutter_!"
-public let PuzzleCollectionElementKindSectionBottomGutter = "!_SectionBottomGutter_!"
-public let PuzzleCollectionColoredViewZIndex = 2
-public let PuzzleCollectionColoredViewColorKey = "!_BackgroundColor_!"
-
-public let PuzzleCollectionElementKindSectionHeader: String = UICollectionElementKindSectionHeader
-public let PuzzleCollectionElementKindSectionFooter: String = UICollectionElementKindSectionFooter
-
 final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     
     fileprivate var sectionsLayoutInfo: [SectionInfo] = []

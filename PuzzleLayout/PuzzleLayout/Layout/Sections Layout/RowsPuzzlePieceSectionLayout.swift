@@ -8,8 +8,6 @@
 
 import UIKit
 
-public let kEstimatedHeaderFooterHeightNone: CGFloat = 0
-
 public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
 
     public var identifier: String?

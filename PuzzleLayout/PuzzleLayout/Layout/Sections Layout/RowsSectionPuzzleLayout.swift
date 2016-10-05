@@ -21,9 +21,9 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public var interitemSpacing: CGFloat = 0 {
+    public var lineSpacing: CGFloat = 0 {
         didSet {
-            if let ctx = invalidationContext(with: kInvalidateForInteritemSpacing) {
+            if let ctx = invalidationContext(with: kInvalidateForLineSpacing) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -66,10 +66,6 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
     }
     
     ///Default: allButLastItem
-    override public var separatorLineStyle: PuzzlePieceSeparatorLineStyle {
-        willSet {}
-    }
-    
     public var showTopGutter: Bool = false {
         didSet {
             if sectionInsets.top != 0, let ctx = self.invalidationContext {
@@ -96,19 +92,18 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
     private var footerInfo: RowInfo?
     
     private var collectionViewWidth: CGFloat = 0
-    
-    override init() {
-        super.init()
-        separatorLineStyle = .allButLastItem
-    }
-    
-    init(estimatedItemHeight: CGFloat, sectionInsets: UIEdgeInsets = .zero, estimatedHeaderHeight: CGFloat = kEstimatedHeaderFooterHeightNone, estimatedFooterHeight: CGFloat = kEstimatedHeaderFooterHeightNone) {
+    init(estimatedItemHeight: CGFloat = 44, sectionInsets: UIEdgeInsets = .zero, lineSpacing: CGFloat = 0,
+         estimatedHeaderHeight: CGFloat = kEstimatedHeaderFooterHeightNone, estimatedFooterHeight: CGFloat = kEstimatedHeaderFooterHeightNone,
+         separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
         self.estimatedItemHeight = estimatedItemHeight
         self.sectionInsets = sectionInsets
+        self.lineSpacing = lineSpacing
         self.estimatedHeaderHeight = estimatedHeaderHeight
         self.estimatedFooterHeight = estimatedFooterHeight
+        self.showTopGutter = showTopGutter
+        self.showBottomGutter = showBottomGutter
         super.init()
-        separatorLineStyle = .allButLastItem
+        self.separatorLineStyle = separatorLineStyle
     }
     
     //MARK: - PuzzlePieceSectionLayout
@@ -137,8 +132,11 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
             collectionViewWidth = sectionWidth
             prepareRowsFromScratch()
         }
-        else if context.invalidateEverything || context.invalidateDataSourceCounts {
-            fixRowsList()
+        else if context.invalidateEverything {
+            fixRowsList(willInsertOrDeleteRows: false)
+        }
+        else if context.invalidateDataSourceCounts {
+            fixRowsList(willInsertOrDeleteRows: true)
         }
         else if let invalidationStr = info as? String {
             switch invalidationStr {
@@ -148,7 +146,7 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
                 updateRows(forHeader: true)
             case kInvalidateForSectionInsets:
                 updateAllRowsForSectionInsetsChange()
-            case kInvalidateForInteritemSpacing:
+            case kInvalidateForLineSpacing:
                 updateAllRowsOriginY()
             default: break
             }
@@ -237,6 +235,10 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
     }
     
     override public func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        guard indexPath.item < rowsInfo.count else {
+            return nil
+        }
+        
         let rowInfo = rowsInfo[indexPath.item]
         let itemAttributes = PuzzleCollectionViewLayoutAttributes(forCellWith: indexPath)
         let frame = CGRect(x: sectionInsets.left, y: rowInfo.originY, width: collectionViewWidth - (sectionInsets.left + sectionInsets.right), height: rowInfo.height)
@@ -374,6 +376,34 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         return info
     }
     
+    //Updates
+    override func didInsertItem(at index: Int) {
+        rowsInfoBeforeUpdate?.insert(RowInfo(estimatedHeight: true, originY: 0, height: estimatedHeaderHeight), at: index)
+    }
+    
+    override func didDeleteItem(at index: Int) {
+        rowsInfoBeforeUpdate?.remove(at: index)
+    }
+    
+    override func didReloadItem(at index: Int) {
+        rowsInfoBeforeUpdate?[index].estimatedHeight = true
+    }
+    
+    override func didMoveItem(fromIndex: Int, toIndex: Int) {
+        if let item = rowsInfoBeforeUpdate?.remove(at: fromIndex) {
+            rowsInfoBeforeUpdate?.insert(item, at: toIndex)
+        }
+    }
+    
+    override func didGenerateUpdatesCall() {
+        if let updatedRowsInfo = rowsInfoBeforeUpdate , updatedRowsInfo.count == rowsInfo.count {
+            rowsInfo = updatedRowsInfo
+            updateAllRowsOriginY()
+        }
+        
+        rowsInfoBeforeUpdate = nil
+    }
+    
     //MARK: - 
     public func resetLayout() {
         if let ctx = self.invalidationContext(with: kInvalidateForResetLayout) {
@@ -399,10 +429,10 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
             
             for row in 0 ..< numberOfItemsInSection {
                 rowsInfo[row] = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedItemHeight)
-                lastOriginY += estimatedItemHeight + interitemSpacing
+                lastOriginY += estimatedItemHeight + lineSpacing
             }
             
-            lastOriginY -= interitemSpacing
+            lastOriginY -= lineSpacing
             lastOriginY += sectionInsets.bottom
         }
         
@@ -412,11 +442,15 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    private func fixRowsList() {
-        
+    private var rowsInfoBeforeUpdate: [RowInfo]?
+    private func fixRowsList(willInsertOrDeleteRows: Bool) {
         guard rowsInfo != nil else {
             prepareRowsFromScratch()
             return
+        }
+        
+        if willInsertOrDeleteRows {
+            rowsInfoBeforeUpdate = rowsInfo
         }
         
         var lastOriginY: CGFloat = 0
@@ -445,14 +479,14 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         for row in 0 ..< rowsToUpdate {
             var rowInfo = rowsInfo[row]
             rowInfo.originY = lastOriginY
+            rowInfo.estimatedHeight = true
             rowsInfo[row] = rowInfo
-            lastOriginY += rowInfo.height + interitemSpacing
+            lastOriginY += rowInfo.height + lineSpacing
         }
         
         if oldRows > updatedRows {
             // Remove rows
             rowsInfo.removeSubrange(updatedRows ..< oldRows)
-            
         }
         else if oldRows < updatedRows {
             
@@ -460,12 +494,12 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
             
             for row in oldRows ..< updatedRows {
                 rowsInfo[row] = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedItemHeight)
-                lastOriginY += estimatedItemHeight + interitemSpacing
+                lastOriginY += estimatedItemHeight + lineSpacing
             }
         }
         
         if rowsInfo.isEmpty == false {
-            lastOriginY -= interitemSpacing
+            lastOriginY -= lineSpacing
             lastOriginY += sectionInsets.bottom
         }
 
@@ -499,14 +533,14 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
                 rowInfo.height = estimatedItemHeight
                 rowsInfo[row] = rowInfo
             }
-            lastOriginY += rowInfo.height + interitemSpacing
+            lastOriginY += rowInfo.height + lineSpacing
         }
         
         
         if footerInfo != nil {
             //No need to make those computation if no footer
             if rowsInfo.isEmpty == false {
-                lastOriginY -= interitemSpacing
+                lastOriginY -= lineSpacing
                 lastOriginY += sectionInsets.bottom
             }
             
@@ -537,13 +571,13 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         
         for row in 0 ..< rowsInfo.count {
             rowsInfo[row].originY = lastOriginY
-            lastOriginY += rowsInfo[row].height + interitemSpacing
+            lastOriginY += rowsInfo[row].height + lineSpacing
         }
         
         if footerInfo != nil {
             //No need to make those computation if no footer
             if rowsInfo.isEmpty == false {
-                lastOriginY -= interitemSpacing
+                lastOriginY -= lineSpacing
                 lastOriginY += sectionInsets.bottom
             }
             
@@ -558,13 +592,13 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         
         for row in 0 ..< rowsInfo.count {
             rowsInfo[row].originY = lastOriginY
-            lastOriginY += rowsInfo[row].height + interitemSpacing
+            lastOriginY += rowsInfo[row].height + lineSpacing
         }
         
         if footerInfo != nil {
             //No need to make those computation if no footer
             if rowsInfo.isEmpty == false {
-                lastOriginY -= interitemSpacing
+                lastOriginY -= lineSpacing
                 lastOriginY += sectionInsets.bottom
             }
             
@@ -601,15 +635,15 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         
         if firstItemForInvalidation < numberOfItemsInSection {
             if firstItemForInvalidation != 0 {
-                lastOriginY += interitemSpacing
+                lastOriginY += lineSpacing
             }
             
             for index in firstItemForInvalidation..<numberOfItemsInSection {
                 rowsInfo[index].originY = lastOriginY
-                lastOriginY = rowsInfo[index].maxOriginY + interitemSpacing
+                lastOriginY = rowsInfo[index].maxOriginY + lineSpacing
             }
             
-            lastOriginY -= interitemSpacing
+            lastOriginY -= lineSpacing
         }
         
         if footerInfo != nil {
@@ -642,4 +676,4 @@ private let kInvalidateForResetLayout = "reset"
 private let kInvalidateForEstimatedHeightChange = "estimatedHeight"
 private let kInvalidateHeaderForPreferredHeight = "Invalidate_Header"
 private let kInvalidateForSectionInsets = "Invalidate_SectionInsets"
-private let kInvalidateForInteritemSpacing = "Invalidate_InteritemSpacing"
+private let kInvalidateForLineSpacing = "Invalidate_lineSpacing"

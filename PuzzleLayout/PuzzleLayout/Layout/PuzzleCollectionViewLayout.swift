@@ -118,6 +118,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+        
         var attributes: [PuzzleCollectionViewLayoutAttributes] = []
         var lastY: CGFloat = 0
         
@@ -187,7 +188,6 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     public override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForItem(at: indexPath) {
@@ -199,7 +199,6 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     public override func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForSupplementaryView(ofKind: elementKind, at: indexPath) {
@@ -214,7 +213,11 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         if elementKind == PuzzleCollectionElementKindSeparatorLine {
             let layout = sectionsLayoutInfo[indexPath.section]
             if layout.separatorLineStyle == .none || (layout.separatorLineStyle == .allButLastItem && indexPath.item + 1 == layout.numberOfItemsInSection) {
-                return nil
+                //There's no need in line view, but returning nil cause a crash.
+                let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
+                separatorLine.isHidden = true
+                separatorLine.frame.size = .zero
+                return separatorLine
             }
             else if let item = layoutAttributesForItem(at: indexPath) {
                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
@@ -225,7 +228,13 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 }
                 return separatorLine
             }
-            else { return nil }
+            else {
+                //There's no need in line view, but returning nil cause a crash.
+                let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
+                separatorLine.isHidden = true
+                separatorLine.frame.size = .zero
+                return separatorLine
+            }
         }
         else {
             let layout = sectionsLayoutInfo[indexPath.section]
@@ -371,6 +380,49 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         return ctx
     }
 
+    override public func prepare(forCollectionViewUpdates updateItems: [UICollectionViewUpdateItem]) {
+        var sectionUpdated: Set<Int> = []
+        for update in updateItems {
+            guard let section = (update.indexPathAfterUpdate ?? update.indexPathBeforeUpdate)?.section else {
+                continue
+            }
+            
+            if sectionUpdated.contains(section) == false {
+                sectionUpdated.insert(section)
+                sectionsLayoutInfo[section].willGenerateUpdatesCall()
+            }
+            
+            switch update.updateAction {
+            case .insert:
+                let indexPath = update.indexPathAfterUpdate!
+                sectionsLayoutInfo[section].didInsertItem(at: indexPath.item)
+            case .delete:
+                let indexPath = update.indexPathBeforeUpdate!
+                sectionsLayoutInfo[section].didDeleteItem(at: indexPath.item)
+            case .reload:
+                let indexPath = update.indexPathAfterUpdate!
+                sectionsLayoutInfo[section].didReloadItem(at: indexPath.item)
+            case .move:
+                let fromIndexPath = update.indexPathBeforeUpdate!
+                let toIndexPath = update.indexPathAfterUpdate!
+                if fromIndexPath.section == toIndexPath.section {
+                    sectionsLayoutInfo[section].didMoveItem(fromIndex: fromIndexPath.item, toIndex: toIndexPath.item)
+                }
+                else {
+                    sectionsLayoutInfo[fromIndexPath.section].didDeleteItem(at: fromIndexPath.item)
+                    sectionsLayoutInfo[toIndexPath.section].didInsertItem(at: toIndexPath.item)
+                }
+            default: break
+            }
+        }
+        
+        for section in sectionUpdated {
+            sectionsLayoutInfo[section].didGenerateUpdatesCall()
+        }
+        
+        super.prepare(forCollectionViewUpdates: updateItems)
+    }
+    
     //MARK: - Prepare sections layout
     private func prepareSectionsLayout() {
         guard let dataSource = collectionView!.dataSource as? CollectionViewDataSourcePuzzleLayout else {
@@ -595,6 +647,15 @@ public class PuzzlePieceSectionLayout {
     func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
         return false
     }
+    // --------
+    
+    // -------- Updates
+    func willGenerateUpdatesCall() {}
+    func didInsertItem(at index: Int) {}
+    func didDeleteItem(at index: Int) {}
+    func didReloadItem(at index: Int) {}
+    func didMoveItem(fromIndex: Int, toIndex: Int) {}
+    func didGenerateUpdatesCall() {}
     // --------
 }
 

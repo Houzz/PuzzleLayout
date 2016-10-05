@@ -12,30 +12,46 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     
     @IBOutlet weak var collectionView: UICollectionView!
     let layouts = [
-        RowsSectionPuzzleLayout(estimatedItemHeight: 44, estimatedHeaderHeight: 30),
+        RowsSectionPuzzleLayout(estimatedItemHeight: 44, estimatedHeaderHeight: 30, separatorLineStyle: .all),
         RowsSectionPuzzleLayout(estimatedItemHeight: 50, sectionInsets: UIEdgeInsetsMake(0, 15, 0, 15)),
-        RowsSectionPuzzleLayout(estimatedItemHeight: 60),
+        RowsSectionPuzzleLayout(estimatedItemHeight: 60, separatorLineStyle: .none),
         RowsSectionPuzzleLayout(estimatedItemHeight: 70, sectionInsets: UIEdgeInsetsMake(30, 20, 30, 0), estimatedHeaderHeight: 40, estimatedFooterHeight: 100),
         ]
     
-    private var item_numberOfLinesMapper: [IndexPath:Int] = [:]
-    private var item_numberOfCharactersMapper: [IndexPath:Int] = [:]
-    
-    private var header_numberOfLinesMapper: [IndexPath:Int] = [:]
-    private var header_numberOfCharactersMapper: [IndexPath:Int] = [:]
-    
-    private var footer_numberOfLinesMapper: [IndexPath:Int] = [:]
-    private var footer_numberOfCharactersMapper: [IndexPath:Int] = [:]
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        prepareDataSource()
         let layout = PuzzleCollectionViewLayout()
         collectionView.setCollectionViewLayout(layout, animated: false)
-        //        let layout = collectionView.collectionViewLayout as! TableGridLayout
-        //        layout.sectionInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-        //        layout.lineSpacing = 8
-        //        layout.itemSpacing = 8
-        //        layout.estimatedHeight = 40
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let delay = DispatchTime.now() + DispatchTimeInterval.seconds(10)
+        DispatchQueue.main.asyncAfter(deadline: delay) {
+            DebugLog("Will delete")
+            
+            self.itemsInSection[0].remove(at: 3)
+            self.collectionView.performBatchUpdates({
+                self.collectionView.deleteItems(at: [IndexPath(item: 3, section: 0)])
+                }, completion: nil)
+        }
+    }
+    
+    var itemsInSection: [[String]] = []
+    private func prepareDataSource() {
+        
+        let numberOfSections = layouts.count
+        itemsInSection = Array(repeating: [], count: numberOfSections)
+        for section in 0..<numberOfSections {
+            let numberOfItems = 10 * (section + 1)
+            itemsInSection[section] = (0..<numberOfItems).map({ itemIndex -> String in
+                let numberOfLines = Int(arc4random_uniform(200)) + 15
+                let numberOfCharacters = Int(arc4random_uniform(10)) + 1
+                return String.randomString(withLength: numberOfCharacters, minNumberOfLines: numberOfLines)
+            })
+        }
     }
     
     //MARK: - UICollectionViewDataSource
@@ -44,33 +60,25 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10 * (section + 1)
+        return itemsInSection[section].count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! Cell
-        if item_numberOfLinesMapper[indexPath] == nil {
-            item_numberOfLinesMapper[indexPath] = Int(arc4random_uniform(10)) + 1
-        }
-        
-        if item_numberOfCharactersMapper[indexPath] == nil {
-            item_numberOfCharactersMapper[indexPath] = Int(arc4random_uniform(200)) + 15
-        }
-        
-        cell.lbl.text = String.randomString(withLength: item_numberOfCharactersMapper[indexPath]!, minNumberOfLines: item_numberOfLinesMapper[indexPath]!)
-        cell.contentView.backgroundColor = backgrounds[(indexPath as NSIndexPath).item % backgrounds.count]
+        cell.lbl.text = itemsInSection[indexPath.section][indexPath.item]
+        cell.contentView.backgroundColor = backgrounds[indexPath.item % backgrounds.count]
         return cell
     }
     
-    //    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    //        collectionView.deselectItem(at: indexPath, animated: false)
-    //        if indexPath.item % 2 == 0 {
-    //            collectionView.collectionViewLayout.invalidateLayout()
-    //        }
-    //        else {
-    //            collectionView.collectionViewLayout.invalidateLayout(with: UICollectionViewFlowLayoutInvalidationContext())
-    //        }
-    //    }
+        func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+            collectionView.deselectItem(at: indexPath, animated: false)
+            if indexPath.item % 2 == 0 {
+                collectionView.collectionViewLayout.invalidateLayout()
+            }
+            else {
+                collectionView.collectionViewLayout.invalidateLayout(with: UICollectionViewFlowLayoutInvalidationContext())
+            }
+        }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == PuzzleCollectionElementKindSectionHeader {

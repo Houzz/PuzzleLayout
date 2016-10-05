@@ -217,8 +217,6 @@ public class RowsSectionPuzzleLayout: NSObject, PuzzlePieceSectionLayout {
             }
         }
         
-        //DEBUG
-        showBottomGutter = true
         if showBottomGutter && sectionInsets.bottom != 0 {
             let maxY: CGFloat
             if let footer = footerInfo {

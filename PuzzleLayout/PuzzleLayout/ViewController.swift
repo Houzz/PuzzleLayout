@@ -12,10 +12,10 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     
     @IBOutlet weak var collectionView: UICollectionView!
     let layouts = [
-        RowsSectionPuzzleLayout(estimatedItemHeight: 44, estimatedHeaderHeight: 30, separatorLineStyle: .all),
-        RowsSectionPuzzleLayout(estimatedItemHeight: 50, sectionInsets: UIEdgeInsetsMake(0, 15, 0, 15)),
-        RowsSectionPuzzleLayout(estimatedItemHeight: 60, separatorLineStyle: .none),
-        RowsSectionPuzzleLayout(estimatedItemHeight: 70, sectionInsets: UIEdgeInsetsMake(30, 20, 30, 0), estimatedHeaderHeight: 40, estimatedFooterHeight: 100),
+        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 44, estimatedHeaderHeight: 30, separatorLineStyle: .all),
+        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 50, sectionInsets: UIEdgeInsetsMake(0, 15, 0, 15)),
+        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 60, separatorLineStyle: .none),
+        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 70, sectionInsets: UIEdgeInsetsMake(30, 20, 30, 0), estimatedHeaderHeight: 40, estimatedFooterHeight: 100),
         ]
     
     override func viewDidLoad() {

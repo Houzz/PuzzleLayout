@@ -8,7 +8,7 @@
 
 import UIKit
 
-public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
+public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     public var sectionInsets = UIEdgeInsets.zero {
         didSet {
@@ -143,7 +143,7 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
             case kInvalidateForEstimatedHeightChange:
                 updateRowsUsingEstimatedHeight()
             case kInvalidateHeaderForPreferredHeight:
-                updateRows(forHeader: true)
+                updateRows(fromHeader: true)
             case kInvalidateForSectionInsets:
                 updateAllRowsForSectionInsetsChange()
             case kInvalidateForLineSpacing:
@@ -152,7 +152,7 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
             }
         }
         else if let itemIndexPath = info as? IndexPath {
-            updateRows(forIndexPath: itemIndexPath)
+            updateRows(fromIndexPath: itemIndexPath)
         }
         
         if context.invalidateForWidthChange || collectionViewWidth != sectionWidth {
@@ -606,7 +606,7 @@ public class RowsSectionPuzzleLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    private func updateRows(forIndexPath indexPath: IndexPath? = nil, forHeader invalidateHeader: Bool = false) {
+    private func updateRows(fromIndexPath indexPath: IndexPath? = nil, fromHeader invalidateHeader: Bool = false) {
         
         guard indexPath != nil || invalidateHeader else {
             //Nothing to invalidate

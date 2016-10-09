@@ -110,8 +110,39 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 layout.invalidate(willReloadData: false, willUpdateDataSourceCounts: false, resetLayout: false, info: invalidationInfo[layout.sectionIndex!])
             }
             else {
-                for (index,info) in invalidationInfo {
-                    sectionsLayoutInfo[index].invalidate(willReloadData: false, willUpdateDataSourceCounts: false, resetLayout: false, info: info)
+                
+                let updatedSpecificView = !(
+                    (ctx.invalidatedItemIndexPaths?.isEmpty ?? true)
+                        || (ctx.invalidatedSupplementaryIndexPaths?.isEmpty ?? true)
+                        || (ctx.invalidatedDecorationIndexPaths?.isEmpty ?? true)
+                )
+                
+                if let invalidatedItemIndexPaths = ctx.invalidatedItemIndexPaths {
+                    for indexPath in invalidatedItemIndexPaths {
+                        sectionsLayoutInfo[indexPath.item].invalidateItem(at: indexPath)
+                    }
+                }
+                
+                if let invalidatedSupplementaryIndexPaths = ctx.invalidatedSupplementaryIndexPaths {
+                    for (elementKind, indexPaths) in invalidatedSupplementaryIndexPaths {
+                        for indexPath in indexPaths {
+                            sectionsLayoutInfo[indexPath.item].invalidateSupplementaryView(ofKind: elementKind, at: indexPath)
+                        }
+                    }
+                }
+                
+                if let invalidatedDecorationIndexPaths = ctx.invalidatedDecorationIndexPaths {
+                    for (elementKind, indexPaths) in invalidatedDecorationIndexPaths {
+                        for indexPath in indexPaths {
+                            sectionsLayoutInfo[indexPath.item].invalidateDecorationView(ofKind: elementKind, at: indexPath)
+                        }
+                    }
+                }
+                
+                if !updatedSpecificView {
+                    for (index,info) in invalidationInfo {
+                        sectionsLayoutInfo[index].invalidate(willReloadData: false, willUpdateDataSourceCounts: false, resetLayout: false, info: info)
+                    }
                 }
             }
         }
@@ -630,6 +661,12 @@ public class PuzzlePieceSectionLayout {
     
     func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {}
     
+    func invalidateItem(at indexPath: IndexPath) {}
+    
+    func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {}
+    
+    func invalidateDecorationView(ofKind elementKind: String, at indexPath: IndexPath) {}
+    
     func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {}
     
     func tearDown() {}
@@ -711,21 +748,6 @@ extension PuzzlePieceSectionLayout {
         
         return IndexPath(item: index, section: sectionIndex)
     }
-    
-//    fileprivate var sectionIndex: Int? {
-//        guard let parentLayout = parentLayout else {
-//            return nil
-//        }
-//        
-//        guard let sectionIndex = parentLayout.sectionsLayoutInfo.index(where: { (info:SectionInfo) -> Bool in
-//            return self === info.layout
-//        }) else {
-//            print("Can't create invalidation context before layout was placed on 'PuzzleCollectionViewLayout'")
-//            return nil
-//        }
-//        
-//        return sectionIndex
-//    }
     
     public var invalidationContext: PuzzleCollectionViewLayoutInvalidationContext? {
         guard let _ = parentLayout else { return nil }

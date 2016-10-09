@@ -251,6 +251,61 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
+    public override func invalidateItem(at indexPath: IndexPath) {
+        switch itemsInfo[indexPath.item].heightState {
+        case .computed:
+            itemsInfo[indexPath.item].heightState = .estimated
+        case .fixed:
+            if itemsInfo[indexPath.item].frame.height != itemSize.height {
+                itemsInfo[indexPath.item].frame.size.height = itemSize.height
+                updateItems(fromIndexPath: indexPath)
+            }
+        default: break
+        }
+    }
+    
+    public override func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
+        switch  elementKind {
+        case PuzzleCollectionElementKindSectionHeader:
+            if let _ = headerInfo {
+                switch headerInfo!.heightState {
+                case .computed:
+                    headerInfo!.heightState = .estimated
+                case .fixed:
+                    switch headerHeight {
+                    case .fixed(let height):
+                        if headerInfo!.height != height {
+                            headerInfo!.height = height
+                            updateItemsOriginY(forceUpdateOrigin: true)
+                        }
+                    default:
+                        assert(false, "How it can be? 'headerInfo.heightState' is fixed but 'headerHeight' isn't")
+                    }
+                    
+                default: break
+                }
+            }
+        case PuzzleCollectionElementKindSectionFooter:
+            if let _ = footerInfo {
+                switch footerInfo!.heightState {
+                case .computed:
+                    footerInfo!.heightState = .estimated
+                case .fixed:
+                    switch footerHeight {
+                    case .fixed(let height):
+                        if footerInfo!.height != height {
+                            footerInfo!.height = height
+                        }
+                    default:
+                        assert(false, "How it can be? 'footerInfo.heightState' is fixed but 'footerHeight' isn't")
+                    }
+                default: break
+                }
+            }
+        default: break
+        }
+    }
+    
     public override func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
         if itemsInfo == nil {
             collectionViewWidth = sectionWidth

@@ -462,17 +462,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         var shouldInvalidate = false
         switch elementCategory {
         case .cell(let indexPath):
-            if estimatedColumnType != nil && (indexPath.item < numberOfItemsInSection) {
-//                if ((indexPath.item % numberOfColumnsInRow) == (numberOfColumnsInRow - 1))
-//                    /*|| (indexPath.item == (numberOfItemsInSection - 1))*/ {
-                    //Invalidate only if it's the last item at row
-                    shouldInvalidate = true
-//                }
-//                else {
-//                    itemsInfo[indexPath.item].frame.size.height = preferredSize.height
-//                    itemsInfo[indexPath.item].heightState = .computed
-//                }
-            }
+            shouldInvalidate = (estimatedColumnType != nil && (indexPath.item < numberOfItemsInSection))
         case .supplementaryView(_, let elementKind):
             shouldInvalidate = (
                 (elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil && headerInfo!.heightState != .fixed)

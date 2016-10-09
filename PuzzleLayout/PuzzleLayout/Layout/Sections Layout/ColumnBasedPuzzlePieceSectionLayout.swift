@@ -213,33 +213,18 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         return maxY
     }
     
-    public override func prepare(with context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {
-        
-        if (info as? String) == kInvalidateForResetLayout {
+    public override func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
+        if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             itemsInfo = nil
             headerInfo = nil
             footerInfo = nil
         }
         
-        if itemsInfo == nil {
-            collectionViewWidth = sectionWidth
-            prepareItemsFromScratch()
+        guard let _ = itemsInfo else {
+            return
         }
-        else if context.invalidateEverything || context.invalidateDataSourceCounts {
-            if !context.invalidateEverything {
-                //TODO: take care for willInsertOrDeleteRows like Rows layout take care
-            }
-            
-            if fixCountOfItemsList() || (collectionViewWidth != sectionWidth) {
-                collectionViewWidth = sectionWidth
-                updateItemsList()
-            }
-        }
-        else if context.invalidateForWidthChange || collectionViewWidth != sectionWidth {
-            collectionViewWidth = sectionWidth
-            updateItemsList()
-        }
-        else if let invalidationStr = info as? String {
+        
+        if let invalidationStr = info as? String {
             switch invalidationStr {
             case kInvalidateForRowInfoChange:
                 if let type = estimatedColumnType ?? columnType {
@@ -263,6 +248,27 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
         else if let itemIndexPath = info as? IndexPath {
             updateItems(fromIndexPath: itemIndexPath)
+        }
+    }
+    
+    public override func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+        if itemsInfo == nil {
+            collectionViewWidth = sectionWidth
+            prepareItemsFromScratch()
+        }
+        else if didUpdateDataSourceCounts {
+            if !didReloadData {
+                //TODO: take care for willInsertOrDeleteRows like Rows layout take care
+            }
+            
+            if fixCountOfItemsList() || (collectionViewWidth != sectionWidth) {
+                collectionViewWidth = sectionWidth
+                updateItemsList()
+            }
+        }
+        else if collectionViewWidth != sectionWidth {
+            collectionViewWidth = sectionWidth
+            updateItemsList()
         }
     }
     

@@ -148,25 +148,18 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         return maxY
     }
     
-    public override func prepare(with context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {
-        
-        if (info as? String) == kInvalidateForResetLayout {
+    public override func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
+        if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             rowsInfo = nil
             headerInfo = nil
             footerInfo = nil
         }
         
-        if rowsInfo == nil {
-            collectionViewWidth = sectionWidth
-            prepareRowsFromScratch()
+        guard let _ = rowsInfo else {
+            return
         }
-        else if context.invalidateEverything {
-            fixRowsList(willInsertOrDeleteRows: false)
-        }
-        else if context.invalidateDataSourceCounts {
-            fixRowsList(willInsertOrDeleteRows: true)
-        }
-        else if let invalidationStr = info as? String {
+        
+        if let invalidationStr = info as? String {
             switch invalidationStr {
             case kInvalidateForItemHeightChange:
                 updateRowsForHeightChange()
@@ -186,8 +179,21 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         else if let itemIndexPath = info as? IndexPath {
             updateRows(fromIndexPath: itemIndexPath)
         }
+    }
+    
+    public override func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+        if rowsInfo == nil {
+            collectionViewWidth = sectionWidth
+            prepareRowsFromScratch()
+        }
+        else if didReloadData {
+            fixRowsList(willInsertOrDeleteRows: false)
+        }
+        else if didUpdateDataSourceCounts {
+            fixRowsList(willInsertOrDeleteRows: true)
+        }
         
-        if context.invalidateForWidthChange || collectionViewWidth != sectionWidth {
+        if collectionViewWidth != sectionWidth {
             collectionViewWidth = sectionWidth
             updateAllRowsWidth()
         }

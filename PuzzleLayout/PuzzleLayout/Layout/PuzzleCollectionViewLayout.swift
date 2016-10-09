@@ -96,25 +96,50 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             return
         }
         
-        var shouldPrepare = false
         if ctx.invalidateEverything || ctx.invalidateDataSourceCounts || ctx.invalidateSectionsLayout {
-            shouldPrepare = true
-            prepareSectionsLayout()
-        }
-        
-        let invalidationInfo = ctx.invalidationInfo
-        if shouldPrepare == false , let layout = ctx.invalidateSectionLayoutData {
-            layout.prepare(with: ctx, and: invalidationInfo[layout.sectionIndex!])
+            invalidateEverything = invalidateEverything || ctx.invalidateEverything
+            invalidateDataSourceCounts = invalidateDataSourceCounts || ctx.invalidateDataSourceCounts
+            invalidateSectionsLayout = invalidateSectionsLayout || ctx.invalidateSectionsLayout
+            for sectionLayout in sectionsLayoutInfo {
+                sectionLayout.invalidate(willReloadData: ctx.invalidateEverything, willUpdateDataSourceCounts: ctx.invalidateDataSourceCounts, resetLayout: ctx.invalidateSectionsLayout, info: nil)
+            }
         }
         else {
-            for sectionLayout in sectionsLayoutInfo {
-                let index = sectionLayout.sectionIndex!
-                let info = invalidationInfo[index]
-                sectionLayout.prepare(with: ctx, and: info)
+            let invalidationInfo = ctx.invalidationInfo
+            if let layout = ctx.invalidateSectionLayoutData {
+                layout.invalidate(willReloadData: false, willUpdateDataSourceCounts: false, resetLayout: false, info: invalidationInfo[layout.sectionIndex!])
+            }
+            else {
+                for (index,info) in invalidationInfo {
+                    sectionsLayoutInfo[index].invalidate(willReloadData: false, willUpdateDataSourceCounts: false, resetLayout: false, info: info)
+                }
             }
         }
         
         super.invalidateLayout(with: context)
+    }
+    
+    private var invalidateEverything: Bool = false
+    private var invalidateDataSourceCounts: Bool = false
+    private var invalidateSectionsLayout: Bool = false
+    public override func prepare() {
+        if invalidateEverything || invalidateDataSourceCounts || invalidateSectionsLayout {
+            prepareSectionsLayout()
+        }
+        
+        let didReloadData = invalidateEverything
+        let didUpdateDataSourceCounts = invalidateDataSourceCounts
+        let didResetLayout =  invalidateSectionsLayout
+        
+        invalidateEverything = false
+        invalidateDataSourceCounts = false
+        invalidateSectionsLayout = false
+        
+        for sectionLayout in sectionsLayoutInfo {
+            sectionLayout.prepare(didReloadData: didReloadData, didUpdateDataSourceCounts: didUpdateDataSourceCounts, didResetLayout: didResetLayout)
+        }
+        
+        super.prepare()
     }
     
     public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
@@ -432,7 +457,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             return
         }
         
-        let numberOfSections = dataSource.numberOfSections?(in: collectionView!) ?? 1
+        let numberOfSections = collectionView!.numberOfSections
         if numberOfSections > 0 {
             let oldLayouts = sectionsLayoutInfo
             var newLayouts: [PuzzlePieceSectionLayout] = [PuzzlePieceSectionLayout](repeating: PuzzlePieceSectionLayout(), count: numberOfSections)
@@ -441,7 +466,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             }
             
             for sectionIndex in 0 ..< numberOfSections {
-                let numberOfItems = dataSource.collectionView(collectionView!, numberOfItemsInSection: sectionIndex)
+                let numberOfItems = collectionView!.numberOfItems(inSection: sectionIndex)
                 let layout = dataSource.collectionView(collectionView!, collectionViewLayout: self, layoutForSectionAtIndex: sectionIndex)
                 //TODO: preapre with parentLayout=self & numberOfItems
                 
@@ -603,7 +628,9 @@ public class PuzzlePieceSectionLayout {
         return 0
     }
     
-    func prepare(with context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {}
+    func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {}
+    
+    func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {}
     
     func tearDown() {}
     

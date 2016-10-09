@@ -222,12 +222,10 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
         
         if itemsInfo == nil {
-            DebugLog("1")
             collectionViewWidth = sectionWidth
             prepareItemsFromScratch()
         }
         else if context.invalidateEverything || context.invalidateDataSourceCounts {
-            DebugLog("2")
             if !context.invalidateEverything {
                 //TODO: take care for willInsertOrDeleteRows like Rows layout take care
             }
@@ -238,7 +236,6 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             }
         }
         else if context.invalidateForWidthChange || collectionViewWidth != sectionWidth {
-            DebugLog("3")
             collectionViewWidth = sectionWidth
             updateItemsList()
         }
@@ -264,9 +261,9 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             default: break
             }
         }
-//        else if let itemIndexPath = info as? IndexPath {
-//            updateRows(forIndexPath: itemIndexPath)
-//        }
+        else if let itemIndexPath = info as? IndexPath {
+            updateItems(fromIndexPath: itemIndexPath)
+        }
     }
     
     override public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
@@ -466,15 +463,15 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         switch elementCategory {
         case .cell(let indexPath):
             if estimatedColumnType != nil && (indexPath.item < numberOfItemsInSection) {
-                if ((indexPath.item % numberOfColumnsInRow) == (numberOfColumnsInRow - 1))
-                    || (indexPath.item == (numberOfItemsInSection - 1)) {
+//                if ((indexPath.item % numberOfColumnsInRow) == (numberOfColumnsInRow - 1))
+//                    /*|| (indexPath.item == (numberOfItemsInSection - 1))*/ {
                     //Invalidate only if it's the last item at row
                     shouldInvalidate = true
-                }
-                else {
-                    itemsInfo[indexPath.item].frame.size.height = preferredSize.height
-                    itemsInfo[indexPath.item].heightState = .computed
-                }
+//                }
+//                else {
+//                    itemsInfo[indexPath.item].frame.size.height = preferredSize.height
+//                    itemsInfo[indexPath.item].heightState = .computed
+//                }
             }
         case .supplementaryView(_, let elementKind):
             shouldInvalidate = (
@@ -793,6 +790,54 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         updateFooter(originY: lastOriginY)
     }
     
+    private func updateItems(fromIndexPath indexPath: IndexPath) {
+        if numberOfColumnsInRow == 1 {
+            itemsInfo[indexPath.item].rowHeight = itemsInfo[indexPath.item].frame.height
+            
+            var lastOriginY: CGFloat = itemsInfo[indexPath.item].frame.maxY
+            if indexPath.item + 1 != numberOfItemsInSection {
+                lastOriginY += minimumLineSpacing
+                for index in indexPath.item ..< numberOfItemsInSection {
+                    itemsInfo[index].frame.origin.y = lastOriginY
+                    lastOriginY += itemsInfo[index].rowHeight + minimumLineSpacing
+                }
+            }
+            
+            lastOriginY += sectionInsets.bottom
+            updateFooter(originY: lastOriginY)
+
+        }
+        else {
+            var startItemIndex = indexPath.item - (indexPath.item % numberOfColumnsInRow)
+            var lastOriginY: CGFloat = itemsInfo[indexPath.item].frame.minY
+            if startItemIndex < numberOfItemsInSection {
+                while startItemIndex < numberOfItemsInSection {
+                    let endItemIndex = min(startItemIndex + numberOfColumnsInRow - 1, numberOfItemsInSection - 1)
+                    var maxHeight: CGFloat = 0
+                    for index in startItemIndex...endItemIndex {
+                        maxHeight = max(maxHeight, itemsInfo[index].frame.height)
+                    }
+                    
+                    for index in startItemIndex...endItemIndex {
+                        itemsInfo[index].frame.origin.y = lastOriginY
+                        itemsInfo[index].rowHeight = maxHeight
+                    }
+                    
+                    lastOriginY += maxHeight + minimumLineSpacing
+                    startItemIndex = endItemIndex + 1
+                }
+                
+                lastOriginY -= minimumLineSpacing
+            }
+            else {
+                lastOriginY = itemsInfo[indexPath.item].frame.maxY
+            }
+            
+            lastOriginY += sectionInsets.bottom
+            updateFooter(originY: lastOriginY)
+        }
+    }
+    
     private func updateHeader() {
         switch headerHeight {
         case .none:
@@ -953,7 +998,6 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                     itemsInfo[index].frame.size.width = itemSize.width
                     if didChangeItemHeight && itemsInfo[index].heightState != .computed {
                         itemsInfo[index].frame.size.height = itemSize.height
-                        itemsInfo[index].heightState = .estimated
                     }
                     
                     if didChangeItemWidth && itemsInfo[index].heightState == .computed {
@@ -963,7 +1007,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                     itemsInfo[index].itemIndexInRow = 0
                     itemsInfo[index].rowIndex = index
                     
-                    lastOriginY += itemSize.height + minimumLineSpacing
+                    lastOriginY += itemsInfo[index].frame.height + minimumLineSpacing
                 }
             }
             else {
@@ -974,20 +1018,20 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                     var lastOriginX = sectionInsets.left
                     var maxHeight: CGFloat = 0
                     for index in startItemIndex...endItemIndex {
+                        if didChangeItemHeight && itemsInfo[index].heightState != .computed {
+                            itemsInfo[index].frame.size.height = itemSize.height
+                        }
+                        
+                        if didChangeItemWidth && itemsInfo[index].heightState == .computed {
+                            itemsInfo[index].heightState = .estimated
+                        }
+                        
                         maxHeight = max(maxHeight, itemsInfo[index].frame.height)
                     }
                     
                     for index in startItemIndex...endItemIndex {
                         itemsInfo[index].frame.origin = CGPoint(x: lastOriginX, y: lastOriginY)
                         itemsInfo[index].frame.size.width = itemSize.width
-                        if didChangeItemHeight && itemsInfo[index].heightState != .computed {
-                            itemsInfo[index].frame.size.height = itemSize.height
-                            itemsInfo[index].heightState = .estimated
-                        }
-                        
-                        if didChangeItemWidth && itemsInfo[index].heightState == .computed {
-                            itemsInfo[index].heightState = .estimated
-                        }
                         
                         itemsInfo[index].rowHeight = maxHeight
                         itemsInfo[index].itemIndexInRow = index - startItemIndex
@@ -996,7 +1040,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                     }
                     
                     startItemIndex = endItemIndex + 1
-                    lastOriginY += itemSize.height + minimumLineSpacing
+                    lastOriginY += maxHeight + minimumLineSpacing
                     rowIndex += 1
                 }
             }

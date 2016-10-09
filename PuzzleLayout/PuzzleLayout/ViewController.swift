@@ -11,11 +11,18 @@ import UIKit
 class ViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, CollectionViewDataSourcePuzzleLayout {
     
     @IBOutlet weak var collectionView: UICollectionView!
-    let layouts = [
-        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 44, estimatedHeaderHeight: 30, separatorLineStyle: .all),
-        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 50, sectionInsets: UIEdgeInsetsMake(0, 15, 0, 15)),
-        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 60, separatorLineStyle: .none),
-        RowsPuzzlePieceSectionLayout(estimatedItemHeight: 70, sectionInsets: UIEdgeInsetsMake(30, 20, 30, 0), estimatedHeaderHeight: 40, estimatedFooterHeight: 100),
+    let layouts: [PuzzlePieceSectionLayout] = [
+        ColumnBasedPuzzlePieceSectionLayout(columnType: ColumnType.dynamicNumberOfColumns(closure: { (_, _, width) -> (numberOfColumns: UInt, itemHeight: CGFloat) in
+            if width > 800 { return (5, 175) }
+            else if width > 600 { return (4, 160) }
+            else if width > 400 { return (3, 150) }
+            else { return (2, 120) }
+        }), sectionInsets: UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5), minimumInteritemSpacing: 5, minimumLineSpacing: 5, headerHeight: .estimated(height: 50), footerHeight: .estimated(height: 50), separatorLineStyle: .all, separatorLineInsets: UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)),
+        ColumnBasedPuzzlePieceSectionLayout(columnType: ColumnType.numberOfColumns(numberOfColumns: 4, itemHeight: 175), sectionInsets: UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10), minimumInteritemSpacing: 8, minimumLineSpacing: 8, headerHeight: .fixed(height: 75), footerHeight: .estimated(height: 100), separatorLineStyle: .none),
+        RowsPuzzlePieceSectionLayout(rowHeight: 44, headerHeight: .fixed(height: 100), separatorLineStyle: .all),
+        RowsPuzzlePieceSectionLayout(estimatedRowHeight: 200, sectionInsets: UIEdgeInsetsMake(0, 10, 0, 10), rowSpacing: 4, headerHeight: .estimated(height: 50), footerHeight: .fixed(height: 100)),
+        RowsPuzzlePieceSectionLayout(rowHeight: 60, sectionInsets: UIEdgeInsetsMake(20, 20, 20, 20), rowSpacing: 0, headerHeight: .estimated(height: 100), footerHeight: .estimated(height: 100), separatorLineStyle: .none, showTopGutter: true, showBottomGutter: false),
+        RowsPuzzlePieceSectionLayout(estimatedRowHeight: 50, sectionInsets: UIEdgeInsetsMake(20, 20, 20, 20), showTopGutter: true, showBottomGutter: true),
         ]
     
     override func viewDidLoad() {
@@ -23,6 +30,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         
         prepareDataSource()
         let layout = PuzzleCollectionViewLayout()
+        layout.separatorLineColor = .black
         collectionView.setCollectionViewLayout(layout, animated: false)
     }
     

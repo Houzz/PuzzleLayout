@@ -374,6 +374,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }
         
         (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
+        ctx.invalidateSectionLayoutData = layout
         if let info = layout.invalidationInfo(for: invalidationType, forPreferredSize: preferredAttributes.size, withOriginalSize: originalAttributes.size) {
             ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
         }
@@ -382,16 +383,16 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
 
     override public func prepare(forCollectionViewUpdates updateItems: [UICollectionViewUpdateItem]) {
         var sectionUpdated: Set<Int> = []
+        for layout in sectionsLayoutInfo {
+            layout.willGenerateUpdatesCall()
+        }
+        
         for update in updateItems {
             guard let section = (update.indexPathAfterUpdate ?? update.indexPathBeforeUpdate)?.section else {
                 continue
             }
             
-            if sectionUpdated.contains(section) == false {
-                sectionUpdated.insert(section)
-                sectionsLayoutInfo[section].willGenerateUpdatesCall()
-            }
-            
+            sectionUpdated.insert(section)
             switch update.updateAction {
             case .insert:
                 let indexPath = update.indexPathAfterUpdate!
@@ -411,13 +412,14 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 else {
                     sectionsLayoutInfo[fromIndexPath.section].didDeleteItem(at: fromIndexPath.item)
                     sectionsLayoutInfo[toIndexPath.section].didInsertItem(at: toIndexPath.item)
+                    sectionUpdated.insert(update.indexPathBeforeUpdate!.section)
                 }
             default: break
             }
         }
         
-        for section in sectionUpdated {
-            sectionsLayoutInfo[section].didGenerateUpdatesCall()
+        for (idx,layout) in sectionsLayoutInfo.enumerated() {
+            layout.didGenerateUpdatesCall(didHadUpdates: sectionUpdated.contains(idx))
         }
         
         super.prepare(forCollectionViewUpdates: updateItems)
@@ -584,6 +586,7 @@ public class PuzzlePieceSectionLayout {
         }
     }
     
+    //TODO: make default value .zero and make (top: 0, left: 15, bottom: 0, right: 0) only for rows layout
     var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) {
         didSet {
             if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle) {
@@ -597,6 +600,7 @@ public class PuzzlePieceSectionLayout {
     //MARK: - Should be override by subclasses
     var heightOfSection: CGFloat {
         assert(false, "'heightOfSection' Should be implemented by subclass")
+        return 0
     }
     
     func prepare(with context: PuzzleCollectionViewLayoutInvalidationContext, and info: Any?) {}
@@ -655,14 +659,14 @@ public class PuzzlePieceSectionLayout {
     func didDeleteItem(at index: Int) {}
     func didReloadItem(at index: Int) {}
     func didMoveItem(fromIndex: Int, toIndex: Int) {}
-    func didGenerateUpdatesCall() {}
+    func didGenerateUpdatesCall(didHadUpdates: Bool) {}
     // --------
 }
 
 extension PuzzlePieceSectionLayout {
     public var sectionWidth: CGFloat {
         if let collectionView = parentLayout?.collectionView {
-            return collectionView.bounds.width - collectionView.contentInset.left - collectionView.contentInset.right
+            return collectionView.bounds.width - (collectionView.contentInset.left + collectionView.contentInset.right)
         }
         else {
             return 0

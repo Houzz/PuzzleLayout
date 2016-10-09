@@ -12,7 +12,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     public var sectionInsets = UIEdgeInsets.zero {
         didSet {
-            if let ctx = invalidationContext(with: kInvalidateForSectionInsets) {
+            if let ctx = invalidationContext(with: kInvalidateForSectionInsetsChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -21,9 +21,9 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public var lineSpacing: CGFloat = 0 {
+    public var rowSpacing: CGFloat = 0 {
         didSet {
-            if let ctx = invalidationContext(with: kInvalidateForLineSpacing) {
+            if let ctx = invalidationContext(with: kInvalidateForRowSpacingChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
@@ -32,35 +32,49 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public var estimatedItemHeight: CGFloat = 44 {
+    public var rowHeight: CGFloat = 44 {
         didSet {
-            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange) {
-                parentLayout!.invalidateLayout(with: ctx)
-            }
-            else {
-                updateRowsUsingEstimatedHeight()
+            if estimatedRowHeight == 0 {
+                if let ctx = self.invalidationContext(with: kInvalidateForItemHeightChange) {
+                    parentLayout!.invalidateLayout(with: ctx)
+                }
+                else {
+                    updateRowsForHeightChange()
+                }
             }
         }
     }
 
-    public var estimatedHeaderHeight: CGFloat = kEstimatedHeaderFooterHeightNone {
+    public var estimatedRowHeight: CGFloat = 0 {
         didSet {
-            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange) {
+            if let ctx = self.invalidationContext(with: kInvalidateForItemHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
-                updateRowsUsingEstimatedHeight()
+                updateRowsForHeightChange()
             }
         }
     }
     
-    public var estimatedFooterHeight: CGFloat = kEstimatedHeaderFooterHeightNone {
+    public var headerHeight: HeadeFooterHeightSize = .none {
         didSet {
-            if let ctx = self.invalidationContext(with: kInvalidateForEstimatedHeightChange) {
+            if let ctx = self.invalidationContext(with: kInvalidateForHeaderHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
             else {
-                updateRowsUsingEstimatedHeight()
+                updateRowsForHeaderHeightChange()
+            }
+        }
+    }
+    
+    public var footerHeight: HeadeFooterHeightSize = .none {
+        didSet {
+            //TODO: update similar to columns layout updating footer
+            if let ctx = self.invalidationContext(with: kInvalidateForFooterHeightChange) {
+                parentLayout!.invalidateLayout(with: ctx)
+            }
+            else {
+                updateRowsForFooterHeightChange()
             }
         }
     }
@@ -88,18 +102,32 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     //MARK: - Private properties
     private var rowsInfo: [RowInfo]!
-    private var headerInfo: RowInfo?
-    private var footerInfo: RowInfo?
+    private var headerInfo: HeaderFooterInfo?
+    private var footerInfo: HeaderFooterInfo?
     
     private var collectionViewWidth: CGFloat = 0
-    init(estimatedItemHeight: CGFloat = 44, sectionInsets: UIEdgeInsets = .zero, lineSpacing: CGFloat = 0,
-         estimatedHeaderHeight: CGFloat = kEstimatedHeaderFooterHeightNone, estimatedFooterHeight: CGFloat = kEstimatedHeaderFooterHeightNone,
+    init(rowHeight: CGFloat = 44, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
+         headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none,
          separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
-        self.estimatedItemHeight = estimatedItemHeight
+        self.rowHeight = rowHeight
         self.sectionInsets = sectionInsets
-        self.lineSpacing = lineSpacing
-        self.estimatedHeaderHeight = estimatedHeaderHeight
-        self.estimatedFooterHeight = estimatedFooterHeight
+        self.rowSpacing = rowSpacing
+        self.headerHeight = headerHeight
+        self.footerHeight = footerHeight
+        self.showTopGutter = showTopGutter
+        self.showBottomGutter = showBottomGutter
+        super.init()
+        self.separatorLineStyle = separatorLineStyle
+    }
+    
+    init(estimatedRowHeight: CGFloat = 100, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
+         headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none,
+         separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
+        self.estimatedRowHeight = estimatedRowHeight
+        self.sectionInsets = sectionInsets
+        self.rowSpacing = rowSpacing
+        self.headerHeight = headerHeight
+        self.footerHeight = footerHeight
         self.showTopGutter = showTopGutter
         self.showBottomGutter = showBottomGutter
         super.init()
@@ -140,13 +168,17 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
         else if let invalidationStr = info as? String {
             switch invalidationStr {
-            case kInvalidateForEstimatedHeightChange:
-                updateRowsUsingEstimatedHeight()
+            case kInvalidateForItemHeightChange:
+                updateRowsForHeightChange()
+            case kInvalidateForHeaderHeightChange:
+                updateRowsForHeaderHeightChange()
+            case kInvalidateForFooterHeightChange:
+                updateRowsForFooterHeightChange()
             case kInvalidateHeaderForPreferredHeight:
                 updateRows(fromHeader: true)
-            case kInvalidateForSectionInsets:
+            case kInvalidateForSectionInsetsChange:
                 updateAllRowsForSectionInsetsChange()
-            case kInvalidateForLineSpacing:
+            case kInvalidateForRowSpacingChange:
                 updateAllRowsOriginY()
             default: break
             }
@@ -203,9 +235,9 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             if let footer = footerInfo {
                 maxY = footer.originY
             } else if let lastItem = rowsInfo.last {
-                maxY = lastItem.maxOriginY
+                maxY = lastItem.maxOriginY + sectionInsets.bottom
             } else if let header = headerInfo {
-                maxY = header.maxOriginY
+                maxY = header.maxOriginY + sectionInsets.bottom
             }
             else {
                 maxY = 0
@@ -243,7 +275,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         let itemAttributes = PuzzleCollectionViewLayoutAttributes(forCellWith: indexPath)
         let frame = CGRect(x: sectionInsets.left, y: rowInfo.originY, width: collectionViewWidth - (sectionInsets.left + sectionInsets.right), height: rowInfo.height)
         itemAttributes.frame = frame
-        if rowInfo.estimatedHeight == false {
+        if rowInfo.heightState != .estimated {
             itemAttributes.cachedSize = frame.size
         }
         return itemAttributes
@@ -256,7 +288,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
                 let frame = CGRect(x: 0, y: headerInfo.originY, width: collectionViewWidth, height: headerInfo.height)
                 itemAttributes.frame = frame
-                if headerInfo.estimatedHeight == false {
+                if headerInfo.heightState != .estimated {
                     itemAttributes.cachedSize = frame.size
                 }
                 
@@ -267,7 +299,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
                 let frame = CGRect(x: 0, y: footerInfo.originY, width: collectionViewWidth, height: footerInfo.height)
                 itemAttributes.frame = frame
-                if footerInfo.estimatedHeight == false {
+                if footerInfo.heightState != .estimated {
                     itemAttributes.cachedSize = frame.size
                 }
                 return itemAttributes
@@ -300,7 +332,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 if let footer = footerInfo {
                     maxY = footer.originY
                 } else if let lastItem = rowsInfo.last {
-                    maxY = lastItem.maxOriginY
+                    maxY = lastItem.maxOriginY + sectionInsets.bottom
                 } else if let header = headerInfo {
                     maxY = header.maxOriginY
                 }
@@ -330,11 +362,11 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         var shouldInvalidate = false
         switch elementCategory {
         case .cell(let indexPath):
-            shouldInvalidate = (indexPath.item < numberOfItemsInSection)
+            shouldInvalidate = (indexPath.item < numberOfItemsInSection) && rowsInfo[indexPath.item].heightState != .fixed
         case .supplementaryView(_, let elementKind):
             shouldInvalidate = (
-                (elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil)
-                || (elementKind == PuzzleCollectionElementKindSectionFooter && footerInfo != nil)
+                (elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil && headerInfo!.heightState != .fixed)
+                || (elementKind == PuzzleCollectionElementKindSectionFooter && footerInfo != nil && footerInfo!.heightState != .fixed)
                 )
         default: break
         }
@@ -357,17 +389,17 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         switch elementCategory {
         case .cell(let indexPath):
             rowsInfo[indexPath.item].height = preferredSize.height
-            rowsInfo[indexPath.item].estimatedHeight = false
+            rowsInfo[indexPath.item].heightState = .computed
             info = indexPath
         case .supplementaryView(_, let elementKind):
             if elementKind == UICollectionElementKindSectionHeader {
                 headerInfo!.height = preferredSize.height
-                headerInfo!.estimatedHeight = false
+                headerInfo!.heightState = .computed
                 info = kInvalidateHeaderForPreferredHeight
             }
             else if elementKind == UICollectionElementKindSectionFooter {
                 footerInfo!.height = preferredSize.height
-                footerInfo!.estimatedHeight = false
+                footerInfo!.heightState = .computed
             }
             
         default: break
@@ -378,7 +410,12 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     //Updates
     override func didInsertItem(at index: Int) {
-        rowsInfoBeforeUpdate?.insert(RowInfo(estimatedHeight: true, originY: 0, height: estimatedHeaderHeight), at: index)
+        if estimatedRowHeight != 0 {
+            rowsInfoBeforeUpdate?.insert(RowInfo(heightState: .estimated, originY: 0, height: estimatedRowHeight), at: index)
+        }
+        else {
+            rowsInfoBeforeUpdate?.insert(RowInfo(heightState: .fixed, originY: 0, height: rowHeight), at: index)
+        }
     }
     
     override func didDeleteItem(at index: Int) {
@@ -386,7 +423,9 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     override func didReloadItem(at index: Int) {
-        rowsInfoBeforeUpdate?[index].estimatedHeight = true
+        if let _ = rowsInfoBeforeUpdate , rowsInfoBeforeUpdate![index].heightState == .computed {
+            rowsInfoBeforeUpdate![index].heightState = .estimated
+        }
     }
     
     override func didMoveItem(fromIndex: Int, toIndex: Int) {
@@ -395,8 +434,8 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    override func didGenerateUpdatesCall() {
-        if let updatedRowsInfo = rowsInfoBeforeUpdate , updatedRowsInfo.count == rowsInfo.count {
+    override func didGenerateUpdatesCall(didHadUpdates: Bool) {
+        if didHadUpdates , let updatedRowsInfo = rowsInfoBeforeUpdate , updatedRowsInfo.count == rowsInfo.count {
             rowsInfo = updatedRowsInfo
             updateAllRowsOriginY()
         }
@@ -414,31 +453,48 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     // MARK: - Private
     private func prepareRowsFromScratch() {
-        var lastOriginY: CGFloat = 0
         
-        rowsInfo = [RowInfo](repeating: RowInfo(estimatedHeight: true, originY: 0, height: 0), count: numberOfItemsInSection)
+        rowsInfo = [RowInfo](repeating: RowInfo(heightState: .estimated, originY: 0, height: 0), count: numberOfItemsInSection)
         
-        if estimatedHeaderHeight != kEstimatedHeaderFooterHeightNone {
-            headerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedHeaderHeight)
-            lastOriginY += estimatedHeaderHeight
+        switch headerHeight {
+        case .fixed(let height):
+            headerInfo = HeaderFooterInfo(heightState: .fixed, originY: 0, height: height)
+        case .estimated(let height):
+            headerInfo = HeaderFooterInfo(heightState: .estimated, originY: 0, height: height)
+        default: break
         }
+        
+        var lastOriginY: CGFloat = (headerInfo?.maxOriginY ?? 0) + sectionInsets.top
         
         if numberOfItemsInSection != 0 {
             
-            lastOriginY += sectionInsets.top
-            
-            for row in 0 ..< numberOfItemsInSection {
-                rowsInfo[row] = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedItemHeight)
-                lastOriginY += estimatedItemHeight + lineSpacing
+            let heightState: ItemHeightState
+            let height: CGFloat
+            if estimatedRowHeight != 0 {
+                heightState = .estimated
+                height = estimatedRowHeight
+            }
+            else {
+                heightState = .fixed
+                height = rowHeight
             }
             
-            lastOriginY -= lineSpacing
-            lastOriginY += sectionInsets.bottom
+            for row in 0 ..< numberOfItemsInSection {
+                rowsInfo[row] = RowInfo(heightState: heightState, originY: lastOriginY, height: height)
+                lastOriginY += height + rowSpacing
+            }
+            
+            lastOriginY -= rowSpacing
         }
         
-        if estimatedFooterHeight != kEstimatedHeaderFooterHeightNone {
-            footerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedFooterHeight)
-            lastOriginY += estimatedFooterHeight
+        lastOriginY += sectionInsets.bottom
+        
+        switch footerHeight {
+        case .fixed(let height):
+            footerInfo = HeaderFooterInfo(heightState: .fixed, originY: lastOriginY, height: height)
+        case .estimated(let height):
+            footerInfo = HeaderFooterInfo(heightState: .estimated, originY: lastOriginY, height: height)
+        default: break
         }
     }
     
@@ -453,35 +509,60 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             rowsInfoBeforeUpdate = rowsInfo
         }
         
-        var lastOriginY: CGFloat = 0
+        // Update section header if needed
+        switch headerHeight {
+        case .none:
+            headerInfo = nil
+        case .fixed(let height):
+            if let _ = headerInfo {
+                headerInfo!.height = height
+                headerInfo!.heightState = .fixed
+            }
+            else {
+                headerInfo = HeaderFooterInfo(heightState: .fixed, originY: 0, height: height)
+            }
+        case .estimated(let height):
+            if let _ = headerInfo {
+                if headerInfo!.heightState == .estimated {
+                    headerInfo!.height = height
+                }
+            }
+            else {
+                headerInfo = HeaderFooterInfo(heightState: .estimated, originY: 0, height: height)
+            }
+        }
         
+        //Update rows
         let updatedRows = numberOfItemsInSection
         let oldRows = rowsInfo.count
-        
-        // Update section header if needed
-        if estimatedHeaderHeight != kEstimatedHeaderFooterHeightNone {
-            if headerInfo == nil {
-                headerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedHeaderHeight)
-            }
-            else if headerInfo!.estimatedHeight {
-                headerInfo!.height = estimatedHeaderHeight
-            }
-            
-            lastOriginY += headerInfo!.height
-        }
-        else if headerInfo != nil {
-            headerInfo = nil
-        }
-        
         let rowsToUpdate = min(oldRows, updatedRows)
         
-        lastOriginY += sectionInsets.top
+        var lastOriginY: CGFloat = (headerInfo?.height ?? 0) + sectionInsets.top
+        
+        let heightState: ItemHeightState
+        let height: CGFloat
+        if estimatedRowHeight != 0 {
+            heightState = .estimated
+            height = estimatedRowHeight
+        }
+        else {
+            heightState = .fixed
+            height = rowHeight
+        }
+        
         for row in 0 ..< rowsToUpdate {
-            var rowInfo = rowsInfo[row]
-            rowInfo.originY = lastOriginY
-            rowInfo.estimatedHeight = true
-            rowsInfo[row] = rowInfo
-            lastOriginY += rowInfo.height + lineSpacing
+            rowsInfo[row].originY = lastOriginY
+            if heightState == .fixed {
+                rowsInfo[row].heightState = .fixed
+                rowsInfo[row].height = height
+            }
+            else {
+                if rowsInfo[row].heightState != .computed {
+                    rowsInfo[row].heightState = .estimated
+                    rowsInfo[row].height = height
+                }
+            }
+            lastOriginY += rowsInfo[row].height + rowSpacing
         }
         
         if oldRows > updatedRows {
@@ -490,118 +571,137 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
         else if oldRows < updatedRows {
             
-            rowsInfo! += [RowInfo](repeating: RowInfo(estimatedHeight: true, originY: 0, height: 0), count: (updatedRows - oldRows))
+            rowsInfo! += [RowInfo](repeating: RowInfo(heightState: .estimated, originY: 0, height: 0), count: (updatedRows - oldRows))
             
             for row in oldRows ..< updatedRows {
-                rowsInfo[row] = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedItemHeight)
-                lastOriginY += estimatedItemHeight + lineSpacing
+                rowsInfo[row] = RowInfo(heightState: heightState, originY: lastOriginY, height: height)
+                lastOriginY += height + rowSpacing
             }
         }
         
         if rowsInfo.isEmpty == false {
-            lastOriginY -= lineSpacing
-            lastOriginY += sectionInsets.bottom
+            lastOriginY -= height
         }
 
+        lastOriginY += sectionInsets.bottom
+        
         // Update section footer if needed
-        if estimatedFooterHeight != kEstimatedHeaderFooterHeightNone {
-            if footerInfo == nil {
-                footerInfo = RowInfo(estimatedHeight: true, originY: lastOriginY, height: estimatedFooterHeight)
-            }
-            else if footerInfo!.estimatedHeight {
-                footerInfo!.height = estimatedFooterHeight
-            }
-            
-            footerInfo!.originY = lastOriginY
-            lastOriginY += footerInfo!.height
-        }
-        else if footerInfo != nil {
+        switch footerHeight {
+        case .none:
             footerInfo = nil
+        case .fixed(let height):
+            if let _ = footerInfo {
+                footerInfo!.height = height
+                footerInfo!.heightState = .fixed
+            }
+            else {
+                footerInfo = HeaderFooterInfo(heightState: .fixed, originY: lastOriginY, height: height)
+            }
+        case .estimated(let height):
+            if let _ = footerInfo {
+                if footerInfo!.heightState == .estimated {
+                    footerInfo!.height = height
+                }
+            }
+            else {
+                footerInfo = HeaderFooterInfo(heightState: .estimated, originY: lastOriginY, height: height)
+            }
         }
     }
     
-    private func updateRowsUsingEstimatedHeight() {
-        if headerInfo?.estimatedHeight ?? false {
-            headerInfo!.height = estimatedHeaderHeight
-        }
-        
+    private func updateRowsForHeightChange() {
         var lastOriginY: CGFloat = (headerInfo?.height ?? 0) + sectionInsets.top
         
-        for row in 0 ..< rowsInfo.count {
-            var rowInfo = rowsInfo[row]
-            if rowInfo.estimatedHeight {
-                rowInfo.height = estimatedItemHeight
-                rowsInfo[row] = rowInfo
-            }
-            lastOriginY += rowInfo.height + lineSpacing
+        let heightState: ItemHeightState
+        let height: CGFloat
+        if estimatedRowHeight != 0 {
+            heightState = .estimated
+            height = estimatedRowHeight
+        }
+        else {
+            heightState = .fixed
+            height = rowHeight
         }
         
+        for row in 0 ..< rowsInfo.count {
+            if heightState == .fixed {
+                rowsInfo[row].heightState = .fixed
+                rowsInfo[row].height = height
+            }
+            else {
+                if rowsInfo[row].heightState != .computed {
+                    rowsInfo[row].heightState = .estimated
+                    rowsInfo[row].height = height
+                }
+            }
+            lastOriginY += rowsInfo[row].height + rowSpacing
+        }
         
         if footerInfo != nil {
             //No need to make those computation if no footer
             if rowsInfo.isEmpty == false {
-                lastOriginY -= lineSpacing
-                lastOriginY += sectionInsets.bottom
+                lastOriginY -= rowSpacing
             }
             
+            lastOriginY += sectionInsets.bottom
+            
             footerInfo!.originY = lastOriginY
-            if footerInfo!.estimatedHeight {
-                footerInfo!.height = estimatedFooterHeight
-            }
         }
     }
     
     private func updateAllRowsWidth() {
-        if headerInfo != nil {
-            headerInfo!.estimatedHeight = true
+        if let _ = headerInfo , headerInfo!.heightState == .computed {
+            headerInfo!.heightState = .estimated
         }
         
-        for row in 0 ..< rowsInfo.count {
-            rowsInfo[row].estimatedHeight = true
+        if estimatedRowHeight != 0 {
+            for row in 0 ..< rowsInfo.count {
+                if rowsInfo[row].heightState == .computed {
+                    rowsInfo[row].heightState = .estimated
+                }
+            }
         }
         
-        if footerInfo != nil {
-            footerInfo?.estimatedHeight = true
+        if let _ = footerInfo , footerInfo!.heightState == .computed {
+            footerInfo!.heightState = .estimated
         }
     }
     
     private func updateAllRowsOriginY() {
-        var lastOriginY = headerInfo?.maxOriginY ?? 0
-        lastOriginY += sectionInsets.top
+        var lastOriginY = (headerInfo?.height ?? 0) + sectionInsets.top
         
         for row in 0 ..< rowsInfo.count {
             rowsInfo[row].originY = lastOriginY
-            lastOriginY += rowsInfo[row].height + lineSpacing
+            lastOriginY += rowsInfo[row].height + rowSpacing
         }
         
         if footerInfo != nil {
             //No need to make those computation if no footer
             if rowsInfo.isEmpty == false {
-                lastOriginY -= lineSpacing
-                lastOriginY += sectionInsets.bottom
+                lastOriginY -= rowSpacing
             }
             
+            lastOriginY += sectionInsets.bottom
             footerInfo!.originY = lastOriginY
         }
     }
     
     private func updateAllRowsForSectionInsetsChange() {
         
-        var lastOriginY = headerInfo?.maxOriginY ?? 0
-        lastOriginY += sectionInsets.top
+        var lastOriginY = (headerInfo?.height ?? 0) + sectionInsets.top
         
         for row in 0 ..< rowsInfo.count {
             rowsInfo[row].originY = lastOriginY
-            lastOriginY += rowsInfo[row].height + lineSpacing
+            lastOriginY += rowsInfo[row].height + rowSpacing
         }
         
         if footerInfo != nil {
             //No need to make those computation if no footer
             if rowsInfo.isEmpty == false {
-                lastOriginY -= lineSpacing
-                lastOriginY += sectionInsets.bottom
+                lastOriginY -= rowSpacing
             }
             
+            lastOriginY += sectionInsets.bottom
             footerInfo!.originY = lastOriginY
         }
     }
@@ -635,15 +735,15 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         
         if firstItemForInvalidation < numberOfItemsInSection {
             if firstItemForInvalidation != 0 {
-                lastOriginY += lineSpacing
+                lastOriginY += rowSpacing
             }
             
             for index in firstItemForInvalidation..<numberOfItemsInSection {
                 rowsInfo[index].originY = lastOriginY
-                lastOriginY = rowsInfo[index].maxOriginY + lineSpacing
+                lastOriginY = rowsInfo[index].maxOriginY + rowSpacing
             }
             
-            lastOriginY -= lineSpacing
+            lastOriginY -= rowSpacing
         }
         
         if footerInfo != nil {
@@ -651,12 +751,85 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             footerInfo!.originY = lastOriginY
         }
     }
+    
+    private func updateRowsForHeaderHeightChange() {
+        
+        // Update section header if needed
+        switch headerHeight {
+        case .none:
+            headerInfo = nil
+        case .fixed(let height):
+            if let _ = headerInfo {
+                headerInfo!.height = height
+                headerInfo!.heightState = .fixed
+            }
+            else {
+                headerInfo = HeaderFooterInfo(heightState: .fixed, originY: 0, height: height)
+            }
+        case .estimated(let height):
+            if let _ = headerInfo {
+                if headerInfo!.heightState == .estimated {
+                    headerInfo!.height = height
+                }
+            }
+            else {
+                headerInfo = HeaderFooterInfo(heightState: .estimated, originY: 0, height: height)
+            }
+        }
+        
+        updateAllRowsOriginY()
+    }
+    
+    private func updateRowsForFooterHeightChange() {
+        // Update section footer if needed
+        switch footerHeight {
+        case .none:
+            footerInfo = nil
+        case .fixed(let height):
+            if let _ = footerInfo {
+                footerInfo!.height = height
+                footerInfo!.heightState = .fixed
+            }
+            else {
+                let originY: CGFloat
+                if let lastRow = rowsInfo.last {
+                    originY = lastRow.maxOriginY + sectionInsets.bottom
+                }
+                else if let header = headerInfo {
+                    originY = header.maxOriginY + sectionInsets.top + sectionInsets.bottom
+                }
+                else {
+                    originY = sectionInsets.top + sectionInsets.bottom
+                }
+                footerInfo = HeaderFooterInfo(heightState: .fixed, originY: originY, height: height)
+            }
+        case .estimated(let height):
+            if let _ = footerInfo {
+                if footerInfo!.heightState == .estimated {
+                    footerInfo!.height = height
+                }
+            }
+            else {
+                let originY: CGFloat
+                if let lastRow = rowsInfo.last {
+                    originY = lastRow.maxOriginY + sectionInsets.bottom
+                }
+                else if let header = headerInfo {
+                    originY = header.maxOriginY + sectionInsets.top + sectionInsets.bottom
+                }
+                else {
+                    originY = sectionInsets.top + sectionInsets.bottom
+                }
+                footerInfo = HeaderFooterInfo(heightState: .estimated, originY: originY, height: height)
+            }
+        }
+    }
 }
 
 
 //MARK: - Utils
 fileprivate struct RowInfo: CustomStringConvertible {
-    var estimatedHeight: Bool
+    var heightState: ItemHeightState
     var originY: CGFloat
     var height: CGFloat
     var maxOriginY: CGFloat {
@@ -668,12 +841,14 @@ fileprivate struct RowInfo: CustomStringConvertible {
     }
     
     var description: String {
-        return "Row Info: estimated:\(estimatedHeight) ; origin Y: \(originY) ; Height: \(height)"
+        return "Row Info: state:\(heightState) ; origin Y: \(originY) ; Height: \(height)"
     }
 }
 
-private let kInvalidateForResetLayout = "reset"
-private let kInvalidateForEstimatedHeightChange = "estimatedHeight"
-private let kInvalidateHeaderForPreferredHeight = "Invalidate_Header"
-private let kInvalidateForSectionInsets = "Invalidate_SectionInsets"
-private let kInvalidateForLineSpacing = "Invalidate_lineSpacing"
+private let kInvalidateForResetLayout = "Reset"
+private let kInvalidateForItemHeightChange = "ItemHeight"
+private let kInvalidateForHeaderHeightChange = "HeaderHeight"
+private let kInvalidateForFooterHeightChange = "FooterHeight"
+private let kInvalidateHeaderForPreferredHeight = "PreferredHeaderHeight"
+private let kInvalidateForSectionInsetsChange = "SectionInsets"
+private let kInvalidateForRowSpacingChange = "RowSpacing"

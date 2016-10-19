@@ -48,7 +48,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
 //        super.viewDidAppear(animated)
 //        let delay = DispatchTime.now() + DispatchTimeInterval.seconds(10)
 //        DispatchQueue.main.asyncAfter(deadline: delay) {
-//            DebugLog("Will delete")
+//            LogVerbose("Will delete")
 //            
 //            self.itemsInSection[0].remove(at: 3)
 //            self.collectionView.performBatchUpdates({
@@ -207,6 +207,6 @@ extension String {
     }
 }
 
-func DebugLog(_ message:  String) {
+func LogVerbose(_ message:  String) {
     print(message)
 }

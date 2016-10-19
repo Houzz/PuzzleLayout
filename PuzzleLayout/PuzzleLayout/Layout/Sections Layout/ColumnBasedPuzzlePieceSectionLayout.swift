@@ -75,7 +75,9 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         columnType = nil
         
         if rowAlignment == .none {
-            LogVerbose("'rowAlignment' can't be none. Set to alignCenter")
+            #if DEBUGLog
+                DEBUGLog("'rowAlignment' can't be none. Set to alignCenter")
+            #endif
             self.rowAlignment = .alignCenter
         }
         else {
@@ -93,12 +95,16 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     public func updateRowAlignment(to rowAlignment: RowAlignmentOnItemSelfSizing) {
         guard estimatedColumnType != nil else {
-            LogVerbose("can't update 'rowAlignment' when 'estimatedColumnType' is nil.")
+            #if DEBUGLog
+                DEBUGLog("can't update 'rowAlignment' when 'estimatedColumnType' is nil.")
+            #endif
             return
         }
         
         if rowAlignment == .none {
-            LogVerbose("'rowAlignment' can't be none. Set to alignCenter")
+            #if DEBUGLog
+                DEBUGLog("'rowAlignment' can't be none. Set to alignCenter")
+            #endif
             self.rowAlignment = .alignCenter
         }
         else {

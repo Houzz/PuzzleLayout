@@ -412,10 +412,11 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     
     override public func invalidationContext(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutInvalidationContext {
         let ctx = super.invalidationContext(forPreferredLayoutAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) as! PuzzleCollectionViewLayoutInvalidationContext
-        if ctx.contentOffsetAdjustment.y != 0 {
-            LogVerbose("Invalidate \(ctx.contentOffsetAdjustment) ; Preferred: \(preferredAttributes.size) ; Original: \(originalAttributes.size) ; Rect: \(collectionView!.bounds) ; \(originalAttributes.frame)")
-        }
-        
+        #if DEBUGLog
+            if ctx.contentOffsetAdjustment.y != 0 {
+                DEBUGLog("Invalidate \(ctx.contentOffsetAdjustment) ; Preferred: \(preferredAttributes.size) ; Original: \(originalAttributes.size) ; Rect: \(collectionView!.bounds) ; \(originalAttributes.frame)")
+            }
+        #endif
         let sectionIndex = originalAttributes.indexPath.section
         let layout = sectionsLayoutInfo[sectionIndex]
         

@@ -192,7 +192,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     //MARK: - Init
-    init(columnType: ColumnType?, sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
+    public init(columnType: ColumnType?, sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
          headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
          footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
          separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
@@ -213,7 +213,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         self.separatorLineColor = separatorLineColor
     }
     
-    init(estimatedColumnType: ColumnType?, rowAlignment: RowAlignmentOnItemSelfSizing = .alignCenter,
+    public init(estimatedColumnType: ColumnType?, rowAlignment: RowAlignmentOnItemSelfSizing = .alignCenter,
          sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
          headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
          footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,

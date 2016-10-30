@@ -564,11 +564,14 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         var shouldInvalidate = false
         switch elementCategory {
         case .cell(let indexPath):
-            shouldInvalidate = (estimatedColumnType != nil && (indexPath.item < numberOfItemsInSection))
+            if (estimatedColumnType != nil && (indexPath.item < numberOfItemsInSection)) && preferredSize.height != originalSize.height {
+                shouldInvalidate = (itemsInfo[indexPath.item].heightState != .computed || itemsInfo[indexPath.item].rowHeight < preferredSize.height)
+            }
         case .supplementaryView(_, let elementKind):
             shouldInvalidate = (
-                (elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil && headerInfo!.heightState != .fixed)
-                    || (elementKind == PuzzleCollectionElementKindSectionFooter && footerInfo != nil && footerInfo!.heightState != .fixed)
+                ((elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil && headerInfo!.heightState != .fixed)
+                    || (elementKind == PuzzleCollectionElementKindSectionFooter && footerInfo != nil && footerInfo!.heightState != .fixed) )
+                    && (preferredSize.height != originalSize.height)
             )
         default: break
         }

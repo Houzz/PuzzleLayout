@@ -15,7 +15,7 @@
 		0F0AAD2A1D9BF2EA00C94758 /* PuzzleCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0AAD271D9BF2EA00C94758 /* PuzzleCollectionViewLayout.swift */; };
 		0F19ACA71DA9146B000D7F1D /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F19ACA61DA9146B000D7F1D /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift */; };
 		0F19ACA91DA9157A000D7F1D /* PuzzleCollectionViewLayout+Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F19ACA81DA9157A000D7F1D /* PuzzleCollectionViewLayout+Utils.swift */; };
-		0F5A7DD01DC63A56009940B6 /* PuzzlePieceSectionLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5A7DCF1DC63A56009940B6 /* PuzzlePieceSectionLayout.swift */; };
+		0F5A7DD41DC646DF009940B6 /* PuzzlePieceSectionLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5A7DD31DC646DF009940B6 /* PuzzlePieceSectionLayout.swift */; };
 		0FC35FD81D9D30F400ACACCE /* RowsPuzzlePieceSectionLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FD51D9D30F400ACACCE /* RowsPuzzlePieceSectionLayout.swift */; };
 		0FC35FD91D9D30F400ACACCE /* IndexPath+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FD71D9D30F400ACACCE /* IndexPath+Extension.swift */; };
 		0FC35FDB1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC35FDA1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift */; };
@@ -35,7 +35,7 @@
 		0F0AAD271D9BF2EA00C94758 /* PuzzleCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleCollectionViewLayout.swift; sourceTree = "<group>"; };
 		0F19ACA61DA9146B000D7F1D /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ColumnBasedPuzzlePieceSectionLayout+Utils.swift"; sourceTree = "<group>"; };
 		0F19ACA81DA9157A000D7F1D /* PuzzleCollectionViewLayout+Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "PuzzleCollectionViewLayout+Utils.swift"; sourceTree = "<group>"; };
-		0F5A7DCF1DC63A56009940B6 /* PuzzlePieceSectionLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PuzzlePieceSectionLayout.swift; path = "Sections Layout/PuzzlePieceSectionLayout.swift"; sourceTree = "<group>"; };
+		0F5A7DD31DC646DF009940B6 /* PuzzlePieceSectionLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzlePieceSectionLayout.swift; sourceTree = "<group>"; };
 		0FC35FD51D9D30F400ACACCE /* RowsPuzzlePieceSectionLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowsPuzzlePieceSectionLayout.swift; sourceTree = "<group>"; };
 		0FC35FD71D9D30F400ACACCE /* IndexPath+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "IndexPath+Extension.swift"; sourceTree = "<group>"; };
 		0FC35FDA1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleCollectionViewLayoutInvalidationContext.swift; sourceTree = "<group>"; };
@@ -89,7 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				0F0AAD271D9BF2EA00C94758 /* PuzzleCollectionViewLayout.swift */,
-				0F5A7DCF1DC63A56009940B6 /* PuzzlePieceSectionLayout.swift */,
+				0F5A7DD31DC646DF009940B6 /* PuzzlePieceSectionLayout.swift */,
 				0FC35FD41D9D30F400ACACCE /* Sections Layout */,
 				0FC35FD61D9D30F400ACACCE /* Utils */,
 			);
@@ -197,8 +197,8 @@
 				0FC35FDD1D9D311B00ACACCE /* PuzzleCollectionViewLayoutAttributes.swift in Sources */,
 				0FC35FDB1D9D310600ACACCE /* PuzzleCollectionViewLayoutInvalidationContext.swift in Sources */,
 				0FC35FD81D9D30F400ACACCE /* RowsPuzzlePieceSectionLayout.swift in Sources */,
-				0F5A7DD01DC63A56009940B6 /* PuzzlePieceSectionLayout.swift in Sources */,
 				0FC35FE51DA4E4CE00ACACCE /* PuzzleCollectionViewLayout+Constants.swift in Sources */,
+				0F5A7DD41DC646DF009940B6 /* PuzzlePieceSectionLayout.swift in Sources */,
 				0F19ACA71DA9146B000D7F1D /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift in Sources */,
 				0FC35FE31DA4E49200ACACCE /* ColumnBasedPuzzlePieceSectionLayout.swift in Sources */,
 				0F0AAD151D9BF02B00C94758 /* AppDelegate.swift in Sources */,

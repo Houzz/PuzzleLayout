@@ -22,12 +22,6 @@ public enum InvalidationElementCategory {
     case decorationView(indexPath: IndexPath, elementKind: String)
 }
 
-extension CollectionViewDataSourcePuzzleLayout {
-    func collectionView(_ collectionView: UICollectionView, globalPinnedViewsForLayout collectionViewLayout: PuzzleCollectionViewLayout) -> GlobalPinnedView? {
-        return nil
-    }
-}
-
 //MARK: - PuzzlePieceSectionLayout
 public class PuzzlePieceSectionLayout {
     

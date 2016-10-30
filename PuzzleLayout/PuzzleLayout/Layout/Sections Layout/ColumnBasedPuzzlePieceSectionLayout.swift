@@ -9,7 +9,9 @@
 import UIKit
 
 public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
-    public var sectionInsets = UIEdgeInsets.zero {
+    
+    //MARK: - Public
+    public var sectionInsets: UIEdgeInsets = .zero {
         didSet {
             if let ctx = invalidationContext(with: kInvalidateForRowInfoChange) {
                 parentLayout!.invalidateLayout(with: ctx)
@@ -127,6 +129,18 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
+    public var sectionHeaderPinToVisibleBounds: Bool = false {
+        didSet {
+            switch headerHeight {
+            case .none: break
+            default:
+                if let ctx = self.invalidationContext(with: kInvalidateForHeaderEstimatedHeightChange) {
+                    parentLayout!.invalidateLayout(with: ctx)
+                }
+            }
+        }
+    }
+    
     public var footerHeight: HeadeFooterHeightSize = .none {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForFooterEstimatedHeightChange) {
@@ -134,6 +148,18 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             }
             else {
                 updateFooter()
+            }
+        }
+    }
+    
+    public var sectionFooterPinToVisibleBounds: Bool = false {
+        didSet {
+            switch footerHeight {
+            case .none: break
+            default:
+                if let ctx = self.invalidationContext(with: kInvalidateForFooterEstimatedHeightChange) {
+                    parentLayout!.invalidateLayout(with: ctx)
+                }
             }
         }
     }
@@ -167,7 +193,8 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     //MARK: - Init
     init(columnType: ColumnType?, sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
-         headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none,
+         headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
+         footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
          separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
          showTopGutter: Bool = false, showBottomGutter: Bool = false) {
         self.columnType = columnType
@@ -175,7 +202,9 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         self.minimumInteritemSpacing = minimumInteritemSpacing
         self.minimumLineSpacing = minimumLineSpacing
         self.headerHeight = headerHeight
+        self.sectionHeaderPinToVisibleBounds = sectionHeaderPinToVisibleBounds
         self.footerHeight = footerHeight
+        self.sectionFooterPinToVisibleBounds = sectionFooterPinToVisibleBounds
         self.showTopGutter = showTopGutter
         self.showBottomGutter = showBottomGutter
         super.init()
@@ -186,7 +215,8 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     init(estimatedColumnType: ColumnType?, rowAlignment: RowAlignmentOnItemSelfSizing = .alignCenter,
          sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
-         headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none,
+         headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
+         footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
          separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
          showTopGutter: Bool = false, showBottomGutter: Bool = false) {
         self.estimatedColumnType = estimatedColumnType
@@ -195,7 +225,9 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         self.minimumInteritemSpacing = minimumInteritemSpacing
         self.minimumLineSpacing = minimumLineSpacing
         self.headerHeight = headerHeight
+        self.sectionHeaderPinToVisibleBounds = sectionHeaderPinToVisibleBounds
         self.footerHeight = footerHeight
+        self.sectionFooterPinToVisibleBounds = sectionFooterPinToVisibleBounds
         self.showTopGutter = showTopGutter
         self.showBottomGutter = showBottomGutter
         super.init()
@@ -517,6 +549,14 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
         
         return nil
+    }
+    
+    override func shouldPinHeaderSupplementaryView() -> Bool {
+        return sectionHeaderPinToVisibleBounds
+    }
+    
+    override func shouldPinFooterSupplementaryView() -> Bool {
+        return sectionFooterPinToVisibleBounds
     }
     
     //PreferredAttributes Invalidation

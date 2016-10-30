@@ -8,16 +8,49 @@
 
 import UIKit
 
-public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
+public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
-    public var sectionInsets = UIEdgeInsets.zero {
+    //MARK: - Public
+    public init(rowHeight: CGFloat = 44, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
+                headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
+                footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
+                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
+        self.rowHeight = rowHeight
+        self.sectionInsets = sectionInsets
+        self.rowSpacing = rowSpacing
+        self.headerHeight = headerHeight
+        self.sectionHeaderPinToVisibleBounds = sectionHeaderPinToVisibleBounds
+        self.footerHeight = footerHeight
+        self.sectionFooterPinToVisibleBounds = sectionFooterPinToVisibleBounds
+        self.showTopGutter = showTopGutter
+        self.showBottomGutter = showBottomGutter
+        super.init()
+        self.separatorLineStyle = separatorLineStyle
+    }
+    
+    public init(estimatedRowHeight: CGFloat = 100, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
+                headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
+                footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
+                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
+        self.estimatedRowHeight = estimatedRowHeight
+        self.sectionInsets = sectionInsets
+        self.rowSpacing = rowSpacing
+        self.headerHeight = headerHeight
+        self.sectionHeaderPinToVisibleBounds = sectionHeaderPinToVisibleBounds
+        self.footerHeight = footerHeight
+        self.sectionFooterPinToVisibleBounds = sectionFooterPinToVisibleBounds
+        self.showTopGutter = showTopGutter
+        self.showBottomGutter = showBottomGutter
+        super.init()
+        self.separatorLineStyle = separatorLineStyle
+    }
+    
+    public var sectionInsets: UIEdgeInsets = .zero {
         didSet {
             if let ctx = invalidationContext(with: kInvalidateForSectionInsetsChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
-            else {
-                updateAllRowsForSectionInsetsChange()
-            }
+            else { updateAllRowsForSectionInsetsChange() }
         }
     }
     
@@ -26,9 +59,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             if let ctx = invalidationContext(with: kInvalidateForRowSpacingChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
-            else {
-                updateAllRowsOriginY()
-            }
+            else { updateAllRowsOriginY() }
         }
     }
     
@@ -38,9 +69,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 if let ctx = self.invalidationContext(with: kInvalidateForItemHeightChange) {
                     parentLayout!.invalidateLayout(with: ctx)
                 }
-                else {
-                    updateRowsForHeightChange()
-                }
+                else { updateRowsForHeightChange() }
             }
         }
     }
@@ -50,9 +79,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             if let ctx = self.invalidationContext(with: kInvalidateForItemHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
-            else {
-                updateRowsForHeightChange()
-            }
+            else { updateRowsForHeightChange() }
         }
     }
     
@@ -61,25 +88,43 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             if let ctx = self.invalidationContext(with: kInvalidateForHeaderHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
-            else {
-                updateRowsForHeaderHeightChange()
+            else { updateRowsForHeaderHeightChange() }
+        }
+    }
+    
+    public var sectionHeaderPinToVisibleBounds: Bool = false {
+        didSet {
+            switch headerHeight {
+            case .none: break
+            default:
+                if let ctx = self.invalidationContext(with: kInvalidateForHeaderHeightChange) {
+                    parentLayout!.invalidateLayout(with: ctx)
+                }
             }
         }
     }
     
     public var footerHeight: HeadeFooterHeightSize = .none {
         didSet {
-            //TODO: update similar to columns layout updating footer
             if let ctx = self.invalidationContext(with: kInvalidateForFooterHeightChange) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
-            else {
-                updateRowsForFooterHeightChange()
+            else { updateRowsForFooterHeightChange() }
+        }
+    }
+    
+    public var sectionFooterPinToVisibleBounds: Bool = false {
+        didSet {
+            switch footerHeight {
+            case .none: break
+            default:
+                if let ctx = self.invalidationContext(with: kInvalidateForHeaderHeightChange) {
+                    parentLayout!.invalidateLayout(with: ctx)
+                }
             }
         }
     }
     
-    ///Default: allButLastItem
     public var showTopGutter: Bool = false {
         didSet {
             if sectionInsets.top != 0, let ctx = self.invalidationContext {
@@ -100,42 +145,22 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
+    public func resetLayout() {
+        if let ctx = self.invalidationContext(with: kInvalidateForResetLayout) {
+            ctx.invalidateSectionLayoutData = self
+            parentLayout!.invalidateLayout(with: ctx)
+        }
+    }
+    
     //MARK: - Private properties
     private var rowsInfo: [RowInfo]!
     private var headerInfo: HeaderFooterInfo?
     private var footerInfo: HeaderFooterInfo?
     
     private var collectionViewWidth: CGFloat = 0
-    init(rowHeight: CGFloat = 44, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
-         headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none,
-         separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
-        self.rowHeight = rowHeight
-        self.sectionInsets = sectionInsets
-        self.rowSpacing = rowSpacing
-        self.headerHeight = headerHeight
-        self.footerHeight = footerHeight
-        self.showTopGutter = showTopGutter
-        self.showBottomGutter = showBottomGutter
-        super.init()
-        self.separatorLineStyle = separatorLineStyle
-    }
-    
-    init(estimatedRowHeight: CGFloat = 100, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
-         headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none,
-         separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
-        self.estimatedRowHeight = estimatedRowHeight
-        self.sectionInsets = sectionInsets
-        self.rowSpacing = rowSpacing
-        self.headerHeight = headerHeight
-        self.footerHeight = footerHeight
-        self.showTopGutter = showTopGutter
-        self.showBottomGutter = showBottomGutter
-        super.init()
-        self.separatorLineStyle = separatorLineStyle
-    }
     
     //MARK: - PuzzlePieceSectionLayout
-    public override var heightOfSection: CGFloat {
+    override public var heightOfSection: CGFloat {
         var maxY: CGFloat = 0
         if let footer = footerInfo {
             maxY = footer.maxOriginY
@@ -148,7 +173,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         return maxY
     }
     
-    public override func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
+    override public func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
         if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             rowsInfo = nil
             headerInfo = nil
@@ -181,7 +206,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public override func invalidateItem(at indexPath: IndexPath) {
+    override public func invalidateItem(at indexPath: IndexPath) {
         switch rowsInfo[indexPath.item].heightState {
         case .computed:
             rowsInfo[indexPath.item].heightState = .estimated
@@ -194,7 +219,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public override func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
+    override public func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
         switch  elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let _ = headerInfo {
@@ -234,7 +259,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public override func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+    override public func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
         if rowsInfo == nil {
             collectionViewWidth = sectionWidth
             prepareRowsFromScratch()
@@ -297,8 +322,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 maxY = lastItem.maxOriginY + sectionInsets.bottom
             } else if let header = headerInfo {
                 maxY = header.maxOriginY + sectionInsets.bottom
-            }
-            else {
+            } else {
                 maxY = 0
             }
             
@@ -352,7 +376,8 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 }
                 
                 return itemAttributes
-            } else { return nil }
+            }
+            else { return nil }
         case PuzzleCollectionElementKindSectionFooter:
             if let footerInfo = footerInfo {
                 let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
@@ -362,7 +387,8 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                     itemAttributes.cachedSize = frame.size
                 }
                 return itemAttributes
-            } else { return nil }
+            }
+            else { return nil }
         default:
             return nil
         }
@@ -394,8 +420,7 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                     maxY = lastItem.maxOriginY + sectionInsets.bottom
                 } else if let header = headerInfo {
                     maxY = header.maxOriginY
-                }
-                else {
+                } else {
                     maxY = 0
                 }
                 
@@ -467,6 +492,14 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         return info
     }
     
+    override func shouldPinHeaderSupplementaryView() -> Bool {
+        return sectionHeaderPinToVisibleBounds
+    }
+    
+    override func shouldPinFooterSupplementaryView() -> Bool {
+        return sectionFooterPinToVisibleBounds
+    }
+    
     //Updates
     override func didInsertItem(at index: Int) {
         if estimatedRowHeight != 0 {
@@ -500,14 +533,6 @@ public class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
         
         rowsInfoBeforeUpdate = nil
-    }
-    
-    //MARK: - 
-    public func resetLayout() {
-        if let ctx = self.invalidationContext(with: kInvalidateForResetLayout) {
-            ctx.invalidateSectionLayoutData = self
-            parentLayout!.invalidateLayout(with: ctx)
-        }
     }
     
     // MARK: - Private

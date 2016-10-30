@@ -14,8 +14,6 @@ public let PuzzleCollectionElementKindSectionBottomGutter = "!_SectionBottomGutt
 public let PuzzleCollectionColoredViewZIndex = 2
 public let PuzzleCollectionColoredViewColorKey = "!_BackgroundColor_!"
 
-public let PuzzleCollectionPinnedViewsZIndex = 4
-
 public let PuzzleCollectionElementKindSectionHeader: String = UICollectionElementKindSectionHeader
 public let PuzzleCollectionElementKindSectionFooter: String = UICollectionElementKindSectionFooter
 

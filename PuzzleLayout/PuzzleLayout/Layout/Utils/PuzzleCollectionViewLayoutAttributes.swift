@@ -11,6 +11,7 @@ import UIKit
 final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayoutAttributes {
     var cachedSize: CGSize? = nil
     var info: Any? = nil
+    internal(set) var isPinned: Bool = false
     
     public override func copy(with zone: NSZone? = nil) -> Any {
         let c = super.copy(with: zone)
@@ -27,7 +28,10 @@ final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayout
         }
         else {
             let attr = (object as! PuzzleCollectionViewLayoutAttributes)
-            if (self.cachedSize != attr.cachedSize) {
+            if self.cachedSize != attr.cachedSize {
+                return false
+            }
+            else if self.isPinned != attr.isPinned {
                 return false
             }
             else if self.info == nil && attr.info == nil {

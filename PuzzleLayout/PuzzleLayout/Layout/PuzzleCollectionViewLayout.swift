@@ -203,12 +203,43 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 items = layout.layoutAttributesForElements(in: rectInSectionBounds, sectionIndex: sectionIndex)
                 if items.isEmpty == false {
                     //Update for each layout attributes its origin Y
+                    var sectionHeader: PuzzleCollectionViewLayoutAttributes?
+                    var sectionFooter: PuzzleCollectionViewLayoutAttributes?
+                    
                     for item in items {
                         item.center.y += lastY
                         attributes.append(item)
                         
+                        if item.representedElementCategory == .supplementaryView {
+                            //Pin header/footer if needed
+                            switch item.representedElementKind! {
+                            case PuzzleCollectionElementKindSectionHeader:
+                                if layout.shouldPinHeaderSupplementaryView() {
+                                    item.zIndex = PuzzleCollectionHeaderFooterZIndex
+                                    sectionHeader = item
+                                }
+                                else {
+                                    item.zIndex = 0
+                                }
+                            case PuzzleCollectionElementKindSectionFooter:
+                                if layout.shouldPinFooterSupplementaryView() {
+                                    item.zIndex = PuzzleCollectionHeaderFooterZIndex
+                                    sectionFooter = item
+                                }
+                                else {
+                                    item.zIndex = 0
+                                }
+                            default: break
+                            }
+                        }
+                        
                         //Add separator lines if needed
-                        if item.representedElementCategory != .cell || layout.separatorLineStyle == .none || (layout.separatorLineStyle == .allButLastItem && item.indexPath.item + 1 == layout.numberOfItemsInSection) {
+                        if (
+                            item.representedElementCategory != .cell
+                            || layout.separatorLineStyle == .none
+                            || (layout.separatorLineStyle == .allButLastItem
+                                && item.indexPath.item + 1 == layout.numberOfItemsInSection)
+                            ) {
                             //No separator line
                         }
                         else {
@@ -222,6 +253,51 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                 }
                                 attributes.append(separatorLine)
                             }
+                        }
+                    }
+                    
+                    if sectionHeader != nil || sectionFooter != nil {
+                        let shouldPinHeader = layout.shouldPinHeaderSupplementaryView()
+                        let shouldPinFooter = layout.shouldPinFooterSupplementaryView()
+                        
+                        let contentOffsetY = collectionView!.bounds.minY + collectionView!.contentInset.top
+                        
+                        if shouldPinHeader && sectionHeader == nil {
+                            if let header = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) {
+                                header.center.y += lastY
+                                header.zIndex = PuzzleCollectionHeaderFooterZIndex
+                                attributes.append(header)
+                                sectionHeader = header
+                            }
+                        }
+                        
+                        if shouldPinFooter && sectionFooter == nil {
+                            if let footer = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) {
+                                footer.center.y += lastY
+                                footer.zIndex = PuzzleCollectionHeaderFooterZIndex
+                                attributes.append(footer)
+                                sectionFooter = footer
+                            }
+                        }
+                        
+                        if let header = sectionHeader {
+                            let y = sectionHeader!.frame.minY
+                            if sectionFrame.minY < contentOffsetY {
+                                let maxY = (sectionFooter?.frame.minY ?? sectionFrame.maxY) - header.frame.height
+                                sectionHeader!.frame.origin.y = min(contentOffsetY, maxY)
+                            }
+                            
+                            header.isPinned = (y != sectionHeader!.frame.minY)
+                        }
+                        
+                        if let footer = sectionFooter {
+                            let contentY = (sectionHeader?.frame.maxY ?? contentOffsetY)
+                            let y = sectionFooter!.frame.minY
+                            if sectionFrame.maxY > contentY {
+                                let minY = max(collectionView!.bounds.maxY - footer.frame.height, sectionFrame.minY)
+                                sectionFooter!.frame.origin.y = min(sectionFrame.maxY - footer.frame.height, minY)
+                            }
+                            footer.isPinned = (y != sectionFooter!.frame.minY)
                         }
                     }
                 }
@@ -247,8 +323,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForItem(at: indexPath) {
-            let lastY = self.lastY(forSectionAt: indexPath.section)
-            item.center.y += lastY
+            let originY = self.originY(forSectionAt: indexPath.section)
+            item.center.y += originY
             return item
         }
         else { return nil }
@@ -258,8 +334,41 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForSupplementaryView(ofKind: elementKind, at: indexPath) {
-            let lastY = self.lastY(forSectionAt: indexPath.section)
-            item.center.y += lastY
+            let originY = self.originY(forSectionAt: indexPath.section)
+            item.center.y += originY
+            item.zIndex = 0
+            
+            switch item.representedElementKind! {
+            case PuzzleCollectionElementKindSectionHeader where layout.shouldPinHeaderSupplementaryView():
+                let y = item.frame.minY
+                
+                item.zIndex = PuzzleCollectionHeaderFooterZIndex
+                let contentOffsetY = collectionView!.bounds.minY + collectionView!.contentInset.top
+                let sectionMaxY = originY + layout.heightOfSection
+                if originY < contentOffsetY {
+                    let footerToPin = (layout.shouldPinFooterSupplementaryView() ? layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: indexPath) : nil)
+                    footerToPin?.center.y += originY
+                    let maxY = (footerToPin?.frame.minY ?? sectionMaxY) - item.frame.height
+                    item.frame.origin.y = min(contentOffsetY, maxY)
+                }
+                
+                item.isPinned = (y != item.frame.minY)
+            case PuzzleCollectionElementKindSectionFooter where layout.shouldPinFooterSupplementaryView():
+                let y = item.frame.minY
+                
+                item.zIndex = PuzzleCollectionHeaderFooterZIndex
+                let headerToPin = (layout.shouldPinHeaderSupplementaryView() ? layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: indexPath) : nil)
+                let contentOffsetY = collectionView!.bounds.minY + collectionView!.contentInset.top
+                let contentY = (headerToPin?.frame.maxY ?? contentOffsetY)
+                let sectionMaxY = originY + layout.heightOfSection
+                if sectionMaxY > contentY {
+                    item.frame.origin.y = min(sectionMaxY - item.frame.height, collectionView!.bounds.maxY - item.frame.height)
+                }
+                
+                item.isPinned = (y != item.frame.minY)
+            default: break
+            }
+            
             return item
         }
         else { return nil }
@@ -296,8 +405,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             let layout = sectionsLayoutInfo[indexPath.section]
             
             if let item = layout.layoutAttributesForDecorationView(ofKind: elementKind, at: indexPath) {
-                let lastY = self.lastY(forSectionAt: indexPath.section)
-                item.center.y += lastY
+                let originY = self.originY(forSectionAt: indexPath.section)
+                item.center.y += originY
                 return item
             }
             else { return nil }
@@ -322,32 +431,50 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             var lastY: CGFloat = 0
             var invalidationInfo = InvalidationInfoForBoundsChange()
             for sectionLayout in sectionsLayoutInfo {
-                guard sectionLayout.mayRequireInvalidationOnOriginChange() else {
+                let sectionHeight = sectionLayout.heightOfSection
+                let maxSectionY = lastY + sectionHeight
+                if maxSectionY < newBounds.minY && maxSectionY < oldBounds.minY {
+                    lastY = maxSectionY
+                    continue
+                }
+                else if lastY >= newBounds.maxY && lastY >= oldBounds.maxY {
+                    //Section isn't intersecting with rect. Remaining sections can't intersect with rect too, so stop looping
+                    break
+                }
+                
+                let sectionIndex = sectionLayout.sectionIndex!
+                let headerToPin: PuzzleCollectionViewLayoutAttributes?
+                if sectionLayout.shouldPinHeaderSupplementaryView() {
+                    headerToPin = sectionLayout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))
+                }
+                else { headerToPin = nil }
+                
+                let footerToPin: PuzzleCollectionViewLayoutAttributes?
+                if sectionLayout.shouldPinFooterSupplementaryView() {
+                    footerToPin = sectionLayout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex))
+                }
+                else { footerToPin = nil }
+                
+                guard headerToPin != nil || footerToPin != nil else {
+                    lastY += sectionHeight
                     continue
                 }
                 
-                let sectionHeight = sectionLayout.heightOfSection
-                
-                let oldSectionFrame = CGRect(x: 0, y: lastY, width: oldWidth, height: sectionHeight)
-                let newSectionFrame = CGRect(x: 0, y: lastY, width: newWidth, height: sectionHeight)
+                let sectionFrame = CGRect(x: 0, y: lastY, width: newWidth, height: sectionHeight)
                 
                 //Check if section intersects & get its elements layout attributes
-                let oldFrameIntersection = oldSectionFrame.intersection(oldBounds)
-                let newFrameIntersection = newSectionFrame.intersection(newBounds)
-                
+                let oldFrameIntersection = sectionFrame.intersection(oldBounds)
+                let newFrameIntersection = sectionFrame.intersection(newBounds)
                 
                 if oldFrameIntersection.height > 0 || newFrameIntersection.height > 0 {
-                    let oldSectionBounds = CGRect(origin: CGPoint(x: oldFrameIntersection.minX, y: oldFrameIntersection.minY - lastY), size: oldFrameIntersection.size)
-                    let newSectionBounds = CGRect(origin: CGPoint(x: newFrameIntersection.minX, y: newFrameIntersection.minY - lastY), size: newFrameIntersection.size)
-                    if sectionLayout.shouldInvalidate(forNewBounds: newSectionBounds, currentBounds: oldSectionBounds) {
-                        let index = sectionLayout.sectionIndex!
-                        invalidationInfo.sectionsIndex.append(index)
-                        invalidationInfo.sectionsNewBounds[index] = newSectionBounds
-                        invalidationInfo.sectionsOldBounds[index] = oldSectionBounds
+                    
+                    if let headerToPin = headerToPin {
+                        invalidationInfo.headersIndexPathToPin.append(headerToPin.indexPath)
                     }
-                }
-                else if oldFrameIntersection.minY >= oldBounds.maxY && newFrameIntersection.minY >= newBounds.maxY { //Section isn't intersecting with rect. Remaining sections can't intersect with rect too, so stop looping
-                    break
+                    
+                    if let footerToPin = footerToPin {
+                        invalidationInfo.footersIndexPathToPin.append(footerToPin.indexPath)
+                    }
                 }
 //                else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
 //                }
@@ -355,7 +482,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 lastY += sectionHeight
             }
             
-            if invalidationInfo.sectionsIndex.isEmpty {
+            if invalidationInfo.headersIndexPathToPin.isEmpty && invalidationInfo.footersIndexPathToPin.isEmpty {
                 invalidationInfoForBoundsChange = nil
                 return super.shouldInvalidateLayout(forBoundsChange: newBounds)
             }
@@ -376,8 +503,14 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         if newBounds.width != oldBounds.width {
             invalidateForWidthChange(byBoundsChange: newBounds, oldBounds: oldBounds, with: context)
         }
-        else if newBounds.minY != oldBounds.minY, let _ = invalidationInfoForBoundsChange {
-            invalidateForOriginYChange(with: context)
+        else if let invalidationInfo = invalidationInfoForBoundsChange {
+            if invalidationInfo.headersIndexPathToPin.isEmpty == false {
+                context.invalidateSupplementaryElements(ofKind: PuzzleCollectionElementKindSectionHeader, at: invalidationInfo.headersIndexPathToPin)
+            }
+            
+            if invalidationInfo.footersIndexPathToPin.isEmpty == false {
+                context.invalidateSupplementaryElements(ofKind: PuzzleCollectionElementKindSectionFooter, at: invalidationInfo.footersIndexPathToPin)
+            }
         }
         
         invalidationInfoForBoundsChange = nil
@@ -532,17 +665,17 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     //MARK: - Private
-    private func lastY(forSectionAt index: Int) -> CGFloat {
+    private func originY(forSectionAt index: Int) -> CGFloat {
         if index == 0 {
             return 0
         }
         else {
-            var lastY: CGFloat = 0
+            var originY: CGFloat = 0
             for currentIndex in 0...(index-1) {
                 let layout = sectionsLayoutInfo[currentIndex]
-                lastY += layout.heightOfSection
+                originY += layout.heightOfSection
             }
-            return lastY
+            return originY
         }
     }
     
@@ -577,7 +710,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             if oldFrameIntersection.height > 0 || newFrameIntersection.height > 0 {
                 let oldSectionBounds = CGRect(origin: CGPoint(x: oldFrameIntersection.minX, y: oldFrameIntersection.minY - lastY), size: oldFrameIntersection.size)
                 let newSectionBounds = CGRect(origin: CGPoint(x: newFrameIntersection.minX, y: newFrameIntersection.minY - lastY), size: newFrameIntersection.size)
-                if let info = sectionLayout.invalidationInfo(forNewBounds: newSectionBounds, currentBounds: oldSectionBounds) {
+                if let info = sectionLayout.invalidationInfo(forNewWidth: newSectionBounds.width, currentWidth: oldSectionBounds.width) {
                     let index = sectionLayout.sectionIndex!
                     context.setInvalidationInfo(info, forSectionAtIndex: index)
                 }
@@ -585,31 +718,18 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             else if oldFrameIntersection.minY >= oldBounds.maxY && newFrameIntersection.minY >= newBounds.maxY { //Section isn't intersecting with rect. Remaining sections can't intersect with rect too, so stop looping
                 break
             }
-            //            else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
-            //            }
+//            else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
+//            }
             
             lastY += sectionHeight
-        }
-    }
-    
-    private func invalidateForOriginYChange(with context: PuzzleCollectionViewLayoutInvalidationContext) {
-        let invalidationInfo = invalidationInfoForBoundsChange!
-        for index in invalidationInfo.sectionsIndex {
-            let layout = sectionsLayoutInfo[index]
-            let oldSectionBounds = invalidationInfo.sectionsOldBounds[index]!
-            let newSectionBounds = invalidationInfo.sectionsNewBounds[index]!
-            if let info = layout.invalidationInfo(forNewBounds: newSectionBounds, currentBounds: oldSectionBounds) {
-                context.setInvalidationInfo(info, forSectionAtIndex: index)
-            }
         }
     }
 }
 
 //MARK: - Private Util
 fileprivate struct InvalidationInfoForBoundsChange {
-    var sectionsIndex: [Int] = []
-    var sectionsOldBounds: [Int:CGRect] = [:]
-    var sectionsNewBounds: [Int:CGRect] = [:]
+    var headersIndexPathToPin: [IndexPath] = []
+    var footersIndexPathToPin: [IndexPath] = []
 }
 
 fileprivate class ColoredDecorationView : UICollectionReusableView {
@@ -689,18 +809,12 @@ public class PuzzlePieceSectionLayout {
         return nil
     }
     
+    func shouldPinHeaderSupplementaryView() -> Bool { return false }
     
+    func shouldPinFooterSupplementaryView() -> Bool { return false }
     
-    // -------- Bounds invalidation
-    func mayRequireInvalidationOnOriginChange() -> Bool { return false }
-    
-    ///This will be called only if mayRequireInvalidationOnOriginChange is true
-    func shouldInvalidate(forNewBounds newBounds: CGRect, currentBounds: CGRect) -> Bool {
-        return false
-    }
-    
-    ///This will be called if shouldInvalidate(forNewBounds:currentBounds:) returns true of bounds width has changed
-    func invalidationInfo(forNewBounds newBounds: CGRect, currentBounds: CGRect) -> Any? {
+    ///This will be called if bounds width has changed
+    func invalidationInfo(forNewWidth newWidth: CGFloat, currentWidth: CGFloat) -> Any? {
         return nil
     }
     // --------

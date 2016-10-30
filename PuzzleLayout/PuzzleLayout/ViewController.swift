@@ -140,7 +140,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     ]
     
     //MARK: - CollectionViewDataSourcePuzzleLayout
-    func collectionView(_ collectionView: UICollectionView, collectionViewLayout layout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout {
         return layouts[index]
     }
 }

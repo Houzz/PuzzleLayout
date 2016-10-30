@@ -492,16 +492,16 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         return info
     }
     
-    override func shouldPinHeaderSupplementaryView() -> Bool {
+    override public func shouldPinHeaderSupplementaryView() -> Bool {
         return sectionHeaderPinToVisibleBounds
     }
     
-    override func shouldPinFooterSupplementaryView() -> Bool {
+    override public func shouldPinFooterSupplementaryView() -> Bool {
         return sectionFooterPinToVisibleBounds
     }
     
     //Updates
-    override func didInsertItem(at index: Int) {
+    override public func didInsertItem(at index: Int) {
         if estimatedRowHeight != 0 {
             rowsInfoBeforeUpdate?.insert(RowInfo(heightState: .estimated, originY: 0, height: estimatedRowHeight), at: index)
         }
@@ -510,23 +510,23 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    override func didDeleteItem(at index: Int) {
+    override public func didDeleteItem(at index: Int) {
         rowsInfoBeforeUpdate?.remove(at: index)
     }
     
-    override func didReloadItem(at index: Int) {
+    override public func didReloadItem(at index: Int) {
         if let _ = rowsInfoBeforeUpdate , rowsInfoBeforeUpdate![index].heightState == .computed {
             rowsInfoBeforeUpdate![index].heightState = .estimated
         }
     }
     
-    override func didMoveItem(fromIndex: Int, toIndex: Int) {
+    override public func didMoveItem(fromIndex: Int, toIndex: Int) {
         if let item = rowsInfoBeforeUpdate?.remove(at: fromIndex) {
             rowsInfoBeforeUpdate?.insert(item, at: toIndex)
         }
     }
     
-    override func didGenerateUpdatesCall(didHadUpdates: Bool) {
+    override public func didGenerateUpdatesCall(didHadUpdates: Bool) {
         if didHadUpdates , let updatedRowsInfo = rowsInfoBeforeUpdate , updatedRowsInfo.count == rowsInfo.count {
             rowsInfo = updatedRowsInfo
             updateAllRowsOriginY()

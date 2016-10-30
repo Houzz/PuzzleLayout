@@ -10,7 +10,7 @@ import UIKit
 
 //MARK: - CollectionViewDataSourcePuzzleLayout
 protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, collectionViewLayout layout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout
 }
 
 //MARK: - PuzzleCollectionViewLayout
@@ -153,7 +153,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     private var invalidateEverything: Bool = false
     private var invalidateDataSourceCounts: Bool = false
     private var invalidateSectionsLayout: Bool = false
-    public override func prepare() {
+    override public func prepare() {
         if invalidateEverything || invalidateDataSourceCounts || invalidateSectionsLayout {
             prepareSectionsLayout()
         }
@@ -173,7 +173,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         super.prepare()
     }
     
-    public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+    override public func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         
         var attributes: [PuzzleCollectionViewLayoutAttributes] = []
         var lastY: CGFloat = 0
@@ -319,7 +319,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         return attributes
     }
     
-    public override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    override public func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForItem(at: indexPath) {
@@ -330,7 +330,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         else { return nil }
     }
     
-    public override func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    override public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForSupplementaryView(ofKind: elementKind, at: indexPath) {
@@ -374,7 +374,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         else { return nil }
     }
     
-    public override func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    override public func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         if elementKind == PuzzleCollectionElementKindSeparatorLine {
             let layout = sectionsLayoutInfo[indexPath.section]
             if layout.separatorLineStyle == .none || (layout.separatorLineStyle == .allButLastItem && indexPath.item + 1 == layout.numberOfItemsInSection) {
@@ -414,7 +414,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     private var invalidationInfoForBoundsChange: InvalidationInfoForBoundsChange?
-    public override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
+    override public func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         
         //Since this is a vertical layout, changes in origin y or size width should be relavant for us. Origin x should never get changes, since collectionView.contentSize.widht == collectionView.widht. In addition. Changing size height, should insert or remove cells, depend the height change.
         
@@ -496,7 +496,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }
     }
     
-    public override func invalidationContext(forBoundsChange newBounds: CGRect) -> UICollectionViewLayoutInvalidationContext {
+    override public func invalidationContext(forBoundsChange newBounds: CGRect) -> UICollectionViewLayoutInvalidationContext {
         
         let oldBounds = collectionView!.bounds
         let context = super.invalidationContext(forBoundsChange: newBounds) as! PuzzleCollectionViewLayoutInvalidationContext
@@ -632,7 +632,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             
             for sectionIndex in 0 ..< numberOfSections {
                 let numberOfItems = collectionView!.numberOfItems(inSection: sectionIndex)
-                let layout = dataSource.collectionView(collectionView!, collectionViewLayout: self, layoutForSectionAtIndex: sectionIndex)
+                let layout = dataSource.collectionView(collectionView!, layout: self, layoutForSectionAtIndex: sectionIndex)
                 //TODO: preapre with parentLayout=self & numberOfItems
                 
                 layout.parentLayout = self
@@ -676,20 +676,6 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 originY += layout.heightOfSection
             }
             return originY
-        }
-    }
-    
-    private func heightOfPrecedeSections(toSectionAt index: Int) -> CGFloat {
-        if index == 0 {
-            return 0
-        }
-        else {
-            var height: CGFloat = 0
-            for currentIndex in 0...(index-1) {
-                let layout = sectionsLayoutInfo[currentIndex]
-                height += layout.heightOfSection
-            }
-            return height
         }
     }
     
@@ -739,155 +725,8 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
     }
 }
 
-
-
-
-
 //MARK: - PuzzlePieceSectionLayout
-public class PuzzlePieceSectionLayout {
-    
-    ///Can used to reuse layouts
-    public var identifier: String?
-    
-    public fileprivate(set) weak var parentLayout: PuzzleCollectionViewLayout?
-    
-    fileprivate var sectionIndex: Int?
-    
-    public fileprivate(set) var numberOfItemsInSection: Int = 0
-    
-    var separatorLineStyle: PuzzlePieceSeparatorLineStyle = .none {
-        didSet {
-            if let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle, oldStyle: oldValue) {
-                parentLayout!.invalidateLayout(with: ctx)
-            }
-        }
-    }
-    
-    //TODO: make default value .zero and make (top: 0, left: 15, bottom: 0, right: 0) only for rows layout
-    var separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0) {
-        didSet {
-            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle) {
-                parentLayout!.invalidateLayout(with: ctx)
-            }
-        }
-    }
-    
-    var separatorLineColor: UIColor? = nil
-    
-    //MARK: - Should be override by subclasses
-    var heightOfSection: CGFloat {
-        assert(false, "'heightOfSection' Should be implemented by subclass")
-        return 0
-    }
-    
-    func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {}
-    
-    func invalidateItem(at indexPath: IndexPath) {}
-    
-    func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {}
-    
-    func invalidateDecorationView(ofKind elementKind: String, at indexPath: IndexPath) {}
-    
-    func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {}
-    
-    func tearDown() {}
-    
-    func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
-        assert(false, "'layoutAttributesForElements(in:sectionIndex:)' Should be implemented by subclass")
-        return []
-    }
-    
-    func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
-        return nil
-    }
-    
-    func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
-        return nil
-    }
-    
-    func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
-        return nil
-    }
-    
-    func shouldPinHeaderSupplementaryView() -> Bool { return false }
-    
-    func shouldPinFooterSupplementaryView() -> Bool { return false }
-    
-    ///This will be called if bounds width has changed
-    func invalidationInfo(forNewWidth newWidth: CGFloat, currentWidth: CGFloat) -> Any? {
-        return nil
-    }
-    // --------
-    
-    
-    
-    // -------- Item attributes invalidation
-    
-    func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
-        return false
-    }
-    
-    func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
-        return false
-    }
-    // --------
-    
-    // -------- Updates
-    func willGenerateUpdatesCall() {}
-    func didInsertItem(at index: Int) {}
-    func didDeleteItem(at index: Int) {}
-    func didReloadItem(at index: Int) {}
-    func didMoveItem(fromIndex: Int, toIndex: Int) {}
-    func didGenerateUpdatesCall(didHadUpdates: Bool) {}
-    // --------
-}
-
 extension PuzzlePieceSectionLayout {
-    public var sectionWidth: CGFloat {
-        if let collectionView = parentLayout?.collectionView {
-            return collectionView.bounds.width - (collectionView.contentInset.left + collectionView.contentInset.right)
-        }
-        else {
-            return 0
-        }
-    }
-    
-    public var traitCollection: UITraitCollection {
-        return parentLayout?.collectionView?.traitCollection ?? UITraitCollection(traitsFrom: [UITraitCollection(horizontalSizeClass: .unspecified),UITraitCollection(verticalSizeClass: .unspecified)])
-    }
-    
-    public func indexPath(forIndex index: Int) -> IndexPath? {
-        guard let sectionIndex = sectionIndex else {
-            return nil
-        }
-        
-        return IndexPath(item: index, section: sectionIndex)
-    }
-    
-    public var invalidationContext: PuzzleCollectionViewLayoutInvalidationContext? {
-        guard let _ = parentLayout else { return nil }
-        
-        return PuzzleCollectionViewLayoutInvalidationContext()
-    }
-    
-    public func invalidationContext(with info: Any) -> PuzzleCollectionViewLayoutInvalidationContext? {
-        guard let sectionIndex = sectionIndex else {
-            return nil
-        }
-        
-        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
-        ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
-        return ctx
-    }
-    
-    @discardableResult
-    public func setInvalidationInfo(_ info: Any?, at context: PuzzleCollectionViewLayoutInvalidationContext) -> Bool {
-        guard let sectionIndex = sectionIndex else {
-            return false
-        }
-        context.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
-        return true
-    }
     
     public func invalidationContextForSeparatorLines(for newStyle: PuzzlePieceSeparatorLineStyle, oldStyle: PuzzlePieceSeparatorLineStyle? = nil) -> PuzzleCollectionViewLayoutInvalidationContext? {
         let _oldStyle = oldStyle ?? newStyle

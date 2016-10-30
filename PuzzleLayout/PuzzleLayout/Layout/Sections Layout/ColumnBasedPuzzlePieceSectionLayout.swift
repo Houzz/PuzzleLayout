@@ -237,7 +237,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     //MARK: - PuzzlePieceSectionLayout
-    public override var heightOfSection: CGFloat {
+    override public var heightOfSection: CGFloat {
         var maxY: CGFloat = 0
         if let footer = footerInfo {
             maxY = footer.maxOriginY
@@ -250,7 +250,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         return maxY
     }
     
-    public override func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
+    override public func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
         if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             itemsInfo = nil
             headerInfo = nil
@@ -288,7 +288,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public override func invalidateItem(at indexPath: IndexPath) {
+    override public func invalidateItem(at indexPath: IndexPath) {
         switch itemsInfo[indexPath.item].heightState {
         case .computed:
             itemsInfo[indexPath.item].heightState = .estimated
@@ -301,7 +301,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public override func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
+    override public func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
         switch  elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let _ = headerInfo {
@@ -343,7 +343,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    public override func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+    override public func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
         if itemsInfo == nil {
             collectionViewWidth = sectionWidth
             prepareItemsFromScratch()
@@ -551,11 +551,11 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         return nil
     }
     
-    override func shouldPinHeaderSupplementaryView() -> Bool {
+    override public func shouldPinHeaderSupplementaryView() -> Bool {
         return sectionHeaderPinToVisibleBounds
     }
     
-    override func shouldPinFooterSupplementaryView() -> Bool {
+    override public func shouldPinFooterSupplementaryView() -> Bool {
         return sectionFooterPinToVisibleBounds
     }
     

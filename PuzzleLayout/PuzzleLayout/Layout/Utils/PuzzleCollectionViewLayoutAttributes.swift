@@ -13,7 +13,7 @@ final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayout
     var info: Any? = nil
     internal(set) var isPinned: Bool = false
     
-    public override func copy(with zone: NSZone? = nil) -> Any {
+    override public func copy(with zone: NSZone? = nil) -> Any {
         let c = super.copy(with: zone)
         if let c = c as? PuzzleCollectionViewLayoutAttributes {
             c.cachedSize = self.cachedSize
@@ -22,7 +22,7 @@ final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayout
         return c
     }
     
-    public override func isEqual(_ object: Any?) -> Bool {
+    override public func isEqual(_ object: Any?) -> Bool {
         if super.isEqual(object) == false {
             return false
         }

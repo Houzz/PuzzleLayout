@@ -9,7 +9,7 @@
 import UIKit
 
 //MARK: - CollectionViewDataSourcePuzzleLayout
-protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
+public protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout
 }
 

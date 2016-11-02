@@ -41,7 +41,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         invalidateLayout(with: context)
     }
     
-    func dequeueSectionLayout(for identifier: String) -> PuzzlePieceSectionLayout? {
+    public func dequeueSectionLayout(for identifier: String) -> PuzzlePieceSectionLayout? {
         return sectionsLayoutInfo.filter ({ (layout: PuzzlePieceSectionLayout) -> Bool in
             if let layoutIdentifier = layout.identifier {
                 return layoutIdentifier == identifier
@@ -119,14 +119,14 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 
                 if let invalidatedItemIndexPaths = ctx.invalidatedItemIndexPaths {
                     for indexPath in invalidatedItemIndexPaths {
-                        sectionsLayoutInfo[indexPath.item].invalidateItem(at: indexPath)
+                        sectionsLayoutInfo[indexPath.section].invalidateItem(at: indexPath)
                     }
                 }
                 
                 if let invalidatedSupplementaryIndexPaths = ctx.invalidatedSupplementaryIndexPaths {
                     for (elementKind, indexPaths) in invalidatedSupplementaryIndexPaths {
                         for indexPath in indexPaths {
-                            sectionsLayoutInfo[indexPath.item].invalidateSupplementaryView(ofKind: elementKind, at: indexPath)
+                            sectionsLayoutInfo[indexPath.section].invalidateSupplementaryView(ofKind: elementKind, at: indexPath)
                         }
                     }
                 }
@@ -134,7 +134,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 if let invalidatedDecorationIndexPaths = ctx.invalidatedDecorationIndexPaths {
                     for (elementKind, indexPaths) in invalidatedDecorationIndexPaths {
                         for indexPath in indexPaths {
-                            sectionsLayoutInfo[indexPath.item].invalidateDecorationView(ofKind: elementKind, at: indexPath)
+                            sectionsLayoutInfo[indexPath.section].invalidateDecorationView(ofKind: elementKind, at: indexPath)
                         }
                     }
                 }
@@ -175,7 +175,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     
     override public func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         
-        var attributes: [PuzzleCollectionViewLayoutAttributes] = []
+        var allAttributes: [PuzzleCollectionViewLayoutAttributes] = []
         var lastY: CGFloat = 0
         
         let width = collectionView!.bounds.width
@@ -208,7 +208,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                     
                     for item in items {
                         item.center.y += lastY
-                        attributes.append(item)
+                        allAttributes.append(item)
                         
                         if item.representedElementCategory == .supplementaryView {
                             //Pin header/footer if needed
@@ -251,7 +251,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                 if let color = layout.separatorLineColor ?? separatorLineColor {
                                     separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
                                 }
-                                attributes.append(separatorLine)
+                                allAttributes.append(separatorLine)
                             }
                         }
                     }
@@ -266,7 +266,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                             if let header = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) {
                                 header.center.y += lastY
                                 header.zIndex = PuzzleCollectionHeaderFooterZIndex
-                                attributes.append(header)
+                                allAttributes.append(header)
                                 sectionHeader = header
                             }
                         }
@@ -275,29 +275,29 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                             if let footer = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) {
                                 footer.center.y += lastY
                                 footer.zIndex = PuzzleCollectionHeaderFooterZIndex
-                                attributes.append(footer)
+                                allAttributes.append(footer)
                                 sectionFooter = footer
                             }
                         }
                         
                         if let header = sectionHeader {
-                            let y = sectionHeader!.frame.minY
+                            let y = header.frame.minY
                             if sectionFrame.minY < contentOffsetY {
                                 let maxY = (sectionFooter?.frame.minY ?? sectionFrame.maxY) - header.frame.height
-                                sectionHeader!.frame.origin.y = min(contentOffsetY, maxY)
+                                header.frame.origin.y = min(contentOffsetY, maxY)
                             }
                             
-                            header.isPinned = (y != sectionHeader!.frame.minY)
+                            header.isPinned = (y != header.frame.minY)
                         }
                         
                         if let footer = sectionFooter {
                             let contentY = (sectionHeader?.frame.maxY ?? contentOffsetY)
-                            let y = sectionFooter!.frame.minY
+                            let y = footer.frame.minY
                             if sectionFrame.maxY > contentY {
                                 let minY = max(collectionView!.bounds.maxY - footer.frame.height, sectionFrame.minY)
-                                sectionFooter!.frame.origin.y = min(sectionFrame.maxY - footer.frame.height, minY)
+                                footer.frame.origin.y = min(sectionFrame.maxY - footer.frame.height, minY)
                             }
-                            footer.isPinned = (y != sectionFooter!.frame.minY)
+                            footer.isPinned = (y != footer.frame.minY)
                         }
                     }
                 }
@@ -316,7 +316,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             // ----- Update before next iteration
         }
         
-        return attributes
+        return allAttributes
     }
     
     override public func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
@@ -346,9 +346,14 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 let contentOffsetY = collectionView!.bounds.minY + collectionView!.contentInset.top
                 let sectionMaxY = originY + layout.heightOfSection
                 if originY < contentOffsetY {
-                    let footerToPin = (layout.shouldPinFooterSupplementaryView() ? layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: indexPath) : nil)
-                    footerToPin?.center.y += originY
-                    let maxY = (footerToPin?.frame.minY ?? sectionMaxY) - item.frame.height
+                    let maxY: CGFloat
+                    if let footerToPin = (layout.shouldPinFooterSupplementaryView() ? layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: indexPath) : nil) {
+                        maxY = (footerToPin.frame.minY + originY) - item.frame.height
+                    }
+                    else {
+                        maxY = sectionMaxY - item.frame.height
+                    }
+                    
                     item.frame.origin.y = min(contentOffsetY, maxY)
                 }
                 
@@ -362,7 +367,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 let contentY = (headerToPin?.frame.maxY ?? contentOffsetY)
                 let sectionMaxY = originY + layout.heightOfSection
                 if sectionMaxY > contentY {
-                    item.frame.origin.y = min(sectionMaxY - item.frame.height, collectionView!.bounds.maxY - item.frame.height)
+                    let minY = max(collectionView!.bounds.maxY - item.frame.height, originY)
+                    item.frame.origin.y = min(sectionMaxY - item.frame.height, minY)
                 }
                 
                 item.isPinned = (y != item.frame.minY)
@@ -500,6 +506,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         
         let oldBounds = collectionView!.bounds
         let context = super.invalidationContext(forBoundsChange: newBounds) as! PuzzleCollectionViewLayoutInvalidationContext
+        
         if newBounds.width != oldBounds.width {
             invalidateForWidthChange(byBoundsChange: newBounds, oldBounds: oldBounds, with: context)
         }
@@ -518,6 +525,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     override public func shouldInvalidateLayout(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
+        
         if preferredAttributes.representedElementCategory == .decorationView {
             if preferredAttributes.representedElementKind == PuzzleCollectionElementKindSeparatorLine || preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionTopGutter || preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionBottomGutter {
                 return false

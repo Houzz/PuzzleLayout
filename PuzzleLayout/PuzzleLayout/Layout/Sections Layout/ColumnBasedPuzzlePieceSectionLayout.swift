@@ -192,7 +192,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     //MARK: - Init
-    public init(columnType: ColumnType?, sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
+    public init(columnType: ColumnType, sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
          headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
          footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
          separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
@@ -213,7 +213,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         self.separatorLineColor = separatorLineColor
     }
     
-    public init(estimatedColumnType: ColumnType?, rowAlignment: RowAlignmentOnItemSelfSizing = .alignCenter,
+    public init(estimatedColumnType: ColumnType, rowAlignment: RowAlignmentOnItemSelfSizing = .alignCenter,
          sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
          headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
          footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
@@ -251,6 +251,9 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     override public func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
+        
+        super.invalidate(willReloadData: willReloadData, willUpdateDataSourceCounts: willUpdateDataSourceCounts, resetLayout: resetLayout, info: info)
+        
         if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             itemsInfo = nil
             headerInfo = nil
@@ -295,6 +298,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         case .fixed:
             if itemsInfo[indexPath.item].frame.height != itemSize.height {
                 itemsInfo[indexPath.item].frame.size.height = itemSize.height
+                itemsInfo[indexPath.item].rowHeight = itemSize.height
                 updateItems(fromIndexPath: indexPath)
             }
         default: break
@@ -592,12 +596,12 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             itemsInfo[indexPath.item].heightState = .computed
             info = indexPath
         case .supplementaryView(_, let elementKind):
-            if elementKind == UICollectionElementKindSectionHeader {
+            if elementKind == PuzzleCollectionElementKindSectionHeader {
                 headerInfo!.height = preferredSize.height
                 headerInfo!.heightState = .computed
                 info = kInvalidateHeaderForPreferredHeight
             }
-            else if elementKind == UICollectionElementKindSectionFooter {
+            else if elementKind == PuzzleCollectionElementKindSectionFooter {
                 footerInfo!.height = preferredSize.height
                 footerInfo!.heightState = .computed
             }
@@ -664,28 +668,21 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 let originX = (collectionViewWidth - itemSize.width) * 0.5
                 for index in 0..<numberOfItemsInSection {
                     itemsInfo[index] = ItemInfo(heightState: heightState, frame: CGRect(origin: CGPoint(x: originX, y: lastOriginY), size: itemSize))
-//                    itemsInfo[index].itemIndexInRow = 0
-//                    itemsInfo[index].rowIndex = index
-                    
                     lastOriginY += itemSize.height + minimumLineSpacing
                 }
             }
             else {
                 var startItemIndex = 0
-//                var rowIndex = 0
                 while startItemIndex < numberOfItemsInSection {
                     let endItemIndex = min(startItemIndex + numberOfColumnsInRow - 1, numberOfItemsInSection - 1)
                     var lastOriginX = sectionInsets.left
                     for index in startItemIndex...endItemIndex {
                         itemsInfo[index] = ItemInfo(heightState: heightState, frame: CGRect(origin: CGPoint(x: lastOriginX, y: lastOriginY), size: itemSize))
-//                        itemsInfo[index].itemIndexInRow = index - startItemIndex
-//                        itemsInfo[index].rowIndex = rowIndex
                         lastOriginX += itemSize.width + actualInteritemSpacing
                     }
                     
                     startItemIndex = endItemIndex + 1
                     lastOriginY += itemSize.height + minimumLineSpacing
-//                    rowIndex += 1
                 }
             }
             
@@ -805,7 +802,6 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         var lastOriginY: CGFloat = (headerInfo?.maxOriginY ?? 0) + sectionInsets.top
         
         var startItemIndex = 0
-//        var rowIndex = 0
         
         let estiamted: Bool = (estimatedColumnType != nil)
         
@@ -834,14 +830,12 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                 
                 for index in startItemIndex...endItemIndex {
                     itemsInfo[index].frame.origin = CGPoint(x: lastOriginX, y: lastOriginY)
-//                    itemsInfo[index].itemIndexInRow = index - startItemIndex
-//                    itemsInfo[index].rowIndex = rowIndex
+                    itemsInfo[index].rowHeight = maxHeight
                     lastOriginX += itemSize.width + actualInteritemSpacing
                 }
                 
                 startItemIndex = endItemIndex + 1
                 lastOriginY += maxHeight + minimumLineSpacing
-//                rowIndex += 1
             }
             lastOriginY -= minimumLineSpacing
         }
@@ -859,8 +853,6 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         if numberOfItemsInSection != 0 {
             for index in 0..<numberOfItemsInSection {
                 itemsInfo[index].frame.origin = CGPoint(x: originX, y: lastOriginY)
-//                itemsInfo[index].itemIndexInRow = 0
-//                itemsInfo[index].rowIndex = index
                 itemsInfo[index].rowHeight = itemsInfo[index].frame.height
                 
                 if updateItemHeight {
@@ -1099,15 +1091,11 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                         itemsInfo[index].heightState = .estimated
                     }
                     
-//                    itemsInfo[index].itemIndexInRow = 0
-//                    itemsInfo[index].rowIndex = index
-                    
                     lastOriginY += itemsInfo[index].frame.height + minimumLineSpacing
                 }
             }
             else {
                 var startItemIndex = 0
-//                var rowIndex = 0
                 while startItemIndex < numberOfItemsInSection {
                     let endItemIndex = min(startItemIndex + numberOfColumnsInRow - 1, numberOfItemsInSection - 1)
                     var lastOriginX = sectionInsets.left
@@ -1129,14 +1117,11 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
                         itemsInfo[index].frame.size.width = itemSize.width
                         
                         itemsInfo[index].rowHeight = maxHeight
-//                        itemsInfo[index].itemIndexInRow = index - startItemIndex
-//                        itemsInfo[index].rowIndex = rowIndex
                         lastOriginX += itemSize.width + actualInteritemSpacing
                     }
                     
                     startItemIndex = endItemIndex + 1
                     lastOriginY += maxHeight + minimumLineSpacing
-//                    rowIndex += 1
                 }
             }
             lastOriginY -= minimumLineSpacing
@@ -1151,18 +1136,16 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
 private struct ItemInfo: CustomStringConvertible {
     var heightState: ItemHeightState
     var frame: CGRect
-//    var itemIndexInRow: Int = -1 //TODO: remove it?
-//    var rowIndex: Int = -1 //TODO: remove it?
     var needInvalidation: Bool = false
     var rowHeight: CGFloat = 0
     
     init(heightState: ItemHeightState, frame: CGRect = .zero) {
         self.heightState = heightState
         self.frame = frame
+        self.rowHeight = frame.height
     }
     
     var description: String {
-//        return "Item Info: Row index: \(rowIndex) ; Item index in row: \(itemIndexInRow) ; State:\(heightState) ; Frame: \(frame)"
         return "Item Info: State:\(heightState) ; Frame: \(frame)"
     }
 }

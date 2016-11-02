@@ -174,6 +174,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     override public func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
+        super.invalidate(willReloadData: willReloadData, willUpdateDataSourceCounts: willUpdateDataSourceCounts, resetLayout: resetLayout, info: info)
+        
         if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             rowsInfo = nil
             headerInfo = nil
@@ -476,12 +478,12 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             rowsInfo[indexPath.item].heightState = .computed
             info = indexPath
         case .supplementaryView(_, let elementKind):
-            if elementKind == UICollectionElementKindSectionHeader {
+            if elementKind == PuzzleCollectionElementKindSectionHeader {
                 headerInfo!.height = preferredSize.height
                 headerInfo!.heightState = .computed
                 info = kInvalidateHeaderForPreferredHeight
             }
-            else if elementKind == UICollectionElementKindSectionFooter {
+            else if elementKind == PuzzleCollectionElementKindSectionFooter {
                 footerInfo!.height = preferredSize.height
                 footerInfo!.heightState = .computed
             }

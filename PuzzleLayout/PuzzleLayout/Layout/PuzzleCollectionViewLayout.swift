@@ -192,7 +192,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             let intersection = rect.intersection(sectionFrame)
             
             if intersection.height > 0 { //Section intersects with rect
-                let rectInSectionBounds = CGRect(origin: CGPoint(x: sectionFrame.minX, y: sectionFrame.minY - lastY), size: sectionFrame.size)
+                let rectInSectionBounds = CGRect(origin: CGPoint(x: intersection.minX, y: intersection.minY - lastY), size: intersection.size)
                 
                 //Ask for layout attributes depend the required data info required
                 

@@ -636,6 +636,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             var newLayouts: [PuzzlePieceSectionLayout] = [PuzzlePieceSectionLayout](repeating: PuzzlePieceSectionLayout(), count: numberOfSections)
             for layout in oldLayouts {
                 layout.parentLayout = nil
+                layout.sectionIndex = nil
             }
             
             for sectionIndex in 0 ..< numberOfSections {

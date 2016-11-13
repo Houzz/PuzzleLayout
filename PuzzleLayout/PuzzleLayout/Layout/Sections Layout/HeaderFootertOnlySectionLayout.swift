@@ -8,7 +8,7 @@
 
 import UIKit
 
-class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
+public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
     //MARK: - Public
     public init(headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none, insets: CGFloat = 0, showGutter: Bool = false) {
         self.headerHeight = headerHeight

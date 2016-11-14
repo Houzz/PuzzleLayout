@@ -74,7 +74,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         if let footer = footerInfo {
             maxY = footer.maxOriginY
         } else if let header = headerInfo {
-            maxY = header.maxOriginY
+            maxY = header.maxOriginY + insets
         }
         
         return maxY
@@ -167,8 +167,8 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
-        if showGutter && headerInfo != nil && footerInfo != nil && insets != 0 {
-            let topGutterFrame = CGRect(x: 0, y: headerInfo!.height, width: collectionViewWidth, height: insets)
+        if showGutter && (headerInfo != nil || footerInfo != nil) && insets != 0 {
+            let topGutterFrame = CGRect(x: 0, y: (headerInfo?.height ?? 0), width: collectionViewWidth, height: insets)
             if rect.intersects(topGutterFrame) {
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionTopGutter, with: IndexPath(item: 0, section: sectionIndex))
                 gutterAttributes.frame = topGutterFrame
@@ -223,7 +223,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
     
     override public func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         if elementKind == PuzzleCollectionElementKindSectionTopGutter {
-            if showGutter && headerInfo != nil && footerInfo != nil && insets != 0 {
+            if showGutter && (headerInfo != nil || footerInfo != nil) && insets != 0 {
                 let originY: CGFloat = headerInfo?.maxOriginY ?? 0
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
                 gutterAttributes.frame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: insets)
@@ -306,11 +306,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         default: break
         }
         
-        var footerOriginY: CGFloat = 0
-        if let _ = headerInfo {
-            footerOriginY = headerInfo!.height + insets
-        }
-        
+        let footerOriginY: CGFloat = (headerInfo?.height ?? 0) + insets
         switch footerHeight {
         case .fixed(let height):
             footerInfo = HeaderFooterInfo(heightState: .fixed, originY: footerOriginY, height: height)
@@ -355,10 +351,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
                 footerInfo!.heightState = .fixed
             }
             else {
-                var footerOriginY: CGFloat = 0
-                if let _ = headerInfo {
-                    footerOriginY = headerInfo!.height + insets
-                }
+                let footerOriginY: CGFloat = (headerInfo?.height ?? 0) + insets
                 footerInfo = HeaderFooterInfo(heightState: .fixed, originY: footerOriginY, height: height)
             }
         case .estimated(let height):
@@ -368,10 +361,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
                 }
             }
             else {
-                var footerOriginY: CGFloat = 0
-                if let _ = headerInfo {
-                    footerOriginY = headerInfo!.height + insets
-                }
+                let footerOriginY: CGFloat = (headerInfo?.height ?? 0) + insets
                 footerInfo = HeaderFooterInfo(heightState: .estimated, originY: footerOriginY, height: height)
             }
         }
@@ -392,10 +382,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         
         if let _ = footerInfo {
             //No need to make those computation if no footer
-            var footerOriginY: CGFloat = 0
-            if let _ = headerInfo {
-                footerOriginY = headerInfo!.height + insets
-            }
+            let footerOriginY: CGFloat = (headerInfo?.height ?? 0) + insets
             footerInfo!.originY = footerOriginY
         }
     }
@@ -426,12 +413,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         }
         
         if footerInfo != nil {
-            
-            var footerOriginY: CGFloat = 0
-            if let _ = headerInfo {
-                footerOriginY = headerInfo!.height + insets
-            }
-            
+            let footerOriginY: CGFloat = (headerInfo?.height ?? 0) + insets
             footerInfo!.originY = footerOriginY
         }
     }
@@ -448,11 +430,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
                 footerInfo!.heightState = .fixed
             }
             else {
-                var footerOriginY: CGFloat = 0
-                if let _ = headerInfo {
-                    footerOriginY = headerInfo!.height + insets
-                }
-                
+                let footerOriginY: CGFloat = (headerInfo?.height ?? 0) + insets
                 footerInfo = HeaderFooterInfo(heightState: .fixed, originY: footerOriginY, height: height)
             }
         case .estimated(let height):
@@ -462,12 +440,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
                 }
             }
             else {
-                
-                var footerOriginY: CGFloat = 0
-                if let _ = headerInfo {
-                    footerOriginY = headerInfo!.height + insets
-                }
-                
+                let footerOriginY: CGFloat = (headerInfo?.height ?? 0) + insets
                 footerInfo = HeaderFooterInfo(heightState: .estimated, originY: footerOriginY, height: height)
             }
         }

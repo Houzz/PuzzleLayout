@@ -8,8 +8,8 @@
 
 import UIKit
 
-public typealias DynamicItemSize = ((_ layout: ColumnBasedPuzzlePieceSectionLayout, _ traitCollection: UITraitCollection, _ width: CGFloat) -> CGSize)
-public typealias DynamicNumberOfColumns = ((_ layout: ColumnBasedPuzzlePieceSectionLayout, _ traitCollection: UITraitCollection, _ width: CGFloat) -> (numberOfColumns: UInt, itemHeight: CGFloat))
+public typealias DynamicItemSize = ((_ layout: ColumnBasedPuzzlePieceSectionLayout, _ width: CGFloat) -> CGSize)
+public typealias DynamicNumberOfColumns = ((_ layout: ColumnBasedPuzzlePieceSectionLayout, _ width: CGFloat) -> (numberOfColumns: UInt, itemHeight: CGFloat))
 
 public enum ColumnType : CustomStringConvertible {
     case itemSize(size: CGSize)

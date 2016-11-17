@@ -582,6 +582,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
         
         if shouldInvalidate {
             preferredSize.width = originalSize.width
+            preferredSize.height = ceil(preferredSize.height)
             return true
         }
         else { return false }
@@ -709,14 +710,14 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             self.itemSize = itemSize
             self.numberOfColumnsInRow = numberOfColumns(from: itemSize)
         case .dynamicItemSize(let closure):
-            self.itemSize = closure(self, traitCollection, collectionViewWidth)
+            self.itemSize = closure(self, collectionViewWidth)
             self.numberOfColumnsInRow = numberOfColumns(from: itemSize)
         case .numberOfColumns(let numberOfColumns, let height):
             self.itemSize = CGSize(width: 0, height: height)
             self.numberOfColumnsInRow = Int(numberOfColumns)
             self.itemSize.width = itemWidth(from: self.numberOfColumnsInRow)
         case .dynamicNumberOfColumns(let closure):
-            let res = closure(self, traitCollection, collectionViewWidth)
+            let res = closure(self, collectionViewWidth)
             self.itemSize = CGSize(width: 0, height: res.itemHeight)
             self.numberOfColumnsInRow = Int(res.numberOfColumns)
             self.itemSize.width = itemWidth(from: self.numberOfColumnsInRow)

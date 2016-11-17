@@ -419,6 +419,83 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }
     }
     
+    override public func initialLayoutAttributesForAppearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        let layout = sectionsLayoutInfo[itemIndexPath.section]
+        
+        if let item = layout.initialLayoutAttributesForAppearingItem(at: itemIndexPath) {
+            let originY = self.originY(forSectionAt: itemIndexPath.section)
+            item.center.y += originY
+            return item
+        }
+        else { return super.initialLayoutAttributesForAppearingItem(at: itemIndexPath) }
+    }
+    
+    override public func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        let layout = sectionsLayoutInfo[itemIndexPath.section]
+        
+        if let item = layout.finalLayoutAttributesForDisappearingItem(at: itemIndexPath) {
+            let originY = self.originY(forSectionAt: itemIndexPath.section)
+            item.center.y += originY
+            return item
+        }
+        else { return super.finalLayoutAttributesForDisappearingItem(at: itemIndexPath) }
+    }
+    
+    override public func initialLayoutAttributesForAppearingSupplementaryElement(ofKind elementKind: String, at elementIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        
+        let layout = sectionsLayoutInfo[elementIndexPath.section]
+        
+        if let item = layout.initialLayoutAttributesForAppearingSupplementaryElement(ofKind: elementKind, at: elementIndexPath) {
+            let originY = self.originY(forSectionAt: elementIndexPath.section)
+            item.center.y += originY
+            return item
+        }
+        else { return super.initialLayoutAttributesForAppearingSupplementaryElement(ofKind: elementKind, at: elementIndexPath) }
+    }
+    
+    override public func finalLayoutAttributesForDisappearingSupplementaryElement(ofKind elementKind: String, at elementIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        let layout = sectionsLayoutInfo[elementIndexPath.section]
+        
+        if let item = layout.finalLayoutAttributesForDisappearingSupplementaryElement(ofKind: elementKind, at: elementIndexPath) {
+            let originY = self.originY(forSectionAt: elementIndexPath.section)
+            item.center.y += originY
+            return item
+        }
+        else { return super.finalLayoutAttributesForDisappearingSupplementaryElement(ofKind: elementKind, at: elementIndexPath) }
+    }
+    
+    override public func initialLayoutAttributesForAppearingDecorationElement(ofKind elementKind: String, at decorationIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        if elementKind == PuzzleCollectionElementKindSeparatorLine {
+            return super.initialLayoutAttributesForAppearingDecorationElement(ofKind: elementKind, at: decorationIndexPath)
+        }
+        else {
+            let layout = sectionsLayoutInfo[decorationIndexPath.section]
+            
+            if let item = layout.initialLayoutAttributesForAppearingDecorationElement(ofKind: elementKind, at: decorationIndexPath) {
+                let originY = self.originY(forSectionAt: decorationIndexPath.section)
+                item.center.y += originY
+                return item
+            }
+            else { return super.initialLayoutAttributesForAppearingDecorationElement(ofKind: elementKind, at: decorationIndexPath) }
+        }
+    }
+    
+    override public func finalLayoutAttributesForDisappearingDecorationElement(ofKind elementKind: String, at decorationIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        if elementKind == PuzzleCollectionElementKindSeparatorLine {
+            return super.finalLayoutAttributesForDisappearingDecorationElement(ofKind: elementKind, at: decorationIndexPath)
+        }
+        else {
+            let layout = sectionsLayoutInfo[decorationIndexPath.section]
+            
+            if let item = layout.finalLayoutAttributesForDisappearingDecorationElement(ofKind: elementKind, at: decorationIndexPath) {
+                let originY = self.originY(forSectionAt: decorationIndexPath.section)
+                item.center.y += originY
+                return item
+            }
+            else { return super.finalLayoutAttributesForDisappearingDecorationElement(ofKind: elementKind, at: decorationIndexPath) }
+        }
+    }
+    
     private var invalidationInfoForBoundsChange: InvalidationInfoForBoundsChange?
     override public func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         

@@ -88,6 +88,30 @@ public class PuzzlePieceSectionLayout {
         return nil
     }
     
+    public func initialLayoutAttributesForAppearingItem(at itemIndexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        return nil
+    }
+    
+    public func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        return nil
+    }
+    
+    public func initialLayoutAttributesForAppearingSupplementaryElement(ofKind elementKind: String, at elementIndexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        return nil
+    }
+    
+    public func finalLayoutAttributesForDisappearingSupplementaryElement(ofKind elementKind: String, at elementIndexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        return nil
+    }
+    
+    public func initialLayoutAttributesForAppearingDecorationElement(ofKind elementKind: String, at decorationIndexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        return nil
+    }
+    
+    public func finalLayoutAttributesForDisappearingDecorationElement(ofKind elementKind: String, at decorationIndexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
+        return nil
+    }
+    
     public func shouldPinHeaderSupplementaryView() -> Bool { return false }
     
     public func shouldPinFooterSupplementaryView() -> Bool { return false }
@@ -107,7 +131,7 @@ public class PuzzlePieceSectionLayout {
     }
     
     public func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
-        return false
+        return nil
     }
     // --------
     

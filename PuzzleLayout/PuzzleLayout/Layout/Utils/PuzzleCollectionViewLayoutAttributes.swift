@@ -9,9 +9,9 @@
 import UIKit
 
 final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayoutAttributes {
-    var cachedSize: CGSize? = nil
-    var info: Any? = nil
-    internal(set) var isPinned: Bool = false
+    public var cachedSize: CGSize? = nil
+    public var info: Any? = nil
+    public internal(set) var isPinned: Bool = false
     
     override public func copy(with zone: NSZone? = nil) -> Any {
         let c = super.copy(with: zone)

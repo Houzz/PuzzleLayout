@@ -16,6 +16,7 @@ public enum ColumnType : CustomStringConvertible {
     case dynamicItemSize(closure: DynamicItemSize)
     case numberOfColumns(numberOfColumns: UInt, itemHeight: CGFloat)
     case dynamicNumberOfColumns(closure: DynamicNumberOfColumns)
+    case numberOfColumnsWithWidthDependency(numberOfColumns: UInt, heightWidthRatio: CGFloat, heightConstant: CGFloat)
     
     var hasItemSize: Bool {
         switch self {
@@ -33,6 +34,7 @@ public enum ColumnType : CustomStringConvertible {
         case .itemSize(let size): return "Item size: \(size)"
         case .dynamicItemSize(_): return "Dynamic item size"
         case .numberOfColumns(let numberOfColumns, let itemHeight): return "Number of columns: \(numberOfColumns) ; Item height: \(itemHeight)"
+        case .numberOfColumnsWithWidthDependency(let numberOfColumns, let heightWidthRatio, let heightConstant): return "Number of columns: \(numberOfColumns) ; Item height = (<ItemWidth> * \(heightWidthRatio)) + \(heightConstant)"
         case .dynamicNumberOfColumns(_): return "Dynamic number of columns"
         }
     }

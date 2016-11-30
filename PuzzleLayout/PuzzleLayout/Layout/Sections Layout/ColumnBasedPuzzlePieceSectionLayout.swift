@@ -721,6 +721,10 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
             self.itemSize = CGSize(width: 0, height: res.itemHeight)
             self.numberOfColumnsInRow = Int(res.numberOfColumns)
             self.itemSize.width = itemWidth(from: self.numberOfColumnsInRow)
+        case .numberOfColumnsWithWidthDependency(let numberOfColumns, let heightWidthRatio, let heightConstant):
+            self.numberOfColumnsInRow = Int(numberOfColumns)
+            self.itemSize.width = itemWidth(from: self.numberOfColumnsInRow)
+            self.itemSize.height = (self.itemSize.width * heightWidthRatio) + heightConstant
         }
         
         updateActualInteritemSpacing()

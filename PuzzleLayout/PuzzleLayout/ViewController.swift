@@ -13,7 +13,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     @IBOutlet weak var collectionView: UICollectionView!
     let layouts: [PuzzlePieceSectionLayout] = [
         RowsPuzzlePieceSectionLayout(estimatedRowHeight: 200, sectionInsets: UIEdgeInsetsMake(0, 10, 0, 10), rowSpacing: 4, headerHeight: .estimated(height: 50), footerHeight: .fixed(height: 100)),
-        ColumnBasedPuzzlePieceSectionLayout(columnType: ColumnType.dynamicNumberOfColumns(closure: { (_, _, width) -> (numberOfColumns: UInt, itemHeight: CGFloat) in
+        ColumnBasedPuzzlePieceSectionLayout(columnType: ColumnType.dynamicNumberOfColumns(closure: { (_, width) -> (numberOfColumns: UInt, itemHeight: CGFloat) in
             if width > 800 { return (5, 175) }
             else if width > 600 { return (4, 160) }
             else if width > 400 { return (3, 150) }
@@ -24,7 +24,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         ColumnBasedPuzzlePieceSectionLayout(estimatedColumnType: ColumnType.numberOfColumns(numberOfColumns: 4, itemHeight: 175), sectionInsets: UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10), minimumInteritemSpacing: 8, minimumLineSpacing: 8, headerHeight: .fixed(height: 75), footerHeight: .estimated(height: 100), separatorLineStyle: .none),
         ColumnBasedPuzzlePieceSectionLayout(estimatedColumnType: ColumnType.numberOfColumns(numberOfColumns: 5, itemHeight: 120), rowAlignment: .equalHeight, sectionInsets: UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5), minimumInteritemSpacing: 5, minimumLineSpacing: 5, separatorLineStyle: .all),
         ColumnBasedPuzzlePieceSectionLayout(estimatedColumnType: ColumnType.numberOfColumns(numberOfColumns: 3, itemHeight: 120), rowAlignment: .alignTop, sectionInsets: UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5), minimumInteritemSpacing: 5, minimumLineSpacing: 5, separatorLineStyle: .all),
-        ColumnBasedPuzzlePieceSectionLayout(estimatedColumnType: ColumnType.dynamicNumberOfColumns(closure: { (_, _, width) -> (numberOfColumns: UInt, itemHeight: CGFloat) in
+        ColumnBasedPuzzlePieceSectionLayout(estimatedColumnType: ColumnType.dynamicNumberOfColumns(closure: { (_, width) -> (numberOfColumns: UInt, itemHeight: CGFloat) in
             if width > 800 { return (5, 175) }
             else if width > 600 { return (4, 160) }
             else if width > 400 { return (3, 150) }
@@ -33,6 +33,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         RowsPuzzlePieceSectionLayout(rowHeight: 44, headerHeight: .fixed(height: 100), separatorLineStyle: .all),
         RowsPuzzlePieceSectionLayout(rowHeight: 60, sectionInsets: UIEdgeInsetsMake(20, 20, 20, 20), rowSpacing: 0, headerHeight: .estimated(height: 100), footerHeight: .estimated(height: 100), separatorLineStyle: .none, showTopGutter: true, showBottomGutter: false),
         RowsPuzzlePieceSectionLayout(estimatedRowHeight: 50, sectionInsets: UIEdgeInsetsMake(20, 20, 20, 20), showTopGutter: true, showBottomGutter: true),
+        ColumnBasedPuzzlePieceSectionLayout(columnType: ColumnType.numberOfColumnsWithWidthDependency(numberOfColumns: 3, heightWidthRatio: 1, heightConstant: 45), sectionInsets: UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10), minimumInteritemSpacing: 10, minimumLineSpacing: 10)
         ]
     
     override func viewDidLoad() {

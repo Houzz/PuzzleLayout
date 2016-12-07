@@ -696,6 +696,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     private func updateRowsForHeightChange() {
+        guard let _ = rowsInfo else { return }
+
         var lastOriginY: CGFloat = (headerInfo?.height ?? 0) + sectionInsets.top
         
         let heightState: ItemHeightState
@@ -754,6 +756,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     private func updateAllRowsOriginY() {
+        guard let _ = rowsInfo else { return }
+
         var lastOriginY = (headerInfo?.height ?? 0) + sectionInsets.top
         
         for row in 0 ..< rowsInfo.count {
@@ -773,7 +777,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     private func updateAllRowsForSectionInsetsChange() {
-        
+        guard let _ = rowsInfo else { return }
+
         var lastOriginY = (headerInfo?.height ?? 0) + sectionInsets.top
         
         for row in 0 ..< rowsInfo.count {
@@ -793,7 +798,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     private func updateRows(fromIndexPath indexPath: IndexPath? = nil, fromHeader invalidateHeader: Bool = false) {
-        
+        guard let _ = rowsInfo else { return }
+
         guard indexPath != nil || invalidateHeader else {
             //Nothing to invalidate
             return

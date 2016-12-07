@@ -803,6 +803,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     private func updateItemsOriginYForMultipleColumns(forceUpdateOrigin: Bool = false, updateItemHeight: Bool = false) {
+        guard let _ = itemsInfo else { return }
         
         var lastOriginY: CGFloat = (headerInfo?.maxOriginY ?? 0) + sectionInsets.top
         
@@ -850,7 +851,8 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     }
     
     private func updateItemsOriginYForSingleColumn(forceUpdateOrigin: Bool = false, updateItemHeight: Bool = false) {
-        
+        guard let _ = itemsInfo else { return }
+
         let originX = (collectionViewWidth - itemSize.width) * 0.5
         var lastOriginY: CGFloat = (headerInfo?.maxOriginY ?? 0) + sectionInsets.top
         let estiamted: Bool = (estimatedColumnType != nil)

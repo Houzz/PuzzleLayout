@@ -127,7 +127,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     public var showTopGutter: Bool = false {
         didSet {
-            if sectionInsets.top != 0, let ctx = self.invalidationContext {
+            if oldValue != showTopGutter && sectionInsets.top != 0, let ctx = self.invalidationContext {
                 ctx.invalidateSectionLayoutData = self
                 ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSectionTopGutter, at: [indexPath(forIndex: 0)!])
                 parentLayout!.invalidateLayout(with: ctx)
@@ -137,7 +137,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
     
     public var showBottomGutter: Bool = false {
         didSet {
-            if sectionInsets.bottom != 0, let ctx = self.invalidationContext {
+            if oldValue != showBottomGutter && sectionInsets.bottom != 0, let ctx = self.invalidationContext {
                 ctx.invalidateSectionLayoutData = self
                 ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSectionBottomGutter, at: [indexPath(forIndex: 0)!])
                 parentLayout!.invalidateLayout(with: ctx)

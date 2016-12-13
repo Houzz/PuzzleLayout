@@ -56,6 +56,17 @@ public class PuzzlePieceSectionLayout {
             }
         }
     }
+
+
+    /// Return content offset in section coordinates 
+    ///
+    /// - Parameters:
+    ///   - proposedContentOffset: proposed content offset in section coodinates
+    ///   - velocity: scroll velocity
+    /// - Returns: target content offset in section coordinates
+    func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+        return proposedContentOffset
+    }
     
     public var separatorLineColor: UIColor? = nil
     

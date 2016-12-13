@@ -172,6 +172,26 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         
         super.prepare()
     }
+
+    public override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+        var lastY: CGFloat = 0
+        let width = collectionView!.bounds.width
+
+        for sectionIndex in 0 ..< sectionsLayoutInfo.count {
+            let layout = sectionsLayoutInfo[sectionIndex]
+            assert(sectionIndex == layout.sectionIndex!, "Something went wrong. This shouldn't happen")
+            let sectionHeight = layout.heightOfSection
+            let sectionFrame = CGRect(x: 0, y: lastY, width: width, height: sectionHeight)
+            if sectionFrame.contains(proposedContentOffset) {
+                let pointInSection = CGPoint(x: proposedContentOffset.x, y: proposedContentOffset.y - lastY)
+                let proposedPointInSection = layout.targetContentOffset(forProposedContentOffset: pointInSection, withScrollingVelocity: velocity)
+                return CGPoint(x: proposedPointInSection.x, y: proposedPointInSection.y + lastY)
+            }
+            lastY += sectionHeight
+        }
+
+        return proposedContentOffset
+    }
     
     override public func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         

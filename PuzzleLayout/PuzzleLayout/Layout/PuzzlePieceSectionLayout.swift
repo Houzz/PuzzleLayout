@@ -14,6 +14,12 @@ public enum PuzzlePieceSeparatorLineStyle : Int {
     case all
 }
 
+public protocol PuzzlePieceSectionLayoutSeperatable {
+    var sectionInsets: UIEdgeInsets { get set }
+    var showTopGutter: Bool { get set }
+    var showBottomGutter: Bool { get set }
+}
+
 public enum InvalidationElementCategory {
     case cell(indexPath: IndexPath)
     
@@ -49,6 +55,17 @@ public class PuzzlePieceSectionLayout {
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }
+    }
+
+
+    /// Return content offset in section coordinates 
+    ///
+    /// - Parameters:
+    ///   - proposedContentOffset: proposed content offset in section coodinates
+    ///   - velocity: scroll velocity
+    /// - Returns: target content offset in section coordinates
+    func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+        return proposedContentOffset
     }
     
     public var separatorLineColor: UIColor? = nil

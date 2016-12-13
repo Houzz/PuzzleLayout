@@ -8,7 +8,7 @@
 
 import UIKit
 
-public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
+public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, PuzzlePieceSectionLayoutSeperatable {
     
     //MARK: - Public
     public init(rowHeight: CGFloat = 44, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,

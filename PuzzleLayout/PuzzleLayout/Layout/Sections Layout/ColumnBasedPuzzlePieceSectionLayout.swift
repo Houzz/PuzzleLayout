@@ -8,7 +8,7 @@
 
 import UIKit
 
-public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout {
+public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, PuzzlePieceSectionLayoutSeperatable {
     
     //MARK: - Public
     public var sectionInsets: UIEdgeInsets = .zero {

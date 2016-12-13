@@ -14,6 +14,12 @@ public enum PuzzlePieceSeparatorLineStyle : Int {
     case all
 }
 
+public protocol PuzzlePieceSectionLayoutSeperatable {
+    var sectionInsets: UIEdgeInsets { get set }
+    var showTopGutter: Bool { get set }
+    var showBottomGutter: Bool { get set }
+}
+
 public enum InvalidationElementCategory {
     case cell(indexPath: IndexPath)
     

@@ -10,7 +10,7 @@ import UIKit
 
 
 @objc final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayoutAttributes {
-    var cachedSize: CGSize? = nil
+    public var cachedSize: CGSize? = nil
     public var info: Any? = nil
     internal(set) var isPinned: Bool = false
     

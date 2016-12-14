@@ -13,6 +13,7 @@ import UIKit
     public var cachedSize: CGSize? = nil
     public var info: Any? = nil
     internal(set) var isPinned: Bool = false
+    internal(set) var layoutMargins: UIEdgeInsets = .zero
     
     override public func copy(with zone: NSZone? = nil) -> Any {
         let c = super.copy(with: zone)
@@ -33,6 +34,9 @@ import UIKit
                 return false
             }
             else if self.isPinned != attr.isPinned {
+                return false
+            }
+            else if self.layoutMargins != attr.layoutMargins {
                 return false
             }
             else if self.info == nil && attr.info == nil {

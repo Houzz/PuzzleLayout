@@ -227,6 +227,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                     var sectionFooter: PuzzleCollectionViewLayoutAttributes?
                     
                     for item in items {
+                        item.layoutMargins = collectionView!.layoutMargins
                         item.center.y += lastY
                         allAttributes.append(item)
                         
@@ -266,6 +267,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                             let separatorFrame = CGRect(x: item.frame.minX + layout.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layout.separatorLineInsets.left + layout.separatorLineInsets.right), height: 0.5)
                             if rect.intersects(separatorFrame) {
                                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSeparatorLine, with: item.indexPath)
+                                separatorLine.layoutMargins = collectionView!.layoutMargins
                                 separatorLine.frame = separatorFrame
                                 separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
                                 if let color = layout.separatorLineColor ?? separatorLineColor {
@@ -284,6 +286,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                         
                         if shouldPinHeader && sectionHeader == nil {
                             if let header = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) {
+                                header.layoutMargins = collectionView!.layoutMargins
                                 header.center.y += lastY
                                 header.zIndex = PuzzleCollectionHeaderFooterZIndex
                                 allAttributes.append(header)
@@ -293,6 +296,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                         
                         if shouldPinFooter && sectionFooter == nil {
                             if let footer = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) {
+                                footer.layoutMargins = collectionView!.layoutMargins
                                 footer.center.y += lastY
                                 footer.zIndex = PuzzleCollectionHeaderFooterZIndex
                                 allAttributes.append(footer)
@@ -343,6 +347,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForItem(at: indexPath) {
+            item.layoutMargins = collectionView!.layoutMargins
             let originY = self.originY(forSectionAt: indexPath.section)
             item.center.y += originY
             return item
@@ -354,6 +359,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForSupplementaryView(ofKind: elementKind, at: indexPath) {
+            item.layoutMargins = collectionView!.layoutMargins
             let originY = self.originY(forSectionAt: indexPath.section)
             item.center.y += originY
             item.zIndex = 0
@@ -406,12 +412,14 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             if layout.separatorLineStyle == .none || (layout.separatorLineStyle == .allButLastItem && indexPath.item + 1 == layout.numberOfItemsInSection) {
                 //There's no need in line view, but returning nil cause a crash.
                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
+                separatorLine.layoutMargins = collectionView!.layoutMargins
                 separatorLine.isHidden = true
                 separatorLine.frame.size = .zero
                 return separatorLine
             }
             else if let item = layoutAttributesForItem(at: indexPath) {
                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
+                separatorLine.layoutMargins = collectionView!.layoutMargins
                 separatorLine.frame = CGRect(x: item.frame.minX + layout.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layout.separatorLineInsets.left + layout.separatorLineInsets.right), height: 0.5)
                 separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
                 if let color = layout.separatorLineColor ?? separatorLineColor {
@@ -422,6 +430,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             else {
                 //There's no need in line view, but returning nil cause a crash.
                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
+                separatorLine.layoutMargins = collectionView!.layoutMargins
                 separatorLine.isHidden = true
                 separatorLine.frame.size = .zero
                 return separatorLine
@@ -430,10 +439,11 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         else {
             let layout = sectionsLayoutInfo[indexPath.section]
             
-            if let item = layout.layoutAttributesForDecorationView(ofKind: elementKind, at: indexPath) {
+            if let decoration = layout.layoutAttributesForDecorationView(ofKind: elementKind, at: indexPath) {
+                decoration.layoutMargins = collectionView!.layoutMargins
                 let originY = self.originY(forSectionAt: indexPath.section)
-                item.center.y += originY
-                return item
+                decoration.center.y += originY
+                return decoration
             }
             else { return nil }
         }

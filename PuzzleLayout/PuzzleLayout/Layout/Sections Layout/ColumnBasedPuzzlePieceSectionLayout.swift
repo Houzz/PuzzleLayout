@@ -250,11 +250,11 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         return maxY
     }
     
-    override public func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
+    override public func invalidate(for reason: InvalidationReason, with info: Any?) {
         
-        super.invalidate(willReloadData: willReloadData, willUpdateDataSourceCounts: willUpdateDataSourceCounts, resetLayout: resetLayout, info: info)
+        super.invalidate(for: reason, with: info)
         
-        if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
+        if reason == .resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             itemsInfo = nil
             headerInfo = nil
             footerInfo = nil

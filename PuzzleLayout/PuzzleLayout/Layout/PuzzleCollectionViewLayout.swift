@@ -101,13 +101,13 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             invalidateDataSourceCounts = invalidateDataSourceCounts || ctx.invalidateDataSourceCounts
             invalidateSectionsLayout = invalidateSectionsLayout || ctx.invalidateSectionsLayout
             for sectionLayout in sectionsLayoutInfo {
-                sectionLayout.invalidate(willReloadData: ctx.invalidateEverything, willUpdateDataSourceCounts: ctx.invalidateDataSourceCounts, resetLayout: ctx.invalidateSectionsLayout, info: nil)
+                sectionLayout.invalidate(for: ctx.invalidationReason, with: nil)
             }
         }
         else {
             let invalidationInfo = ctx.invalidationInfo
             if let layout = ctx.invalidateSectionLayoutData {
-                layout.invalidate(willReloadData: false, willUpdateDataSourceCounts: false, resetLayout: false, info: invalidationInfo[layout.sectionIndex!])
+                layout.invalidate(for: .otherReason, with: invalidationInfo[layout.sectionIndex!])
             }
             else {
                 
@@ -141,7 +141,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 
                 if !updatedSpecificView {
                     for (index,info) in invalidationInfo {
-                        sectionsLayoutInfo[index].invalidate(willReloadData: false, willUpdateDataSourceCounts: false, resetLayout: false, info: info)
+                        sectionsLayoutInfo[index].invalidate(for: .otherReason, with: info)
                     }
                 }
             }
@@ -833,6 +833,15 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
     fileprivate override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         let dict = (layoutAttributes as! PuzzleCollectionViewLayoutAttributes).info as? [AnyHashable:Any]
         backgroundColor = dict?[PuzzleCollectionColoredViewColorKey] as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
+    }
+}
+
+extension PuzzleCollectionViewLayoutInvalidationContext {
+    var invalidationReason: InvalidationReason {
+        if invalidateDataSourceCounts { return .reloadDataForUpdateDataSourceCounts }
+        else if invalidateEverything { return .reloadData }
+        else if invalidateSectionsLayout { return .resetLayout }
+        else { return .otherReason }
     }
 }
 

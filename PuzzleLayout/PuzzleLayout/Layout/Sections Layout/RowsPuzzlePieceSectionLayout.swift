@@ -173,10 +173,10 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         return maxY
     }
     
-    override public func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
-        super.invalidate(willReloadData: willReloadData, willUpdateDataSourceCounts: willUpdateDataSourceCounts, resetLayout: resetLayout, info: info)
+    override public func invalidate(for reason: InvalidationReason, with info: Any?) {
+        super.invalidate(for: reason, with: info)
         
-        if resetLayout || ((info as? String) == kInvalidateForResetLayout) {
+        if reason == .resetLayout || ((info as? String) == kInvalidateForResetLayout) {
             rowsInfo = nil
             headerInfo = nil
             footerInfo = nil

@@ -28,6 +28,13 @@ public enum InvalidationElementCategory {
     case decorationView(indexPath: IndexPath, elementKind: String)
 }
 
+public enum InvalidationReason : Int {
+    case reloadData
+    case reloadDataForUpdateDataSourceCounts
+    case resetLayout
+    case otherReason
+}
+
 //MARK: - PuzzlePieceSectionLayout
 public class PuzzlePieceSectionLayout {
     
@@ -76,7 +83,7 @@ public class PuzzlePieceSectionLayout {
         return 0
     }
     
-    public func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {}
+    public func invalidate(for reason: InvalidationReason, with info: Any?) {}
     
     public func invalidateItem(at indexPath: IndexPath) {}
     

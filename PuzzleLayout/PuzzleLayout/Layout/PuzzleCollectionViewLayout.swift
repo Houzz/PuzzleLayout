@@ -9,13 +9,42 @@
 import UIKit
 
 //MARK: - CollectionViewDataSourcePuzzleLayout
+
+/// Extension of UICollectionViewDataSource
 public protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
+    
+    /**
+     Asking for section layout.
+     
+     *A good practice for using 'PuzzleCollectionViewLayout' is to set for each 'PuzzlePieceSectionLayout' an identifier. When this function get called, try to dequeue a section layout with the identifier from 'collectionViewLayout' by calling 'sectionLayout(for:)'. Only if the nil returned, create a new 'PuzzlePieceSectionLayout' and return it. In addition, each section must(!!!) have different 'PuzzlePieceSectionLayout' object.*
+     **
+     
+     **Don't use same 'PuzzlePieceSectionLayout' object for multiple section, even if their should have same layout, since each 'PuzzlePieceSectionLayout' keeps data related to its section location in the collection view and its elements.**
+     
+     - parameter collectionView: The collection view.
+     
+     - parameter collectionViewLayout: The puzzle collection view layout asking for this section layout.
+     
+     - parameter index: The section index.
+     
+     - returns: The section layout responsible for layouting the elements in the given section index.
+    */
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout
 }
 
 //MARK: - PuzzleCollectionViewLayout
+
+/**
+ This is the main class of puzzle layout. Puzzle layout let you define a different layout for each section. You can use one of ready-to-use layouts: 'RowsPuzzlePieceSectionLayout', 'ColumnBasedPuzzlePieceSectionLayout', or write one by your own. A section piece layout can be grid based layout, or any complex layouy you can think of. Puzzle layout make it easy to dynamiclly change sections order, adding new sections & removing old ones. No need to re-write the entire collection view layout. Writing new section puzzle piece layout is much more easy, since you can focus only on the section needs, without think about other sections layout.
+ ** Puzzle layout is a vertical layout **
+ 
+ When setting collection view layout as 'PuzzleCollectionViewLayout', collection view data source must conform to 'CollectionViewDataSourcePuzzleLayout'
+ 
+ 'PuzzleCollectionViewLayout' is final and can't be subclassed. 'PuzzleCollectionViewLayout' is supported for Swift only.
+ */
 final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     
+    /// The list of current sections layout
     fileprivate var sectionsLayoutInfo: [PuzzlePieceSectionLayout] = []
     
     //MARK: - Init
@@ -36,12 +65,21 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     //MARK: - Public
+    
+    /// Reload all sections layout. When this function get called, collection view data source will get 'collectionView(_:layout:layoutForSectionAtIndex:)' called for each section.
     public func reloadSectionsLayout() {
         let context = PuzzleCollectionViewLayoutInvalidationContext(invalidateSectionsLayout: true)
         invalidateLayout(with: context)
     }
     
-    public func dequeueSectionLayout(for identifier: String) -> PuzzlePieceSectionLayout? {
+    /**
+     Get a section layout for a given identifier.
+     
+     - parameter identifier: The section layout identifier.
+     
+     - returns: The section layout with same identifier, if such exist.
+    */
+    public func sectionLayout(for identifier: String) -> PuzzlePieceSectionLayout? {
         return sectionsLayoutInfo.filter ({ (layout: PuzzlePieceSectionLayout) -> Bool in
             if let layoutIdentifier = layout.identifier {
                 return layoutIdentifier == identifier
@@ -52,6 +90,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }).first
     }
     
+    /// A UIColor value indicating the default color to be used for separator lines & section gutters.
     public var separatorLineColor: UIColor? {
         didSet {
             let ctx = PuzzleCollectionViewLayoutInvalidationContext()
@@ -835,19 +874,10 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
     }
 }
 
-extension PuzzleCollectionViewLayoutInvalidationContext {
-    var invalidationReason: InvalidationReason {
-        if invalidateDataSourceCounts { return .reloadDataForUpdateDataSourceCounts }
-        else if invalidateEverything { return .reloadData }
-        else if invalidateSectionsLayout { return .resetLayout }
-        else { return .otherReason }
-    }
-}
-
 //MARK: - PuzzlePieceSectionLayout
 extension PuzzlePieceSectionLayout {
     
-    public func invalidationContextForSeparatorLines(for newStyle: PuzzlePieceSeparatorLineStyle, oldStyle: PuzzlePieceSeparatorLineStyle? = nil) -> PuzzleCollectionViewLayoutInvalidationContext? {
+    internal func invalidationContextForSeparatorLines(for newStyle: PuzzlePieceSeparatorLineStyle, oldStyle: PuzzlePieceSeparatorLineStyle? = nil) -> PuzzleCollectionViewLayoutInvalidationContext? {
         let _oldStyle = oldStyle ?? newStyle
         if newStyle == _oldStyle && newStyle == .none {
             return nil

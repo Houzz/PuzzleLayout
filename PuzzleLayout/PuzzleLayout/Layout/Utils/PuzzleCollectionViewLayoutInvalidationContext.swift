@@ -73,4 +73,12 @@ final public class PuzzleCollectionViewLayoutInvalidationContext : UICollectionV
      The dictionary of invalidation info-s for each section
      */
     internal var invalidationInfo: [Int:Any] { return _invalidationInfo }
+    
+    /// The invalidation reason this context was created for.
+    var invalidationReason: InvalidationReason {
+        if invalidateDataSourceCounts { return .reloadDataForUpdateDataSourceCounts }
+        else if invalidateEverything { return .reloadData }
+        else if invalidateSectionsLayout { return .resetLayout }
+        else { return .otherReason }
+    }
 }

@@ -398,26 +398,26 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             default: break
             }
         }
-        else if let itemIndexPath = info as? IndexPath {
-            updateItems(fromIndexPath: itemIndexPath)
+        else if let itemIndex = info as? Int {
+            updateItems(fromIndex: itemIndex)
         }
     }
     
-    override public func invalidateItem(at indexPath: IndexPath) {
-        switch itemsInfo[indexPath.item].heightState {
+    override public func invalidateItem(at index: Int) {
+        switch itemsInfo[index].heightState {
         case .computed:
-            itemsInfo[indexPath.item].heightState = .estimated
+            itemsInfo[index].heightState = .estimated
         case .fixed:
-            if itemsInfo[indexPath.item].frame.height != itemSize.height {
-                itemsInfo[indexPath.item].frame.size.height = itemSize.height
-                itemsInfo[indexPath.item].rowHeight = itemSize.height
-                updateItems(fromIndexPath: indexPath)
+            if itemsInfo[index].frame.height != itemSize.height {
+                itemsInfo[index].frame.size.height = itemSize.height
+                itemsInfo[index].rowHeight = itemSize.height
+                updateItems(fromIndex: index)
             }
         default: break
         }
     }
     
-    override public func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
+    override public func invalidateSupplementaryView(ofKind elementKind: String, at index: Int) {
         switch  elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let _ = headerInfo {
@@ -679,9 +679,9 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     override public func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
         var shouldInvalidate = false
         switch elementCategory {
-        case .cell(let indexPath):
-            if (estimatedColumnType != nil && (indexPath.item < numberOfItemsInSection)) && preferredSize.height != originalSize.height {
-                shouldInvalidate = (itemsInfo[indexPath.item].heightState != .computed || itemsInfo[indexPath.item].rowHeight < preferredSize.height)
+        case .cell(let index):
+            if (estimatedColumnType != nil && (index < numberOfItemsInSection)) && preferredSize.height != originalSize.height {
+                shouldInvalidate = (itemsInfo[index].heightState != .computed || itemsInfo[index].rowHeight < preferredSize.height)
             }
         case .supplementaryView(_, let elementKind):
             shouldInvalidate = (
@@ -704,10 +704,10 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         
         var info: Any? = nil
         switch elementCategory {
-        case .cell(let indexPath):
-            itemsInfo[indexPath.item].frame.size.height = preferredSize.height
-            itemsInfo[indexPath.item].heightState = .computed
-            info = indexPath
+        case .cell(let index):
+            itemsInfo[index].frame.size.height = preferredSize.height
+            itemsInfo[index].heightState = .computed
+            info = index
         case .supplementaryView(_, let elementKind):
             if elementKind == PuzzleCollectionElementKindSectionHeader {
                 headerInfo!.height = preferredSize.height
@@ -996,14 +996,14 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         updateFooter(originY: lastOriginY)
     }
     
-    private func updateItems(fromIndexPath indexPath: IndexPath) {
+    private func updateItems(fromIndex index: Int) {
         if numberOfColumnsInRow == 1 {
-            itemsInfo[indexPath.item].rowHeight = itemsInfo[indexPath.item].frame.height
+            itemsInfo[index].rowHeight = itemsInfo[index].frame.height
             
-            var lastOriginY: CGFloat = itemsInfo[indexPath.item].frame.maxY
-            if indexPath.item + 1 != numberOfItemsInSection {
+            var lastOriginY: CGFloat = itemsInfo[index].frame.maxY
+            if index + 1 != numberOfItemsInSection {
                 lastOriginY += minimumLineSpacing
-                for index in indexPath.item ..< numberOfItemsInSection {
+                for index in index ..< numberOfItemsInSection {
                     itemsInfo[index].frame.origin.y = lastOriginY
                     lastOriginY += itemsInfo[index].rowHeight + minimumLineSpacing
                 }
@@ -1011,11 +1011,11 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             
             lastOriginY += sectionInsets.bottom
             updateFooter(originY: lastOriginY)
-
+            
         }
         else {
-            var startItemIndex = indexPath.item - (indexPath.item % numberOfColumnsInRow)
-            var lastOriginY: CGFloat = itemsInfo[indexPath.item].frame.minY
+            var startItemIndex = index - (index % numberOfColumnsInRow)
+            var lastOriginY: CGFloat = itemsInfo[index].frame.minY
             if startItemIndex < numberOfItemsInSection {
                 while startItemIndex < numberOfItemsInSection {
                     let endItemIndex = min(startItemIndex + numberOfColumnsInRow - 1, numberOfItemsInSection - 1)
@@ -1036,7 +1036,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
                 lastOriginY -= minimumLineSpacing
             }
             else {
-                lastOriginY = itemsInfo[indexPath.item].frame.maxY
+                lastOriginY = itemsInfo[index].frame.maxY
             }
             
             lastOriginY += sectionInsets.bottom

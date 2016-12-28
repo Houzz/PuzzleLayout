@@ -296,25 +296,25 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
             default: break
             }
         }
-        else if let itemIndexPath = info as? IndexPath {
-            updateRows(fromIndexPath: itemIndexPath)
+        else if let itemIndex = info as? Int {
+            updateRows(fromIndex: itemIndex)
         }
     }
     
-    override public func invalidateItem(at indexPath: IndexPath) {
-        switch rowsInfo[indexPath.item].heightState {
+    override public func invalidateItem(at index: Int) {
+        switch rowsInfo[index].heightState {
         case .computed:
-            rowsInfo[indexPath.item].heightState = .estimated
+            rowsInfo[index].heightState = .estimated
         case .fixed:
-            if rowsInfo[indexPath.item].height != rowHeight {
-                rowsInfo[indexPath.item].height = rowHeight
-                updateRows(fromIndexPath: indexPath)
+            if rowsInfo[index].height != rowHeight {
+                rowsInfo[index].height = rowHeight
+                updateRows(fromIndex: index)
             }
         default: break
         }
     }
     
-    override public func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
+    override public func invalidateSupplementaryView(ofKind elementKind: String, at index: Int) {
         switch  elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let _ = headerInfo {
@@ -540,8 +540,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
     override public func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
         var shouldInvalidate = false
         switch elementCategory {
-        case .cell(let indexPath):
-            shouldInvalidate = (indexPath.item < numberOfItemsInSection) && rowsInfo[indexPath.item].heightState != .fixed
+        case .cell(let index):
+            shouldInvalidate = (index < numberOfItemsInSection) && rowsInfo[index].heightState != .fixed
         case .supplementaryView(_, let elementKind):
             shouldInvalidate = (
                 (elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil && headerInfo!.heightState != .fixed)
@@ -566,10 +566,10 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         
         var info: Any? = nil
         switch elementCategory {
-        case .cell(let indexPath):
-            rowsInfo[indexPath.item].height = preferredSize.height
-            rowsInfo[indexPath.item].heightState = .computed
-            info = indexPath
+        case .cell(let index):
+            rowsInfo[index].height = preferredSize.height
+            rowsInfo[index].heightState = .computed
+            info = index
         case .supplementaryView(_, let elementKind):
             if elementKind == PuzzleCollectionElementKindSectionHeader {
                 headerInfo!.height = preferredSize.height
@@ -890,19 +890,19 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
-    private func updateRows(fromIndexPath indexPath: IndexPath? = nil, fromHeader invalidateHeader: Bool = false) {
+    private func updateRows(fromIndex index: Int? = nil, fromHeader invalidateHeader: Bool = false) {
         guard let _ = rowsInfo else { return }
-
-        guard indexPath != nil || invalidateHeader else {
+        
+        guard index != nil || invalidateHeader else {
             //Nothing to invalidate
             return
         }
         
         var lastOriginY: CGFloat = 0
         let firstItemForInvalidation: Int
-        if let indexPath = indexPath {
-            lastOriginY = rowsInfo[indexPath.item].maxOriginY
-            firstItemForInvalidation = indexPath.item + 1
+        if let index = index {
+            lastOriginY = rowsInfo[index].maxOriginY
+            firstItemForInvalidation = index + 1
         }
         else if invalidateHeader {
             firstItemForInvalidation = 0

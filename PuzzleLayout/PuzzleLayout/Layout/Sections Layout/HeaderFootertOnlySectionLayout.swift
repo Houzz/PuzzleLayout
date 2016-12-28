@@ -133,7 +133,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         }
     }
     
-    override public func invalidateSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) {
+    override public func invalidateSupplementaryView(ofKind elementKind: String, at index: Int) {
         switch  elementKind {
         case PuzzleCollectionElementKindSectionHeader:
             if let _ = headerInfo {

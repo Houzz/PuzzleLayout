@@ -119,14 +119,14 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 
                 if let invalidatedItemIndexPaths = ctx.invalidatedItemIndexPaths {
                     for indexPath in invalidatedItemIndexPaths {
-                        sectionsLayoutInfo[indexPath.section].invalidateItem(at: indexPath)
+                        sectionsLayoutInfo[indexPath.section].invalidateItem(at: indexPath.item)
                     }
                 }
                 
                 if let invalidatedSupplementaryIndexPaths = ctx.invalidatedSupplementaryIndexPaths {
                     for (elementKind, indexPaths) in invalidatedSupplementaryIndexPaths {
                         for indexPath in indexPaths {
-                            sectionsLayoutInfo[indexPath.section].invalidateSupplementaryView(ofKind: elementKind, at: indexPath)
+                            sectionsLayoutInfo[indexPath.section].invalidateSupplementaryView(ofKind: elementKind, at: indexPath.item)
                         }
                     }
                 }
@@ -134,7 +134,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 if let invalidatedDecorationIndexPaths = ctx.invalidatedDecorationIndexPaths {
                     for (elementKind, indexPaths) in invalidatedDecorationIndexPaths {
                         for indexPath in indexPaths {
-                            sectionsLayoutInfo[indexPath.section].invalidateDecorationView(ofKind: elementKind, at: indexPath)
+                            sectionsLayoutInfo[indexPath.section].invalidateDecorationView(ofKind: elementKind, at: indexPath.item)
                         }
                     }
                 }
@@ -644,11 +644,11 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let invalidationType: InvalidationElementCategory
         switch preferredAttributes.representedElementCategory {
         case .cell:
-            invalidationType = .cell(indexPath: originalAttributes.indexPath)
+            invalidationType = .cell(index: originalAttributes.indexPath.item)
         case .supplementaryView:
-            invalidationType = .supplementaryView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+            invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
         case .decorationView:
-            invalidationType = .decorationView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+            invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
         }
         
         if layout.shouldInvalidate(for: invalidationType, forPreferredSize: &preferredAttributes.size, withOriginalSize: originalAttributes.size) {
@@ -666,11 +666,11 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let invalidationType: InvalidationElementCategory
         switch preferredAttributes.representedElementCategory {
         case .cell:
-            invalidationType = .cell(indexPath: originalAttributes.indexPath)
+            invalidationType = .cell(index: originalAttributes.indexPath.item)
         case .supplementaryView:
-            invalidationType = .supplementaryView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+            invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
         case .decorationView:
-            invalidationType = .decorationView(indexPath: originalAttributes.indexPath, elementKind: originalAttributes.representedElementKind!)
+            invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
         }
         
         (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size

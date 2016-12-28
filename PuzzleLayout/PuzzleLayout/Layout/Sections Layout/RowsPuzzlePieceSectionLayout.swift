@@ -302,7 +302,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
                     gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
                 
-                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                gutterAttributes.zIndex = PuzzleCollectionSeparatorsViewZIndex
                 attributesInRect.append(gutterAttributes)
             }
         }
@@ -339,7 +339,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
                     gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
                 
-                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                gutterAttributes.zIndex = PuzzleCollectionSeparatorsViewZIndex
                 attributesInRect.append(gutterAttributes)
             }
         }
@@ -409,7 +409,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
                     gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
                 
-                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                gutterAttributes.zIndex = PuzzleCollectionSeparatorsViewZIndex
                 return gutterAttributes
             }
         }
@@ -435,7 +435,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
                     gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
                 
-                gutterAttributes.zIndex = PuzzleCollectionColoredViewZIndex
+                gutterAttributes.zIndex = PuzzleCollectionSeparatorsViewZIndex
                 return gutterAttributes
             }
         }

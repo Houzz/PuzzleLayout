@@ -269,7 +269,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSeparatorLine, with: item.indexPath)
                                 separatorLine.layoutMargins = collectionView!.layoutMargins
                                 separatorLine.frame = separatorFrame
-                                separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
+                                separatorLine.zIndex = PuzzleCollectionSeparatorsViewZIndex
                                 if let color = layout.separatorLineColor ?? separatorLineColor {
                                     separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
                                 }
@@ -421,7 +421,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
                 separatorLine.layoutMargins = collectionView!.layoutMargins
                 separatorLine.frame = CGRect(x: item.frame.minX + layout.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layout.separatorLineInsets.left + layout.separatorLineInsets.right), height: 0.5)
-                separatorLine.zIndex = PuzzleCollectionColoredViewZIndex
+                separatorLine.zIndex = PuzzleCollectionSeparatorsViewZIndex
                 if let color = layout.separatorLineColor ?? separatorLineColor {
                     separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
                 }
@@ -791,7 +791,6 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     private func invalidateForWidthChange(byBoundsChange newBounds: CGRect, oldBounds: CGRect, with context: PuzzleCollectionViewLayoutInvalidationContext) {
-        context.invalidateForWidthChange = true
         var lastY: CGFloat = 0
         for sectionLayout in sectionsLayoutInfo {
             let sectionHeight = sectionLayout.heightOfSection

@@ -8,11 +8,19 @@
 
 import UIKit
 
-
+///A collection view attributes used by 'PuzzleCollectionViewLayout'
 @objc final public class PuzzleCollectionViewLayoutAttributes : UICollectionViewLayoutAttributes {
+    
+    ///The cached size on layout. Can be used on 'systemLayoutSizeFitting(_:)' api call for better performance
     public var cachedSize: CGSize? = nil
+    
+    ///info property can be used by 'PuzzlePieceSectionLayout' to send more data about the cell. This can't be achieved by subclassing 'PuzzleCollectionViewLayoutAttributes' since it's a final.
     public var info: Any? = nil
+    
+    ///This property is set to true only for headers & footers which are currrently pinned to collection bounds.
     internal(set) var isPinned: Bool = false
+    
+    ///The layout margins of the collection view
     internal(set) var layoutMargins: UIEdgeInsets = .zero
     
     override public func copy(with zone: NSZone? = nil) -> Any {

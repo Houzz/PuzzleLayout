@@ -8,8 +8,21 @@
 
 import UIKit
 
+/// A layout for showing only header and/or footer
 public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
     //MARK: - Public
+    
+    /**
+     Init a section layout which might present header and/or footer only
+     
+     - parameter headerHeight: The header height. Default, no header.
+     
+     - parameter footerHeight: The fotter height. Default, no footer.
+     
+     - parameter insets: The inset between the header and footer. If only one of them exit, the inset will be from the header/footer to the section bounds.
+     
+     - parameter showGutter: Should show a gutter view if inset > 0.
+     */
     public init(headerHeight: HeadeFooterHeightSize = .none, footerHeight: HeadeFooterHeightSize = .none, insets: CGFloat = 0, showGutter: Bool = false) {
         self.headerHeight = headerHeight
         self.footerHeight = footerHeight
@@ -18,6 +31,11 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         super.init()
     }
     
+    /**
+     The default height type to use for section header. The default height is no header.
+     
+     Section header is positioned a section origin (0,0) in section coordinate system (Inset doesn't affect it).
+     */
     public var headerHeight: HeadeFooterHeightSize = .none {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForHeaderHeightChange) {
@@ -27,6 +45,11 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         }
     }
     
+    /**
+     The default height type to use for section footer. The default height is no footer.
+     
+     Section footer is positioned a section origin (0,sectionHeight-footerHeight) in section coordinate system.
+     */
     public var footerHeight: HeadeFooterHeightSize = .none {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForFooterHeightChange) {
@@ -36,6 +59,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         }
     }
     
+    /// The inset between the header and footer. If only one of them exit, the inset will be from the header/footer to the section bounds.
     public var insets: CGFloat = 0 {
         didSet {
             if let ctx = invalidationContext(with: kInvalidateForInsetsChange) {
@@ -45,6 +69,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         }
     }
     
+    /// A Boolean value indicating whether should show a view on inset space. View will be presented only if inset > 0.
     public var showGutter: Bool = false {
         didSet {
             if insets != 0, let ctx = self.invalidationContext {
@@ -55,6 +80,7 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         }
     }
     
+    /// Reset the layout
     public func resetLayout() {
         if let ctx = self.invalidationContext(with: kInvalidateForResetLayout) {
             ctx.invalidateSectionLayoutData = self
@@ -63,7 +89,11 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
     }
     
     //MARK: - Private properties
+    
+    /// The header info (current height & origin Y in section coordinate system)
     private var headerInfo: HeaderFooterInfo?
+    
+    /// The footer info (current height & origin Y in section coordinate system)
     private var footerInfo: HeaderFooterInfo?
     
     private var collectionViewWidth: CGFloat = 0

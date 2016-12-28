@@ -11,10 +11,39 @@ import UIKit
 public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, PuzzlePieceSectionLayoutSeperatable {
     
     //MARK: - Public
+    
+    /**
+     Init a layout for cells without supporting self-sizing. Cell won't allow updating it height to best fit for its content views.
+     
+     - parameter rowHeight: The fixed row height.
+     
+     - parameter sectionInsets: The margins used to lay out content in a section. Default, all set to 0.
+     
+     - parameter rowSpacing: The spacing to use between rows. Default is 0.
+     
+     - parameter headerHeight: The default height type to use for section header. The default height is no header.
+     
+     - parameter sectionHeaderPinToVisibleBounds: A Boolean value indicating whether headers pin to the top of the collection view bounds during scrolling.
+     
+     - parameter footerHeight: The default height type to use for section footer. The default height is no footer.
+     
+     - parameter sectionFooterPinToVisibleBounds: A Boolean value indicating whether footers pin to the bottom of the collection view bounds during scrolling.
+     
+     - parameter separatorLineStyle: A PuzzlePieceSeparatorLineStyle value indicating if should add to each cell a separator line in its bottom. Default, show separator line for all cells.
+     
+     - parameter separatorLineInsets: An insets for separator line from the cell left & right edges. Default, left & right are zero.
+     
+     - parameter separatorLineColor: The color for separator lines. On nil, use the default color from the 'PuzzleCollectionViewLayout'. Default is nil.
+     
+     - parameter showTopGutter: A Boolean value indicating whether should add view on section top insets.
+     
+     - parameter showBottomGutter: A Boolean value indicating whether should add view on section bottom insets.
+     */
     public init(rowHeight: CGFloat = 44, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
                 headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
                 footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
-                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
+                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0), separatorLineColor: UIColor? = nil,
+                showTopGutter: Bool = false, showBottomGutter: Bool = false) {
         self.rowHeight = rowHeight
         self.sectionInsets = sectionInsets
         self.rowSpacing = rowSpacing
@@ -26,12 +55,42 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         self.showBottomGutter = showBottomGutter
         super.init()
         self.separatorLineStyle = separatorLineStyle
+        self.separatorLineInsets = separatorLineInsets
+        self.separatorLineColor = separatorLineColor
     }
     
+    /**
+     Init a layout for cells with supporting self-sizing.
+     
+     - parameter estimatedRowHeight: The estimated row height.
+     
+     - parameter sectionInsets: The margins used to lay out content in a section. Default, all set to 0.
+     
+     - parameter rowSpacing: The spacing to use between rows. Default is 0.
+     
+     - parameter headerHeight: The default height type to use for section header. The default height is no header.
+     
+     - parameter sectionHeaderPinToVisibleBounds: A Boolean value indicating whether headers pin to the top of the collection view bounds during scrolling.
+     
+     - parameter footerHeight: The default height type to use for section footer. The default height is no footer.
+     
+     - parameter sectionFooterPinToVisibleBounds: A Boolean value indicating whether footers pin to the bottom of the collection view bounds during scrolling.
+     
+     - parameter separatorLineStyle: A PuzzlePieceSeparatorLineStyle value indicating if should add to each cell a separator line in its bottom. Default, show separator line for all cells.
+     
+     - parameter separatorLineInsets: An insets for separator line from the cell left & right edges. Default, left & right are zero.
+     
+     - parameter separatorLineColor: The color for separator lines. On nil, use the default color from the 'PuzzleCollectionViewLayout'. Default is nil.
+     
+     - parameter showTopGutter: A Boolean value indicating whether should add view on section top insets.
+     
+     - parameter showBottomGutter: A Boolean value indicating whether should add view on section bottom insets.
+     */
     public init(estimatedRowHeight: CGFloat = 100, sectionInsets: UIEdgeInsets = .zero, rowSpacing: CGFloat = 0,
                 headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
                 footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
-                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, showTopGutter: Bool = false, showBottomGutter: Bool = false) {
+                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0), separatorLineColor: UIColor? = nil,
+                showTopGutter: Bool = false, showBottomGutter: Bool = false) {
         self.estimatedRowHeight = estimatedRowHeight
         self.sectionInsets = sectionInsets
         self.rowSpacing = rowSpacing
@@ -43,8 +102,16 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         self.showBottomGutter = showBottomGutter
         super.init()
         self.separatorLineStyle = separatorLineStyle
+        self.separatorLineInsets = separatorLineInsets
+        self.separatorLineColor = separatorLineColor
     }
     
+    /**
+     The margins used to lay out content in a section
+     
+     Section insets reflect the spacing at the outer edges of the section. The margins affect the initial position of the header view, the minimum space on either side of each line of items, and the distance from the last line to the footer view. The margin insets do not affect the size of the header and footer views in the non scrolling direction.
+     The default edge insets are all set to 0.
+     */
     public var sectionInsets: UIEdgeInsets = .zero {
         didSet {
             if let ctx = invalidationContext(with: kInvalidateForSectionInsetsChange) {
@@ -54,6 +121,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /// The spacing to use between rows. Default is 0.
     public var rowSpacing: CGFloat = 0 {
         didSet {
             if let ctx = invalidationContext(with: kInvalidateForRowSpacingChange) {
@@ -63,6 +131,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /// The fixed row height. Default is 44. If estimatedRowHeight != 0, rowHeight is ignored.
     public var rowHeight: CGFloat = 44 {
         didSet {
             if estimatedRowHeight == 0 {
@@ -74,6 +143,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
 
+    /// The estimated row height. Default is 0.
     public var estimatedRowHeight: CGFloat = 0 {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForItemHeightChange) {
@@ -83,6 +153,11 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /**
+     The default height type to use for section header. The default height is no header.
+     
+     Section header is positioned a section origin (0,0) in section coordinate system (Section insets top doesn't affect it).
+     */
     public var headerHeight: HeadeFooterHeightSize = .none {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForHeaderHeightChange) {
@@ -92,6 +167,11 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /**
+     A Boolean value indicating whether headers pin to the top of the collection view bounds during scrolling.
+     
+     When this property is true, section header views scroll with content until they reach the top of the screen, at which point they are pinned to the upper bounds of the collection view. Each new header view that scrolls to the top of the screen pushes the previously pinned header view offscreen.
+     */
     public var sectionHeaderPinToVisibleBounds: Bool = false {
         didSet {
             switch headerHeight {
@@ -104,6 +184,11 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /**
+     The default height type to use for section footer. The default height is no footer.
+     
+     Section footer is positioned a section origin (0,sectionHeight-footerHeight) in section coordinate system.
+     */
     public var footerHeight: HeadeFooterHeightSize = .none {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForFooterHeightChange) {
@@ -113,6 +198,11 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /**
+     A Boolean value indicating whether footers pin to the bottom of the collection view bounds during scrolling.
+     
+     When this property is true, section footer views scroll with content until they reach the bottom of the screen, at which point they are pinned to the lower bounds of the collection view. Each new footer view that scrolls to the bottom of the screen pushes the previously pinned footer view offscreen.
+     */
     public var sectionFooterPinToVisibleBounds: Bool = false {
         didSet {
             switch footerHeight {
@@ -125,6 +215,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /// A Boolean value indicating whether should add view on section top insets.
     public var showTopGutter: Bool = false {
         didSet {
             if oldValue != showTopGutter && sectionInsets.top != 0, let ctx = self.invalidationContext {
@@ -135,6 +226,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /// A Boolean value indicating whether should add view on section bottom insets.
     public var showBottomGutter: Bool = false {
         didSet {
             if oldValue != showBottomGutter && sectionInsets.bottom != 0, let ctx = self.invalidationContext {
@@ -145,6 +237,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    /// Reset the layout
     public func resetLayout() {
         if let ctx = self.invalidationContext(with: kInvalidateForResetLayout) {
             ctx.invalidateSectionLayoutData = self

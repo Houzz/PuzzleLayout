@@ -24,7 +24,6 @@
 		0F2B81121DDDAA8600E19CD4 /* Cells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2B81071DDDAA8600E19CD4 /* Cells.swift */; };
 		0F2B81131DDDAA8600E19CD4 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2B81081DDDAA8600E19CD4 /* UIView+Extensions.swift */; };
 		0F2B81141DDDAA8600E19CD4 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2B81091DDDAA8600E19CD4 /* User.swift */; };
-		0F2B81241DDDAA9100E19CD4 /* PuzzleCollectionViewLayout+GlobalPinnedViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2B81161DDDAA9100E19CD4 /* PuzzleCollectionViewLayout+GlobalPinnedViews.swift */; };
 		0F2B81251DDDAA9100E19CD4 /* PuzzleCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2B81171DDDAA9100E19CD4 /* PuzzleCollectionViewLayout.swift */; };
 		0F2B81261DDDAA9100E19CD4 /* PuzzlePieceSectionLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2B81181DDDAA9100E19CD4 /* PuzzlePieceSectionLayout.swift */; };
 		0F2B81271DDDAA9100E19CD4 /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2B811A1DDDAA9100E19CD4 /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift */; };
@@ -58,7 +57,6 @@
 		0F2B81071DDDAA8600E19CD4 /* Cells.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cells.swift; sourceTree = "<group>"; };
 		0F2B81081DDDAA8600E19CD4 /* UIView+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
 		0F2B81091DDDAA8600E19CD4 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		0F2B81161DDDAA9100E19CD4 /* PuzzleCollectionViewLayout+GlobalPinnedViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "PuzzleCollectionViewLayout+GlobalPinnedViews.swift"; sourceTree = "<group>"; };
 		0F2B81171DDDAA9100E19CD4 /* PuzzleCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleCollectionViewLayout.swift; sourceTree = "<group>"; };
 		0F2B81181DDDAA9100E19CD4 /* PuzzlePieceSectionLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzlePieceSectionLayout.swift; sourceTree = "<group>"; };
 		0F2B811A1DDDAA9100E19CD4 /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ColumnBasedPuzzlePieceSectionLayout+Utils.swift"; sourceTree = "<group>"; };
@@ -144,7 +142,6 @@
 		0F2B81151DDDAA9100E19CD4 /* Layout */ = {
 			isa = PBXGroup;
 			children = (
-				0F2B81161DDDAA9100E19CD4 /* PuzzleCollectionViewLayout+GlobalPinnedViews.swift */,
 				0F2B81171DDDAA9100E19CD4 /* PuzzleCollectionViewLayout.swift */,
 				0F2B81181DDDAA9100E19CD4 /* PuzzlePieceSectionLayout.swift */,
 				0F2B81191DDDAA9100E19CD4 /* Sections Layout */,
@@ -157,10 +154,10 @@
 		0F2B81191DDDAA9100E19CD4 /* Sections Layout */ = {
 			isa = PBXGroup;
 			children = (
+				0F2B811D1DDDAA9100E19CD4 /* RowsPuzzlePieceSectionLayout.swift */,
 				0F2B811A1DDDAA9100E19CD4 /* ColumnBasedPuzzlePieceSectionLayout+Utils.swift */,
 				0F2B811B1DDDAA9100E19CD4 /* ColumnBasedPuzzlePieceSectionLayout.swift */,
 				0F2B811C1DDDAA9100E19CD4 /* HeaderFootertOnlySectionLayout.swift */,
-				0F2B811D1DDDAA9100E19CD4 /* RowsPuzzlePieceSectionLayout.swift */,
 			);
 			path = "Sections Layout";
 			sourceTree = "<group>";
@@ -204,12 +201,11 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = Houzz;
 				TargetAttributes = {
 					0F25390F1DD9B90C00457928 = {
 						CreatedOnToolsVersion = 8.1;
-						DevelopmentTeam = J63Q35M68Q;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -257,7 +253,6 @@
 				0F2B812A1DDDAA9100E19CD4 /* RowsPuzzlePieceSectionLayout.swift in Sources */,
 				0F2B81251DDDAA9100E19CD4 /* PuzzleCollectionViewLayout.swift in Sources */,
 				0F2B810F1DDDAA8600E19CD4 /* ProProfileHeaderDataSource.swift in Sources */,
-				0F2B81241DDDAA9100E19CD4 /* PuzzleCollectionViewLayout+GlobalPinnedViews.swift in Sources */,
 				0F2B81281DDDAA9100E19CD4 /* ColumnBasedPuzzlePieceSectionLayout.swift in Sources */,
 				0F2B81111DDDAA8600E19CD4 /* AsyncImageView.swift in Sources */,
 				0F2B810C1DDDAA8600E19CD4 /* PhotosDataSource.swift in Sources */,
@@ -319,6 +314,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -369,6 +365,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -398,7 +395,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = J63Q35M68Q;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = PuzzleExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -412,7 +409,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = J63Q35M68Q;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = PuzzleExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

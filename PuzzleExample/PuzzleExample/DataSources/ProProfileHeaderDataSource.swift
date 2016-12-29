@@ -2,7 +2,7 @@
 //  ProProfileHeaderDataSource.swift
 //  PuzzleExample
 //
-//  Created by Yossi houzz on 14/11/2016.
+//  Created by Yossi Avramov on 14/11/2016.
 //  Copyright © 2016 Houzz. All rights reserved.
 //
 
@@ -84,13 +84,13 @@ fileprivate class HeaderLayout: PuzzlePieceSectionLayout {
     private var collectionViewWidth: CGFloat = 0
     private var headerHeight: CGFloat = 0
     private var itemsInfo: [ItemInfo] = []
-    override func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
-        super.invalidate(willReloadData: willReloadData, willUpdateDataSourceCounts: willUpdateDataSourceCounts, resetLayout: resetLayout, info: info)
-        if willReloadData || resetLayout {
+    override func invalidate(for reason: InvalidationReason, with info: Any?) {
+        super.invalidate(for: reason, with: info)
+        if reason != .otherReason {
             headerHeight = 0
             itemsInfo = []
         }
-        else if info is IndexPath {
+        else if info is Int {
             prepareHeaderFrames()
         }
     }
@@ -151,12 +151,12 @@ fileprivate class HeaderLayout: PuzzlePieceSectionLayout {
     // -------- Item attributes invalidation
     override func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
         switch elementCategory {
-        case .cell(let indexPath):
-            switch Item(rawValue: indexPath.item)! {
+        case .cell(let itemIndex):
+            switch Item(rawValue: itemIndex)! {
             case .profileImage:
                 return false
             case .name, .category, .reviews:
-                let frame = itemsInfo[indexPath.item].fittedFrame
+                let frame = itemsInfo[itemIndex].fittedFrame
                 if frame == nil || preferredSize != frame!.size {
                     return true
                 }
@@ -169,11 +169,11 @@ fileprivate class HeaderLayout: PuzzlePieceSectionLayout {
     
     override func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
         switch elementCategory {
-        case .cell(let indexPath):
-            switch Item(rawValue: indexPath.item)! {
+        case .cell(let itemIndex):
+            switch Item(rawValue: itemIndex)! {
             case .name, .category, .reviews:
-                itemsInfo[indexPath.item].fittedFrame = CGRect(origin: itemsInfo[indexPath.item].frame.origin, size: preferredSize)
-                return indexPath
+                itemsInfo[itemIndex].fittedFrame = CGRect(origin: itemsInfo[itemIndex].frame.origin, size: preferredSize)
+                return itemIndex
             default: break
             }
         default: break

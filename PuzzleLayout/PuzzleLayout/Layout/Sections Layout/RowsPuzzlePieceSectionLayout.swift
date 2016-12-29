@@ -2,7 +2,7 @@
 //  RowsPuzzlePieceSectionLayout.swift
 //  CollectionTest
 //
-//  Created by Yossi houzz on 25/09/2016.
+//  Created by Yossi Avramov on 25/09/2016.
 //  Copyright © 2016 Yossi. All rights reserved.
 //
 

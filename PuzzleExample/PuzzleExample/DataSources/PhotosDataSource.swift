@@ -2,7 +2,7 @@
 //  PhotosDataSource.swift
 //  PuzzleExample
 //
-//  Created by Yossi houzz on 15/11/2016.
+//  Created by Yossi Avramov on 15/11/2016.
 //  Copyright © 2016 Houzz. All rights reserved.
 //
 
@@ -76,9 +76,9 @@ fileprivate class SwitchablePhotosLayout: PuzzlePieceSectionLayout {
     }
     
     var switchTuple: (from: Int, to: Int)?
-    override func invalidate(willReloadData: Bool, willUpdateDataSourceCounts: Bool, resetLayout: Bool, info: Any?) {
-        super.invalidate(willReloadData: willReloadData, willUpdateDataSourceCounts: willUpdateDataSourceCounts, resetLayout: resetLayout, info: info)
-        if willReloadData || resetLayout {
+    override func invalidate(for reason: InvalidationReason, with info: Any?) {
+        super.invalidate(for: reason, with: info)
+        if reason != .otherReason {
             bigItemSize = .zero
             smallItemSize = .zero
             itemsFrame = []

@@ -2,7 +2,7 @@
 //  PuzzleCollectionViewLayout.swift
 //  CollectionTest
 //
-//  Created by Yossi houzz on 23/09/2016.
+//  Created by Yossi Avramov on 23/09/2016.
 //  Copyright © 2016 Yossi. All rights reserved.
 //
 

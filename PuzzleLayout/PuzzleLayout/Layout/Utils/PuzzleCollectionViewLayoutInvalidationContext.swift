@@ -69,10 +69,11 @@ final public class PuzzleCollectionViewLayoutInvalidationContext : UICollectionV
         return _invalidationInfo[sectionIndex]
     }
     
-    /**
-     The dictionary of invalidation info-s for each section
-     */
+    /// The dictionary of invalidation info-s for each section
     internal var invalidationInfo: [Int:Any] { return _invalidationInfo }
+    
+    /// A Boolean value indicating if elements invalidation should be passed to section layout or not.
+    internal var updateInvalidatedElementsOnSuperOnly = false
     
     /// The invalidation reason this context was created for.
     var invalidationReason: InvalidationReason {

@@ -148,7 +148,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             if let layout = ctx.invalidateSectionLayoutData {
                 layout.invalidate(for: .otherReason, with: invalidationInfo[layout.sectionIndex!])
             }
-            else {
+            else if ctx.updateInvalidatedElementsOnSuperOnly == false {
                 
                 let updatedSpecificView = !(
                     (ctx.invalidatedItemIndexPaths?.isEmpty ?? true)
@@ -702,18 +702,73 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let sectionIndex = originalAttributes.indexPath.section
         let layout = sectionsLayoutInfo[sectionIndex]
         
+        var supplementaries: [String:[IndexPath]] = [:]
+        var decorations: [String:[IndexPath]] = [:]
+
         let invalidationType: InvalidationElementCategory
         switch preferredAttributes.representedElementCategory {
         case .cell:
             invalidationType = .cell(index: originalAttributes.indexPath.item)
         case .supplementaryView:
             invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+            supplementaries[originalAttributes.representedElementKind!] = [originalAttributes.indexPath]
         case .decorationView:
             invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+            decorations[originalAttributes.representedElementKind!] = [originalAttributes.indexPath]
         }
         
         (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
         ctx.invalidateSectionLayoutData = layout
+        
+        ctx.updateInvalidatedElementsOnSuperOnly = true
+        if let startItemIndex = layout.minimumItemIndexAffected(byInvalidating: invalidationType) {
+            let items = (startItemIndex..<layout.numberOfItemsInSection).map({ (index:Int) -> IndexPath in
+                return IndexPath(item: index, section: sectionIndex)
+            })
+            ctx.invalidateItems(at: items)
+            
+            //Invalidate separators
+            switch layout.separatorLineStyle {
+            case .all:
+                ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: items)
+            case .allButLastItem:
+                var itemsButLast = items
+                itemsButLast.removeLast()
+                ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: itemsButLast)
+            case .none: break
+            }
+        }
+        else if preferredAttributes.representedElementKind == nil {
+            ctx.invalidateItems(at: [originalAttributes.indexPath])
+        }
+        
+        if let moreToInvalidate = layout.affectedDecorationsAndSupplementaries(forInvalidating: invalidationType) {
+            for (key, value) in moreToInvalidate.supplementaries {
+                let indexPaths = value.map({ (index:Int) -> IndexPath in
+                    return IndexPath(item: index, section: sectionIndex)
+                }) + (supplementaries[key] ?? [])
+                
+                ctx.invalidateSupplementaryElements(ofKind: key, at: indexPaths)
+            }
+            
+            for (key, value) in moreToInvalidate.decorations {
+                let indexPaths = value.map({ (index:Int) -> IndexPath in
+                    return IndexPath(item: index, section: sectionIndex)
+                }) + (decorations[key] ?? [])
+                
+                ctx.invalidateDecorationElements(ofKind: key, at: indexPaths)
+            }
+        }
+        else {
+            for (key,value) in supplementaries {
+                ctx.invalidateSupplementaryElements(ofKind: key, at: value)
+            }
+            
+            for (key,value) in decorations {
+                ctx.invalidateDecorationElements(ofKind: key, at: value)
+            }
+        }
+
         if let info = layout.invalidationInfo(for: invalidationType, forPreferredSize: preferredAttributes.size, withOriginalSize: originalAttributes.size) {
             ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
         }

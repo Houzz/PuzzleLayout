@@ -46,19 +46,6 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         collectionView.setCollectionViewLayout(layout, animated: false)
     }
     
-//    override func viewDidAppear(_ animated: Bool) {
-//        super.viewDidAppear(animated)
-//        let delay = DispatchTime.now() + DispatchTimeInterval.seconds(10)
-//        DispatchQueue.main.asyncAfter(deadline: delay) {
-//            DEBUGLog("Will delete")
-//            
-//            self.itemsInSection[0].remove(at: 3)
-//            self.collectionView.performBatchUpdates({
-//                self.collectionView.deleteItems(at: [IndexPath(item: 3, section: 0)])
-//                }, completion: nil)
-//        }
-//    }
-    
     var itemsInSection: [[String]] = []
     private func prepareDataSource() {
         
@@ -89,38 +76,6 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         cell.contentView.backgroundColor = backgrounds[indexPath.item % backgrounds.count]
         return cell
     }
-    
-//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        
-//        itemsInSection[indexPath.section][indexPath.item] = itemsInSection[indexPath.section][indexPath.item] + itemsInSection[indexPath.section][indexPath.item]
-//        if let cell = (collectionView.cellForItem(at: indexPath) as? Cell) {
-//            cell.lbl.text = itemsInSection[indexPath.section][indexPath.item]
-//            cell.cachedSize = nil
-//        }
-//        
-//        let collectionLayoutType = type(of: collectionView.collectionViewLayout) as! PuzzleCollectionViewLayout.Type
-//        let invalidationContextType = collectionLayoutType.invalidationContextClass as! PuzzleCollectionViewLayoutInvalidationContext.Type
-//        let context = invalidationContextType.init()
-//        context.invalidateItems(at: [indexPath])
-//        collectionView.collectionViewLayout.invalidateLayout(with: context)
-//    }
-//    
-//    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-//        let str = itemsInSection[indexPath.section][indexPath.item]
-//        let strLength = str.characters.count
-//        itemsInSection[indexPath.section][indexPath.item] = str.substring(to: str.index(str.startIndex, offsetBy: Int(floor(Float(strLength) * 0.5))))
-//        
-//        if let cell = (collectionView.cellForItem(at: indexPath) as? Cell) {
-//            cell.lbl.text = itemsInSection[indexPath.section][indexPath.item]
-//            cell.cachedSize = nil
-//        }
-//        
-//        let collectionLayoutType = type(of: collectionView.collectionViewLayout) as! PuzzleCollectionViewLayout.Type
-//        let invalidationContextType = collectionLayoutType.invalidationContextClass as! PuzzleCollectionViewLayoutInvalidationContext.Type
-//        let context = invalidationContextType.init()
-//        context.invalidateItems(at: [indexPath])
-//        collectionView.collectionViewLayout.invalidateLayout(with: context)
-//    }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == PuzzleCollectionElementKindSectionHeader {

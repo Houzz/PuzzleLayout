@@ -69,7 +69,7 @@ public class PuzzlePieceSectionLayout {
     public internal(set) weak var parentLayout: PuzzleCollectionViewLayout?
     
     /// The section index this layout responsible for.
-    internal var sectionIndex: Int?
+    public internal(set) var sectionIndex: Int?
     
     /// The number of items in the section.
     public internal(set) var numberOfItemsInSection: Int = 0

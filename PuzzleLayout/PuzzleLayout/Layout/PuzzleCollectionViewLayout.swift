@@ -137,7 +137,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         
         if ((ctx.invalidateEverything || ctx.invalidateDataSourceCounts) && !reloadingDataForInvalidationBug) || ctx.invalidateSectionsLayout {
             invalidateEverything = invalidateEverything || ctx.invalidateEverything
-            invalidateDataSourceCounts = invalidateDataSourceCounts || ctx.invalidateDataSourceCounts
+            invalidateDataSourceCounts = invalidateDataSourceCounts || (ctx.invalidateDataSourceCounts && !ctx.invalidateEverything)
             invalidateSectionsLayout = invalidateSectionsLayout || ctx.invalidateSectionsLayout
             for sectionLayout in sectionsLayoutInfo {
                 sectionLayout.invalidate(for: ctx.invalidationReason, with: nil)

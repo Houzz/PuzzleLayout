@@ -47,6 +47,9 @@ public enum InvalidationReason : Int {
     /// Invalidating for reloadData
     case reloadData
     
+    /// Invalidating for changing collection view layout or the collection view data source
+    case changeCollectionViewLayoutOrDataSource
+    
     /// Invalidating for insert/delete/move items
     case reloadDataForUpdateDataSourceCounts
     

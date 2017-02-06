@@ -391,6 +391,11 @@ public class PuzzlePieceSectionLayout {
     public func invalidationInfo(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: CGSize, withOriginalSize originalSize: CGSize) -> Any? {
         return nil
     }
+    
+    
+    public func inlineAffectedElements(forInvalidationToPreferredSize elementCategory: InvalidationElementCategory) -> (items: [Int], supplementaries: [String:[Int]], decorations: [String:[Int]])? {
+        return nil
+    }
     // --------
     
     /**

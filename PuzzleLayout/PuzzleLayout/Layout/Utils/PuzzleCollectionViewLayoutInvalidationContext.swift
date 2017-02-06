@@ -74,6 +74,8 @@ final public class PuzzleCollectionViewLayoutInvalidationContext : UICollectionV
      */
     internal var invalidationInfo: [Int:Any] { return _invalidationInfo }
     
+    internal var invalidateForPreferredLayoutAttributes: UICollectionViewLayoutAttributes? = nil
+    
     /// The invalidation reason this context was created for.
     var invalidationReason: InvalidationReason {
         if invalidateEverything && invalidateDataSourceCounts { return .reloadData }

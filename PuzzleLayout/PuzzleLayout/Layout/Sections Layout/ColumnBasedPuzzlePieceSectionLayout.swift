@@ -725,6 +725,21 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         return info
     }
     
+    override public func inlineAffectedElements(forInvalidationToPreferredSize elementCategory: InvalidationElementCategory) -> (items: [Int], supplementaries: [String:[Int]], decorations: [String:[Int]])? {
+        if rowAlignment == .alignTop {
+            return nil
+        }
+        
+        switch elementCategory {
+        case .cell(let index):
+            let startIndex = (index - (index % numberOfColumnsInRow))
+            let items = Array(startIndex..<index)
+            return (items: items, supplementaries: [:], decorations: [:])
+        default:
+            return nil
+        }
+    }
+    
     //MARK: - Private properties
     fileprivate var itemsInfo: [ItemInfo]!
     fileprivate var headerInfo: HeaderFooterInfo?

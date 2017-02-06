@@ -135,7 +135,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             return
         }
         
-        if ((ctx.invalidateEverything || ctx.invalidateDataSourceCounts) && !reloadingDataForInvalidationBug) || ctx.invalidateSectionsLayout {
+        if ctx.invalidateEverything || ctx.invalidateDataSourceCounts || ctx.invalidateSectionsLayout {
             invalidateEverything = invalidateEverything || ctx.invalidateEverything
             invalidateDataSourceCounts = invalidateDataSourceCounts || (ctx.invalidateDataSourceCounts && !ctx.invalidateEverything)
             invalidateSectionsLayout = invalidateSectionsLayout || ctx.invalidateSectionsLayout
@@ -148,7 +148,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             if let layout = ctx.invalidateSectionLayoutData {
                 layout.invalidate(for: .otherReason, with: invalidationInfo[layout.sectionIndex!])
             }
-            else {
+            else if ctx.invalidateForPreferredLayoutAttributes == nil {
                 
                 let updatedSpecificView = !(
                     (ctx.invalidatedItemIndexPaths?.isEmpty ?? true)
@@ -184,6 +184,10 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                     }
                 }
             }
+            
+            if let _ = ctx.invalidateForPreferredLayoutAttributes {
+                invalidateLivingLayoutAttributesIfNeeded(with: ctx)
+            }
         }
         
         super.invalidateLayout(with: context)
@@ -192,9 +196,70 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     private var invalidateEverything: Bool = false
     private var invalidateDataSourceCounts: Bool = false
     private var invalidateSectionsLayout: Bool = false
-    fileprivate var reloadingDataForInvalidationBug: Bool = false
+    
+    private var invalidatedItemIndexPaths: [IndexPath]?
+    private var invalidatedSupplementaryIndexPaths: [String : [IndexPath]]?
+    private var invalidatedDecorationIndexPaths: [String : [IndexPath]]?
+    private func invalidateLivingLayoutAttributesIfNeeded(with context: PuzzleCollectionViewLayoutInvalidationContext) {
+        
+        self.invalidatedItemIndexPaths = []
+        self.invalidatedSupplementaryIndexPaths = [:]
+        self.invalidatedDecorationIndexPaths = [:]
+        
+        let invalidation: (PuzzleCollectionViewLayoutAttributes) -> Void = { layoutAttributes in
+            switch layoutAttributes.representedElementCategory {
+            case .cell:
+                self.invalidatedItemIndexPaths!.append(layoutAttributes.indexPath)
+            case .supplementaryView:
+                let kind = layoutAttributes.representedElementKind!
+                if self.invalidatedSupplementaryIndexPaths![kind] == nil {
+                    self.invalidatedSupplementaryIndexPaths![kind] = []
+                }
+                
+                self.invalidatedSupplementaryIndexPaths![kind]!.append(layoutAttributes.indexPath)
+            case .decorationView:
+                let kind = layoutAttributes.representedElementKind!
+                if self.invalidatedDecorationIndexPaths![kind] == nil {
+                    self.invalidatedDecorationIndexPaths![kind] = []
+                }
+                
+                self.invalidatedDecorationIndexPaths![kind]!.append(layoutAttributes.indexPath)
+            }
+        }
+        
+        let userInfo: [String:Any] = [
+            "items" : (context.invalidatedItemIndexPaths ?? []),
+            "supplementaries" : (context.invalidatedSupplementaryIndexPaths ?? [:]),
+            "decorations" : (context.invalidatedDecorationIndexPaths ?? [:]),
+            "minOriginY" : context.invalidateForPreferredLayoutAttributes!.frame.minY,
+            "invalidation" : invalidation,
+        ]
+        
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "InvalidateLivingLayoutAttributes"), object: self, userInfo: userInfo)
+        
+        if invalidatedItemIndexPaths!.isEmpty && invalidatedSupplementaryIndexPaths!.isEmpty && invalidatedDecorationIndexPaths!.isEmpty {
+            self.invalidatedItemIndexPaths = nil
+            self.invalidatedSupplementaryIndexPaths = nil
+            self.invalidatedDecorationIndexPaths = nil
+            return
+        }
+        
+        context.invalidateItems(at: invalidatedItemIndexPaths!)
+        for (elementKind,indexPaths) in invalidatedSupplementaryIndexPaths! {
+            context.invalidateSupplementaryElements(ofKind: elementKind, at: indexPaths)
+        }
+        
+        for (elementKind,indexPaths) in invalidatedDecorationIndexPaths! {
+            context.invalidateDecorationElements(ofKind: elementKind, at: indexPaths)
+        }
+        
+        self.invalidatedItemIndexPaths = nil
+        self.invalidatedSupplementaryIndexPaths = nil
+        self.invalidatedDecorationIndexPaths = nil
+    }
     
     override public func prepare() {
+        
         if invalidateEverything || invalidateDataSourceCounts || invalidateSectionsLayout {
             prepareSectionsLayout()
         }
@@ -271,6 +336,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                         item.layoutMargins = collectionView!.layoutMargins
                         item.center.y += lastY
                         allAttributes.append(item)
+                        item.willBeUsed(by: self)
                         
                         if item.representedElementCategory == .supplementaryView {
                             //Pin header/footer if needed
@@ -315,6 +381,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                     separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
                                 }
                                 allAttributes.append(separatorLine)
+                                separatorLine.willBeUsed(by: self)
                             }
                         }
                     }
@@ -331,6 +398,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                 header.center.y += lastY
                                 header.zIndex = PuzzleCollectionHeaderFooterZIndex
                                 allAttributes.append(header)
+                                header.willBeUsed(by: self)
                                 sectionHeader = header
                             }
                         }
@@ -341,6 +409,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                 footer.center.y += lastY
                                 footer.zIndex = PuzzleCollectionHeaderFooterZIndex
                                 allAttributes.append(footer)
+                                footer.willBeUsed(by: self)
                                 sectionFooter = footer
                             }
                         }
@@ -391,6 +460,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             item.layoutMargins = collectionView!.layoutMargins
             let originY = self.originY(forSectionAt: indexPath.section)
             item.center.y += originY
+            item.willBeUsed(by: self)
             return item
         }
         else { return nil }
@@ -400,6 +470,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         let layout = sectionsLayoutInfo[indexPath.section]
         
         if let item = layout.layoutAttributesForSupplementaryView(ofKind: elementKind, at: indexPath) {
+            item.willBeUsed(by: self)
+            
             item.layoutMargins = collectionView!.layoutMargins
             let originY = self.originY(forSectionAt: indexPath.section)
             item.center.y += originY
@@ -456,6 +528,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 separatorLine.layoutMargins = collectionView!.layoutMargins
                 separatorLine.isHidden = true
                 separatorLine.frame.size = .zero
+                separatorLine.willBeUsed(by: self)
                 return separatorLine
             }
             else if let item = layoutAttributesForItem(at: indexPath) {
@@ -466,6 +539,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 if let color = layout.separatorLineColor ?? separatorLineColor {
                     separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
                 }
+                separatorLine.willBeUsed(by: self)
                 return separatorLine
             }
             else {
@@ -474,6 +548,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 separatorLine.layoutMargins = collectionView!.layoutMargins
                 separatorLine.isHidden = true
                 separatorLine.frame.size = .zero
+                separatorLine.willBeUsed(by: self)
                 return separatorLine
             }
         }
@@ -484,6 +559,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 decoration.layoutMargins = collectionView!.layoutMargins
                 let originY = self.originY(forSectionAt: indexPath.section)
                 decoration.center.y += originY
+                decoration.willBeUsed(by: self)
                 return decoration
             }
             else { return nil }
@@ -708,17 +784,50 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         switch preferredAttributes.representedElementCategory {
         case .cell:
             invalidationType = .cell(index: originalAttributes.indexPath.item)
+            ctx.invalidateItems(at: [originalAttributes.indexPath])
+            switch layout.separatorLineStyle {
+            case .all:
+                ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: [originalAttributes.indexPath])
+            case .allButLastItem where originalAttributes.indexPath.item + 1 < layout.numberOfItemsInSection:
+                ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: [originalAttributes.indexPath])
+            default: break
+            }
         case .supplementaryView:
             invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+            ctx.invalidateSupplementaryElements(ofKind: originalAttributes.representedElementKind!, at: [originalAttributes.indexPath])
         case .decorationView:
             invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+            ctx.invalidateDecorationElements(ofKind: originalAttributes.representedElementKind!, at: [originalAttributes.indexPath])
         }
         
         (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
         ctx.invalidateSectionLayoutData = layout
+        ctx.invalidateForPreferredLayoutAttributes = preferredAttributes
+        
         if let info = layout.invalidationInfo(for: invalidationType, forPreferredSize: preferredAttributes.size, withOriginalSize: originalAttributes.size) {
             ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
         }
+        
+        if let affected = layout.inlineAffectedElements(forInvalidationToPreferredSize: invalidationType) {
+            if affected.items.isEmpty == false {
+                var indexPaths = affected.items.map({ (itemIndex:Int) -> IndexPath in
+                    return IndexPath(item: itemIndex, section: sectionIndex)
+                })
+                
+                ctx.invalidateItems(at: indexPaths)
+                switch layout.separatorLineStyle {
+                case .all:
+                    ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: indexPaths)
+                case .allButLastItem where originalAttributes.indexPath.item + 1 < layout.numberOfItemsInSection:
+                    if let index = indexPaths.index(of: IndexPath(item: layout.numberOfItemsInSection-1, section: sectionIndex)) {
+                        indexPaths.remove(at: index)
+                    }
+                    ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: indexPaths)
+                default: break
+                }
+            }
+        }
+        
         return ctx
     }
 
@@ -785,7 +894,6 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             for sectionIndex in 0 ..< numberOfSections {
                 let numberOfItems = collectionView!.numberOfItems(inSection: sectionIndex)
                 let layout = dataSource.collectionView(collectionView!, layout: self, layoutForSectionAtIndex: sectionIndex)
-                //TODO: preapre with parentLayout=self & numberOfItems
                 
                 layout.parentLayout = self
                 layout.numberOfItemsInSection = numberOfItems
@@ -873,15 +981,6 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
     fileprivate override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         let dict = (layoutAttributes as! PuzzleCollectionViewLayoutAttributes).info as? [AnyHashable:Any]
         backgroundColor = dict?[PuzzleCollectionColoredViewColorKey] as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
-    }
-}
-
-public extension UICollectionView {
-    public func reloadDataToPreventCachingBug() {
-        let puzzleLayout = collectionViewLayout as? PuzzleCollectionViewLayout
-        puzzleLayout?.reloadingDataForInvalidationBug = true
-        self.reloadData()
-        puzzleLayout?.reloadingDataForInvalidationBug = false
     }
 }
 

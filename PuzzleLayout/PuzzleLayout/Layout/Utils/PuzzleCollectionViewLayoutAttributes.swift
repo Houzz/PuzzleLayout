@@ -37,6 +37,13 @@ import UIKit
         }
     }
     
+    deinit {
+        if #available(iOS 9.0, *) {}
+        else {
+            NotificationCenter.default.removeObserver(self)
+        }
+    }
+    
     override public func copy(with zone: NSZone? = nil) -> Any {
         let c = super.copy(with: zone)
         if let c = c as? PuzzleCollectionViewLayoutAttributes {

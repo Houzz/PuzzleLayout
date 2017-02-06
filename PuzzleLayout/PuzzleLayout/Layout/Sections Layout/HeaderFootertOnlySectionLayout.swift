@@ -317,17 +317,6 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         return info
     }
     
-    override public func affectedDecorationsAndSupplementaries(forInvalidating elementCategory: InvalidationElementCategory) -> (supplementaries: [String:[Int]], decorations: [String:[Int]])? {
-        switch elementCategory {
-        case .supplementaryView(_, let elementKind) where elementKind == PuzzleCollectionElementKindSectionHeader:
-            return (
-                supplementaries: [PuzzleCollectionElementKindSectionFooter:([0])],
-                decorations: [PuzzleCollectionElementKindSectionTopGutter:([0])]
-            )
-        default: return nil
-        }
-    }
-    
     override public func shouldPinHeaderSupplementaryView() -> Bool {
         return false
     }

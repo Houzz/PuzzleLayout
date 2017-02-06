@@ -587,52 +587,6 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         return info
     }
     
-    override public func minimumItemIndexAffected(byInvalidating elementCategory: InvalidationElementCategory) -> Int? {
-        switch elementCategory {
-        case .supplementaryView(_, let elementKind):
-            if elementKind == PuzzleCollectionElementKindSectionHeader || elementKind == PuzzleCollectionElementKindSectionTopGutter {
-                return 0
-            }
-            else {
-                return nil
-            }
-        case .cell(let itemIndex):
-            return itemIndex
-        default: return nil
-        }
-    }
-    
-    override public func affectedDecorationsAndSupplementaries(forInvalidating elementCategory: InvalidationElementCategory) -> (supplementaries: [String:[Int]], decorations: [String:[Int]])? {
-        var invalidateFooter = (footerInfo != nil)
-        var invalidateBottomGutter = (showBottomGutter && sectionInsets.bottom != 0)
-        var invalidateTopGutter = false
-        
-        switch elementCategory {
-        case .supplementaryView(_, let elementKind):
-            if elementKind == PuzzleCollectionElementKindSectionHeader {
-                invalidateTopGutter = true
-            }
-            else if elementKind == PuzzleCollectionElementKindSectionFooter {
-                invalidateBottomGutter = false
-                invalidateFooter = false
-            }
-            else if elementKind == PuzzleCollectionElementKindSectionBottomGutter {
-                invalidateBottomGutter = false
-            }
-            
-        default: break
-        }
-        
-        if invalidateFooter || invalidateBottomGutter || invalidateTopGutter {
-            return (
-                supplementaries: [PuzzleCollectionElementKindSectionFooter:(invalidateFooter ? [0] : [])],
-                decorations: [PuzzleCollectionElementKindSectionTopGutter:(invalidateTopGutter ? [0] : []),
-                              PuzzleCollectionElementKindSectionBottomGutter:(invalidateBottomGutter ? [0] : [])]
-            )
-        }
-        else { return nil }
-    }
-    
     override public func shouldPinHeaderSupplementaryView() -> Bool {
         return sectionHeaderPinToVisibleBounds
     }

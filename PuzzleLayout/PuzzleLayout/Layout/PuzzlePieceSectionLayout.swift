@@ -352,14 +352,6 @@ public class PuzzlePieceSectionLayout {
     public func invalidationInfo(forNewWidth newWidth: CGFloat, currentWidth: CGFloat) -> Any? {
         return nil
     }
-    
-    public func minimumItemIndexAffected(byInvalidating elementCategory: InvalidationElementCategory) -> Int? {
-        return nil
-    }
-    
-    public func affectedDecorationsAndSupplementaries(forInvalidating elementCategory: InvalidationElementCategory) -> (supplementaries: [String:[Int]], decorations: [String:[Int]])? {
-        return nil
-    }
     // --------
     
     

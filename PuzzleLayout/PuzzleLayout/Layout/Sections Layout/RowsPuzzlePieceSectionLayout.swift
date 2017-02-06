@@ -3,7 +3,7 @@
 //  CollectionTest
 //
 //  Created by Yossi Avramov on 25/09/2016.
-//  Copyright © 2016 Yossi. All rights reserved.
+//  Copyright © 2016 Houzz. All rights reserved.
 //
 
 import UIKit

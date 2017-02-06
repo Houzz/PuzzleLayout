@@ -47,6 +47,9 @@ public enum InvalidationReason : Int {
     /// Invalidating for reloadData
     case reloadData
     
+    /// Invalidating for changing collection view layout or the collection view data source
+    case changeCollectionViewLayoutOrDataSource
+    
     /// Invalidating for insert/delete/move items
     case reloadDataForUpdateDataSourceCounts
     
@@ -69,7 +72,7 @@ public class PuzzlePieceSectionLayout {
     public internal(set) weak var parentLayout: PuzzleCollectionViewLayout?
     
     /// The section index this layout responsible for.
-    internal var sectionIndex: Int?
+    public internal(set) var sectionIndex: Int?
     
     /// The number of items in the section.
     public internal(set) var numberOfItemsInSection: Int = 0

@@ -76,8 +76,9 @@ final public class PuzzleCollectionViewLayoutInvalidationContext : UICollectionV
     
     /// The invalidation reason this context was created for.
     var invalidationReason: InvalidationReason {
-        if invalidateDataSourceCounts { return .reloadDataForUpdateDataSourceCounts }
-        else if invalidateEverything { return .reloadData }
+        if invalidateEverything && invalidateDataSourceCounts { return .reloadData }
+        else if invalidateEverything { return .changeCollectionViewLayoutOrDataSource }
+        else if invalidateDataSourceCounts { return .reloadDataForUpdateDataSourceCounts }
         else if invalidateSectionsLayout { return .resetLayout }
         else { return .otherReason }
     }

@@ -135,9 +135,9 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             return
         }
         
-        if ctx.invalidateEverything || ctx.invalidateDataSourceCounts || ctx.invalidateSectionsLayout {
+        if ((ctx.invalidateEverything || ctx.invalidateDataSourceCounts) && !reloadingDataForInvalidationBug) || ctx.invalidateSectionsLayout {
             invalidateEverything = invalidateEverything || ctx.invalidateEverything
-            invalidateDataSourceCounts = invalidateDataSourceCounts || ctx.invalidateDataSourceCounts
+            invalidateDataSourceCounts = invalidateDataSourceCounts || (ctx.invalidateDataSourceCounts && !ctx.invalidateEverything)
             invalidateSectionsLayout = invalidateSectionsLayout || ctx.invalidateSectionsLayout
             for sectionLayout in sectionsLayoutInfo {
                 sectionLayout.invalidate(for: ctx.invalidationReason, with: nil)
@@ -192,6 +192,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     private var invalidateEverything: Bool = false
     private var invalidateDataSourceCounts: Bool = false
     private var invalidateSectionsLayout: Bool = false
+    fileprivate var reloadingDataForInvalidationBug: Bool = false
+    
     override public func prepare() {
         if invalidateEverything || invalidateDataSourceCounts || invalidateSectionsLayout {
             prepareSectionsLayout()
@@ -871,6 +873,15 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
     fileprivate override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         let dict = (layoutAttributes as! PuzzleCollectionViewLayoutAttributes).info as? [AnyHashable:Any]
         backgroundColor = dict?[PuzzleCollectionColoredViewColorKey] as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
+    }
+}
+
+public extension UICollectionView {
+    public func reloadDataToPreventCachingBug() {
+        let puzzleLayout = collectionViewLayout as? PuzzleCollectionViewLayout
+        puzzleLayout?.reloadingDataForInvalidationBug = true
+        self.reloadData()
+        puzzleLayout?.reloadingDataForInvalidationBug = false
     }
 }
 

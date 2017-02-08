@@ -43,7 +43,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
                 headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
                 footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
                 separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0), separatorLineColor: UIColor? = nil,
-                showTopGutter: Bool = false, showBottomGutter: Bool = false) {
+                showTopGutter: Bool = false, topGutterInsets: UIEdgeInsets = .zero, showBottomGutter: Bool = false, bottomGutterInsets: UIEdgeInsets = .zero) {
         self.rowHeight = rowHeight
         self.sectionInsets = sectionInsets
         self.rowSpacing = rowSpacing
@@ -51,7 +51,9 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         self.sectionHeaderPinToVisibleBounds = sectionHeaderPinToVisibleBounds
         self.footerHeight = footerHeight
         self.sectionFooterPinToVisibleBounds = sectionFooterPinToVisibleBounds
+        self.topGutterInsets = topGutterInsets
         self.showTopGutter = showTopGutter
+        self.bottomGutterInsets = bottomGutterInsets
         self.showBottomGutter = showBottomGutter
         super.init()
         self.separatorLineStyle = separatorLineStyle
@@ -90,7 +92,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
                 headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
                 footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
                 separatorLineStyle: PuzzlePieceSeparatorLineStyle = .allButLastItem, separatorLineInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0), separatorLineColor: UIColor? = nil,
-                showTopGutter: Bool = false, showBottomGutter: Bool = false) {
+                showTopGutter: Bool = false, topGutterInsets: UIEdgeInsets = .zero, showBottomGutter: Bool = false, bottomGutterInsets: UIEdgeInsets = .zero) {
         self.estimatedRowHeight = estimatedRowHeight
         self.sectionInsets = sectionInsets
         self.rowSpacing = rowSpacing
@@ -98,7 +100,9 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         self.sectionHeaderPinToVisibleBounds = sectionHeaderPinToVisibleBounds
         self.footerHeight = footerHeight
         self.sectionFooterPinToVisibleBounds = sectionFooterPinToVisibleBounds
+        self.topGutterInsets = topGutterInsets
         self.showTopGutter = showTopGutter
+        self.bottomGutterInsets = bottomGutterInsets
         self.showBottomGutter = showBottomGutter
         super.init()
         self.separatorLineStyle = separatorLineStyle
@@ -226,6 +230,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
+    public var topGutterInsets: UIEdgeInsets
+    
     /// A Boolean value indicating whether should add view on section bottom insets.
     public var showBottomGutter: Bool = false {
         didSet {
@@ -236,6 +242,8 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
             }
         }
     }
+    
+    public var bottomGutterInsets: UIEdgeInsets
     
     /// Reset the layout
     public func resetLayout() {
@@ -384,7 +392,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         
         if showTopGutter && sectionInsets.top != 0 {
             let originY: CGFloat = headerInfo?.maxOriginY ?? 0
-            let topGutterFrame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: sectionInsets.top)
+            let topGutterFrame = CGRect(x: topGutterInsets.left, y: originY + topGutterInsets.top, width: collectionViewWidth - topGutterInsets.right - topGutterInsets.left, height: sectionInsets.top - topGutterInsets.top - topGutterInsets.bottom)
             if rect.intersects(topGutterFrame) {
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionTopGutter, with: IndexPath(item: 0, section: sectionIndex))
                 gutterAttributes.frame = topGutterFrame
@@ -421,7 +429,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
                 maxY = 0
             }
             
-            let bottonGutterFrame = CGRect(x: 0, y: maxY - sectionInsets.bottom, width: collectionViewWidth, height: sectionInsets.bottom)
+            let bottonGutterFrame = CGRect(x: bottomGutterInsets.left, y: maxY - sectionInsets.bottom + bottomGutterInsets.top, width: collectionViewWidth - bottomGutterInsets.right - bottomGutterInsets.left, height: sectionInsets.bottom - bottomGutterInsets.top - bottomGutterInsets.bottom)
             if rect.intersects(bottonGutterFrame) {
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionBottomGutter, with: IndexPath(item: 0, section: sectionIndex))
                 gutterAttributes.frame = bottonGutterFrame

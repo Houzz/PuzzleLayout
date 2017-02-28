@@ -42,6 +42,17 @@ public enum InvalidationElementCategory {
 }
 
 /// An enum giving the reason for invalidation
+public enum SectionUpdate {
+    case insertItems(at: [Int])
+    
+    case deleteItems(at: [Int])
+    
+    case reloadItems(at: [Int])
+    
+    case moveItem(at: Int, to: Int)
+}
+
+/// An enum giving the reason for invalidation
 public enum InvalidationReason : Int {
     
     /// Invalidating for reloadData
@@ -165,13 +176,11 @@ public class PuzzlePieceSectionLayout {
      
      Default implementation does nothing
      
-     - parameter didReloadData: A Boolean value indicating if between the previous call to 'prepare' to this call, an invalidation for reloadData was called.
+     - parameter reason: The reason caused invalidation & prepare
      
-     - parameter didUpdateDataSourceCounts: A Boolean value indicating if between the previous call to 'prepare' to this call, an invalidation for data source count was called.
-     
-     - parameter didResetLayout: A Boolean value indicating if between the previous call to 'prepare' to this call, an invalidation for reset layout was called.
+     - parameter updates: If reason is 'reloadDataForUpdateDataSourceCounts' and there're updates related to this section, you'll get prepare call with the changes
      */
-    public func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {}
+    public func prepare(for reason: InvalidationReason, updates: [SectionUpdate]?) {}
     
     /**
      Notifing that this section layout will not be used any longer. Called when this section layout was returned by 'CollectionViewDataSourcePuzzleLayout' last time, but this time wasn't.
@@ -408,57 +417,6 @@ public class PuzzlePieceSectionLayout {
     func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
         return proposedContentOffset
     }
-    
-    // -------- Updates
-    
-    /**
-     Notify the section layout that some insert/delete/move/update actions has been made on the collection view. If some of those updates was related to this section layout, it'll get inform right away.
-     The default implementation does nothing.
-     */
-    public func willGenerateUpdatesCall() {}
-    
-    /** 
-     Notify the section that an item was insert.
-     The default implementation does nothing.
-     
-     - parameter index: the index at which item was inserted.
-     */
-    public func didInsertItem(at index: Int) {}
-    
-    /**
-     Notify the section that an item was deleted.
-     The default implementation does nothing.
-     
-     - parameter index: the index from which item was deleted.
-     */
-    public func didDeleteItem(at index: Int) {}
-    
-    /**
-     Notify the section that an item was reloaded.
-     The default implementation does nothing.
-     
-     - parameter index: the index at which item was reloaded.
-     */
-    public func didReloadItem(at index: Int) {}
-    
-    /**
-     Notify the section that an item was moved inside the section. If item is moved from one section to another, the section it originlly appear at will receive 'didDeleteItem(at:)' call and the section the item was moved to will receive 'didInsertItem(at:)' call.
-     The default implementation does nothing.
-     
-     - parameter fromIndex: the old index of the item.
-     
-     - parameter toIndex: the new index of the item.
-     */
-    public func didMoveItem(fromIndex: Int, toIndex: Int) {}
-    
-    /**
-     Notify the section that all updates call was made.
-     The default implementation does nothing.
-     
-     - parameter didHadUpdates: A Boolean value indicating if any of those updates was related to this section.
-     */
-    public func didGenerateUpdatesCall(didHadUpdates: Bool) {}
-    // --------
 }
 
 extension PuzzlePieceSectionLayout {

@@ -135,12 +135,17 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             return
         }
         
+        let invalidationReason = ctx.invalidationReason
+        if !reloadingDataForInvalidationBug {
+            if invalidationReasons == nil { invalidationReasons = [] }
+            invalidationReasons!.append((reason: invalidationReason, updates: dataSourceUpdates))
+            dataSourceUpdates = nil
+        }
+        
         if ((ctx.invalidateEverything || ctx.invalidateDataSourceCounts) && !reloadingDataForInvalidationBug) || ctx.invalidateSectionsLayout {
-            invalidateEverything = invalidateEverything || ctx.invalidateEverything
-            invalidateDataSourceCounts = invalidateDataSourceCounts || (ctx.invalidateDataSourceCounts && !ctx.invalidateEverything)
-            invalidateSectionsLayout = invalidateSectionsLayout || ctx.invalidateSectionsLayout
             for sectionLayout in sectionsLayoutInfo {
-                sectionLayout.invalidate(for: ctx.invalidationReason, with: nil)
+                //TODO: if reason is .reloadDataForUpdateDataSourceCounts, prepare now all the updates (instead of in 'prepare')
+                sectionLayout.invalidate(for: invalidationReason, with: nil)
             }
         }
         else {
@@ -189,28 +194,117 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         super.invalidateLayout(with: context)
     }
     
-    private var invalidateEverything: Bool = false
-    private var invalidateDataSourceCounts: Bool = false
-    private var invalidateSectionsLayout: Bool = false
     fileprivate var reloadingDataForInvalidationBug: Bool = false
+    fileprivate var dataSourceUpdates: [CollectionViewUpdate]?
+    fileprivate var invalidationReasons: [(reason: InvalidationReason, updates: [CollectionViewUpdate]?)]?
     
     override public func prepare() {
-        if invalidateEverything || invalidateDataSourceCounts || invalidateSectionsLayout {
-            prepareSectionsLayout()
+        if let invalidationReasons = invalidationReasons {
+            reasonsLoop: for invalidation in invalidationReasons {
+                switch invalidation.reason {
+                case .reloadData, .changeCollectionViewLayoutOrDataSource, .resetLayout:
+                    prepareSectionsLayout()
+                    for sectionLayout in sectionsLayoutInfo {
+                        sectionLayout.prepare(for: invalidation.reason, updates: nil)
+                    }
+                    break reasonsLoop //No need to continue processing all other reasons
+                case .reloadDataForUpdateDataSourceCounts:
+                    if let dataSource = collectionView!.dataSource as? CollectionViewDataSourcePuzzleLayout {
+                        var sectionUpdates: [Int:[SectionUpdate]] = [:]
+                        for update in invalidation.updates ?? [] {
+                            switch update {
+                            case .insertSections(let sections):
+                                for index in sections.sorted(by: { $0 < $1 }) {
+                                    let numberOfItems = collectionView!.numberOfItems(inSection: index)
+                                    let layout = dataSource.collectionView(collectionView!, layout: self, layoutForSectionAtIndex: index)
+                                    layout.parentLayout = self
+                                    layout.numberOfItemsInSection = numberOfItems
+                                    layout.sectionIndex = index
+                                    sectionsLayoutInfo.insert(layout, at: index)
+                                    layout.prepare(for: .reloadData, updates: nil)
+                                }
+                            case .deleteSections(let sections):
+                                for index in sections.sorted(by: { $1 < $0 }) {
+                                    let layout = sectionsLayoutInfo.remove(at: index)
+                                    layout.tearDown()
+                                }
+                            case .reloadSections(let sections):
+                                for index in sections {
+                                    let numberOfItems = collectionView!.numberOfItems(inSection: index)
+                                    let layout = dataSource.collectionView(collectionView!, layout: self, layoutForSectionAtIndex: index)
+                                    layout.parentLayout = self
+                                    layout.numberOfItemsInSection = numberOfItems
+                                    layout.sectionIndex = index
+                                    sectionsLayoutInfo[index] = layout
+                                    layout.prepare(for: .reloadData, updates: nil)
+                                }
+                            case .moveSection(let fromIndex, let toIndex):
+                                swap(&sectionsLayoutInfo[fromIndex], &sectionsLayoutInfo[toIndex])
+                            case .insertItems(let indexPaths):
+                                var updates: [Int:[Int]] = [:]
+                                for indexPath in indexPaths {
+                                    updates[indexPath.section] = (updates[indexPath.section] ?? []) + [indexPath.item]
+                                }
+                                
+                                for (section, indexes) in updates {
+                                    sectionUpdates[section] = (sectionUpdates[section] ?? []) + [SectionUpdate.insertItems(at: indexes)]
+                                }
+                            case .deleteItems(let indexPaths):
+                                var updates: [Int:[Int]] = [:]
+                                for indexPath in indexPaths {
+                                    updates[indexPath.section] = (updates[indexPath.section] ?? []) + [indexPath.item]
+                                }
+                                
+                                for (section, indexes) in updates {
+                                    sectionUpdates[section] = (sectionUpdates[section] ?? []) + [SectionUpdate.deleteItems(at: indexes)]
+                                }
+                            case .reloadItems(let indexPaths):
+                                var updates: [Int:[Int]] = [:]
+                                for indexPath in indexPaths {
+                                    updates[indexPath.section] = (updates[indexPath.section] ?? []) + [indexPath.item]
+                                }
+                                
+                                for (section, indexes) in updates {
+                                    sectionUpdates[section] = (sectionUpdates[section] ?? []) + [SectionUpdate.reloadItems(at: indexes)]
+                                }
+                            case .moveItem(let fromIndexPath, let toIndexPath):
+                                if fromIndexPath.section == toIndexPath.section {
+                                    sectionUpdates[fromIndexPath.section] = (sectionUpdates[fromIndexPath.section] ?? []) + [SectionUpdate.moveItem(at: fromIndexPath.item, to: toIndexPath.item)]
+                                }
+                                else {
+                                    sectionUpdates[fromIndexPath.section] = (sectionUpdates[fromIndexPath.section] ?? []) + [SectionUpdate.deleteItems(at: [fromIndexPath.item])]
+                                    sectionUpdates[toIndexPath.section] = (sectionUpdates[toIndexPath.section] ?? []) + [SectionUpdate.insertItems(at: [toIndexPath.item])]
+                                }
+                            }
+                        }
+                        
+                        let numberOfSections = collectionView!.numberOfSections
+                        assert(sectionsLayoutInfo.count == numberOfSections, "Updates aren't contains all updates")
+                        if sectionsLayoutInfo.count != numberOfSections {
+                            prepareSectionsLayout()
+                            for sectionLayout in sectionsLayoutInfo {
+                                sectionLayout.prepare(for: .reloadData, updates: nil)
+                            }
+                        }
+                        else {
+                            for (index, layout) in sectionsLayoutInfo.enumerated() {
+                                sectionsLayoutInfo[index].sectionIndex = index
+                                sectionsLayoutInfo[index].numberOfItemsInSection = collectionView!.numberOfItems(inSection: index)
+                                if let updates = sectionUpdates[index] , updates.isEmpty == false {
+                                    sectionsLayoutInfo[index].prepare(for: .reloadDataForUpdateDataSourceCounts, updates: updates)
+                                }
+                            }
+                        }
+                    }
+                case .otherReason:
+                    for sectionLayout in sectionsLayoutInfo {
+                        sectionLayout.prepare(for: .otherReason, updates: nil)
+                    }
+                }
+            }
         }
         
-        let didReloadData = invalidateEverything
-        let didUpdateDataSourceCounts = invalidateDataSourceCounts
-        let didResetLayout =  invalidateSectionsLayout
-        
-        invalidateEverything = false
-        invalidateDataSourceCounts = false
-        invalidateSectionsLayout = false
-        
-        for sectionLayout in sectionsLayoutInfo {
-            sectionLayout.prepare(didReloadData: didReloadData, didUpdateDataSourceCounts: didUpdateDataSourceCounts, didResetLayout: didResetLayout)
-        }
-        
+        invalidationReasons = nil
         super.prepare()
     }
 
@@ -722,50 +816,6 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         return ctx
     }
 
-    override public func prepare(forCollectionViewUpdates updateItems: [UICollectionViewUpdateItem]) {
-        var sectionUpdated: Set<Int> = []
-        for layout in sectionsLayoutInfo {
-            layout.willGenerateUpdatesCall()
-        }
-        
-        for update in updateItems {
-            guard let section = (update.indexPathAfterUpdate ?? update.indexPathBeforeUpdate)?.section else {
-                continue
-            }
-            
-            sectionUpdated.insert(section)
-            switch update.updateAction {
-            case .insert:
-                let indexPath = update.indexPathAfterUpdate!
-                sectionsLayoutInfo[section].didInsertItem(at: indexPath.item)
-            case .delete:
-                let indexPath = update.indexPathBeforeUpdate!
-                sectionsLayoutInfo[section].didDeleteItem(at: indexPath.item)
-            case .reload:
-                let indexPath = update.indexPathAfterUpdate!
-                sectionsLayoutInfo[section].didReloadItem(at: indexPath.item)
-            case .move:
-                let fromIndexPath = update.indexPathBeforeUpdate!
-                let toIndexPath = update.indexPathAfterUpdate!
-                if fromIndexPath.section == toIndexPath.section {
-                    sectionsLayoutInfo[section].didMoveItem(fromIndex: fromIndexPath.item, toIndex: toIndexPath.item)
-                }
-                else {
-                    sectionsLayoutInfo[fromIndexPath.section].didDeleteItem(at: fromIndexPath.item)
-                    sectionsLayoutInfo[toIndexPath.section].didInsertItem(at: toIndexPath.item)
-                    sectionUpdated.insert(update.indexPathBeforeUpdate!.section)
-                }
-            default: break
-            }
-        }
-        
-        for (idx,layout) in sectionsLayoutInfo.enumerated() {
-            layout.didGenerateUpdatesCall(didHadUpdates: sectionUpdated.contains(idx))
-        }
-        
-        super.prepare(forCollectionViewUpdates: updateItems)
-    }
-    
     //MARK: - Prepare sections layout
     private func prepareSectionsLayout() {
         guard let dataSource = collectionView!.dataSource as? CollectionViewDataSourcePuzzleLayout else {
@@ -913,5 +963,114 @@ extension PuzzlePieceSectionLayout {
         let numberOfItems = (newStyle == .all || _oldStyle == .all) ? layoutInfo.numberOfItemsInSection : (layoutInfo.numberOfItemsInSection - 1)
         ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<numberOfItems))
         return ctx
+    }
+}
+
+//MARK: UICollectionView utility
+private enum CollectionViewUpdate {
+    case insertSections(at: IndexSet)
+    case deleteSections(at: IndexSet)
+    case reloadSections(at: IndexSet)
+    case moveSection(at: Int, to: Int)
+    case insertItems(at: [IndexPath])
+    case deleteItems(at: [IndexPath])
+    case reloadItems(at: [IndexPath])
+    case moveItem(at: IndexPath, to: IndexPath)
+}
+
+private let swizzling: (UICollectionView.Type) -> () = { collectionView in
+    let selectorsToSwap: [(from: Selector, to: Selector)] = [
+        (from: #selector(collectionView.insertSections(_:)), to: #selector(collectionView.myInsertSections(_:))),
+        (from: #selector(collectionView.deleteSections(_:)), to: #selector(collectionView.myDeleteSections(_:))),
+        (from: #selector(collectionView.reloadSections(_:)), to: #selector(collectionView.myReloadSections(_:))),
+        (from: #selector(collectionView.moveSection(_:toSection:)), to: #selector(collectionView.myMoveSection(_:toSection:))),
+        (from: #selector(collectionView.insertItems(at:)), to: #selector(collectionView.myInsertItems(at:))),
+        (from: #selector(collectionView.deleteItems(at:)), to: #selector(collectionView.myDeleteItems(at:))),
+        (from: #selector(collectionView.reloadItems(at:)), to: #selector(collectionView.myReloadItems(at:))),
+        (from: #selector(collectionView.moveItem(at:to:)), to: #selector(collectionView.myMoveItem(at:to:))),
+    ]
+    
+    for swap in selectorsToSwap {
+        let originalMethod = class_getInstanceMethod(collectionView, swap.from)
+        let swizzledMethod = class_getInstanceMethod(collectionView, swap.to)
+        
+        method_exchangeImplementations(originalMethod, swizzledMethod)
+    }
+}
+
+extension UICollectionView {
+    
+    open override class func initialize() {
+        guard self == UICollectionView.self else {
+            return
+        }
+        
+        swizzling(self)
+    }
+    
+    @objc fileprivate func myInsertSections(_ sections: IndexSet) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.insertSections(at: sections))
+        }
+        
+        self.myInsertSections(sections)
+    }
+    
+    @objc fileprivate func myDeleteSections(_ sections: IndexSet) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.deleteSections(at: sections))
+        }
+        self.myDeleteSections(sections)
+    }
+    
+    @objc fileprivate func myReloadSections(_ sections: IndexSet) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.reloadSections(at: sections))
+        }
+        self.myReloadSections(sections)
+    }
+    
+    @objc fileprivate func myMoveSection(_ section: Int, toSection newSection: Int) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.moveSection(at: section, to: newSection))
+        }
+        self.myMoveSection(section, toSection: newSection)
+    }
+    
+    
+    @objc fileprivate func myInsertItems(at indexPaths: [IndexPath]) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.insertItems(at: indexPaths))
+        }
+        self.myInsertItems(at: indexPaths)
+    }
+    
+    @objc fileprivate func myDeleteItems(at indexPaths: [IndexPath]) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.deleteItems(at: indexPaths))
+        }
+        self.myDeleteItems(at: indexPaths)
+    }
+    
+    @objc fileprivate func myReloadItems(at indexPaths: [IndexPath]) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.reloadItems(at: indexPaths))
+        }
+        self.myReloadItems(at: indexPaths)
+    }
+    
+    @objc fileprivate func myMoveItem(at indexPath: IndexPath, to newIndexPath: IndexPath) {
+        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
+            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
+            puzzle.dataSourceUpdates!.append(.moveItem(at: indexPath, to: newIndexPath))
+        }
+        self.myMoveItem(at: indexPath, to: newIndexPath)
     }
 }

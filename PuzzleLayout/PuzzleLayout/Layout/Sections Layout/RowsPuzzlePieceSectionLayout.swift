@@ -362,16 +362,49 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
-    override public func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+    override public func prepare(for reason: InvalidationReason, updates: [SectionUpdate]?) {
+        super.prepare(for: reason, updates: updates)
         if rowsInfo == nil {
             collectionViewWidth = sectionWidth
             prepareRowsFromScratch()
         }
-        else if didReloadData {
-            fixRowsList(willInsertOrDeleteRows: false)
+        else if reason == .reloadData || reason == .changeCollectionViewLayoutOrDataSource {
+            fixRowsList()
         }
-        else if didUpdateDataSourceCounts {
-            fixRowsList(willInsertOrDeleteRows: true)
+        else if reason == .reloadDataForUpdateDataSourceCounts {
+            let heightState: ItemHeightState
+            let height: CGFloat
+            if estimatedRowHeight != 0 {
+                heightState = .estimated
+                height = estimatedRowHeight
+            }
+            else {
+                heightState = .fixed
+                height = rowHeight
+            }
+            
+            for update in updates! {
+                switch update {
+                case .insertItems(let rowIndexes):
+                    for rowIndex in rowIndexes.sorted(by: { $0 < $1 }) {
+                        rowsInfo.insert(RowInfo(heightState: heightState, originY: 0, height: height), at: rowIndex)
+                    }
+                case .deleteItems(let rowIndexes):
+                    for rowIndex in rowIndexes.sorted(by: { $1 < $0 }) {
+                        rowsInfo.remove(at: rowIndex)
+                    }
+                case .reloadItems(let rowIndexes):
+                    if heightState == .estimated {
+                        for rowIndex in rowIndexes {
+                            rowsInfo[rowIndex].heightState = heightState
+                        }
+                    }
+                case .moveItem(let fromIndex, let toIndex):
+                    swap(&rowsInfo[fromIndex], &rowsInfo[toIndex])
+                }
+            }
+            
+            fixRowsList()
         }
         
         if collectionViewWidth != sectionWidth {
@@ -603,41 +636,6 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         return sectionFooterPinToVisibleBounds
     }
     
-    //Updates
-    override public func didInsertItem(at index: Int) {
-        if estimatedRowHeight != 0 {
-            rowsInfoBeforeUpdate?.insert(RowInfo(heightState: .estimated, originY: 0, height: estimatedRowHeight), at: index)
-        }
-        else {
-            rowsInfoBeforeUpdate?.insert(RowInfo(heightState: .fixed, originY: 0, height: rowHeight), at: index)
-        }
-    }
-    
-    override public func didDeleteItem(at index: Int) {
-        rowsInfoBeforeUpdate?.remove(at: index)
-    }
-    
-    override public func didReloadItem(at index: Int) {
-        if let _ = rowsInfoBeforeUpdate , rowsInfoBeforeUpdate![index].heightState == .computed {
-            rowsInfoBeforeUpdate![index].heightState = .estimated
-        }
-    }
-    
-    override public func didMoveItem(fromIndex: Int, toIndex: Int) {
-        if let item = rowsInfoBeforeUpdate?.remove(at: fromIndex) {
-            rowsInfoBeforeUpdate?.insert(item, at: toIndex)
-        }
-    }
-    
-    override public func didGenerateUpdatesCall(didHadUpdates: Bool) {
-        if didHadUpdates , let updatedRowsInfo = rowsInfoBeforeUpdate , updatedRowsInfo.count == rowsInfo.count {
-            rowsInfo = updatedRowsInfo
-            updateAllRowsOriginY()
-        }
-        
-        rowsInfoBeforeUpdate = nil
-    }
-    
     // MARK: - Private
     private func prepareRowsFromScratch() {
         
@@ -685,15 +683,10 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
     }
     
-    private var rowsInfoBeforeUpdate: [RowInfo]?
-    private func fixRowsList(willInsertOrDeleteRows: Bool) {
+    private func fixRowsList() {
         guard rowsInfo != nil else {
             prepareRowsFromScratch()
             return
-        }
-        
-        if willInsertOrDeleteRows {
-            rowsInfoBeforeUpdate = rowsInfo
         }
         
         // Update section header if needed

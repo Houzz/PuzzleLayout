@@ -176,11 +176,12 @@ public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
         }
     }
     
-    override public func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+    override public func prepare(for reason: InvalidationReason, updates: [SectionUpdate]?) {
+        super.prepare(for: reason, updates: updates)
         if footerInfo == nil && headerInfo == nil {
             preparFromScratch()
         }
-        else if didReloadData {
+        else if reason == .reloadData {
             fixHeaderFooter()
         }
         

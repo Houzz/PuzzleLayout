@@ -467,16 +467,38 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         }
     }
     
-    override public func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+    override public func prepare(for reason: InvalidationReason, updates: [SectionUpdate]?) {
+        super.prepare(for: reason, updates: updates)
         if itemsInfo == nil {
             collectionViewWidth = sectionWidth
             prepareItemsFromScratch()
         }
-        else if didUpdateDataSourceCounts {
-            if fixCountOfItemsList() || (collectionViewWidth != sectionWidth) {
-                collectionViewWidth = sectionWidth
-                updateItemsList()
+        else if reason == .reloadDataForUpdateDataSourceCounts && (updates?.isEmpty ?? true) == false {
+            
+            let heightState: ItemHeightState = (estimatedColumnType != nil) ? .estimated : .fixed
+            for update in updates! {
+                switch update {
+                case .insertItems(let itemIndexes):
+                    for itemIndex in itemIndexes.sorted(by: { $0 < $1 }) {
+                        itemsInfo.insert(ItemInfo(heightState: heightState, frame: CGRect(origin: .zero, size: itemSize)), at: itemIndex)
+                    }
+                case .deleteItems(let itemIndexes):
+                    for itemIndex in itemIndexes.sorted(by: { $1 < $0 }) {
+                        itemsInfo.remove(at: itemIndex)
+                    }
+                case .reloadItems(let itemIndexes):
+                    if heightState == .estimated {
+                        for itemIndex in itemIndexes {
+                            itemsInfo[itemIndex].heightState = heightState
+                        }
+                    }
+                case .moveItem(let fromIndex, let toIndex):
+                    swap(&itemsInfo[fromIndex], &itemsInfo[toIndex])
+                }
             }
+            
+            collectionViewWidth = sectionWidth
+            updateItemsList()
         }
         else if collectionViewWidth != sectionWidth {
             collectionViewWidth = sectionWidth
@@ -1165,28 +1187,6 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         else {
             updateItemsOriginXForMultipleColumns(updateItemWidth: true)
         }
-    }
-    
-    private func fixCountOfItemsList() -> Bool {
-        guard itemsInfo != nil else {
-            prepareItemsFromScratch()
-            return false
-        }
-        
-        let heightState: ItemHeightState = (estimatedColumnType != nil) ? .estimated : .fixed
-        
-        let updatedItemsNumber = numberOfItemsInSection
-        let oldItemsNumber = itemsInfo.count
-        
-        if oldItemsNumber > updatedItemsNumber {
-            itemsInfo.removeSubrange(updatedItemsNumber ..< oldItemsNumber)
-            return true
-        }
-        else if oldItemsNumber < updatedItemsNumber {
-            itemsInfo! += [ItemInfo](repeating: ItemInfo(heightState: heightState), count: updatedItemsNumber-oldItemsNumber)
-            return true
-        }
-        else { return false }
     }
     
     private func updateItemsList() {

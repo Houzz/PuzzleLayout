@@ -500,7 +500,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             collectionViewWidth = sectionWidth
             updateItemsList()
         }
-        else if collectionViewWidth != sectionWidth {
+        else if collectionViewWidth != sectionWidth || ((reason == .reloadData || reason == .changeCollectionViewLayoutOrDataSource) && fixCountOfItemsList()) {
             collectionViewWidth = sectionWidth
             updateItemsList()
         }
@@ -1187,6 +1187,28 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         else {
             updateItemsOriginXForMultipleColumns(updateItemWidth: true)
         }
+    }
+    
+    private func fixCountOfItemsList() -> Bool {
+        guard itemsInfo != nil else {
+            prepareItemsFromScratch()
+            return false
+        }
+        
+        let heightState: ItemHeightState = (estimatedColumnType != nil) ? .estimated : .fixed
+        
+        let updatedItemsNumber = numberOfItemsInSection
+        let oldItemsNumber = itemsInfo.count
+        
+        if oldItemsNumber > updatedItemsNumber {
+            itemsInfo.removeSubrange(updatedItemsNumber ..< oldItemsNumber)
+            return true
+        }
+        else if oldItemsNumber < updatedItemsNumber {
+            itemsInfo! += [ItemInfo](repeating: ItemInfo(heightState: heightState), count: updatedItemsNumber-oldItemsNumber)
+            return true
+        }
+        else { return false }
     }
     
     private func updateItemsList() {

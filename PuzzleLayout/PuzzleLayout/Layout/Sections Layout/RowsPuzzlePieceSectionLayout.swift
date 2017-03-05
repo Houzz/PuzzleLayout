@@ -760,7 +760,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
         
         if rowsInfo.isEmpty == false {
-            lastOriginY -= height
+            lastOriginY -= rowSpacing
         }
 
         lastOriginY += sectionInsets.bottom
@@ -771,6 +771,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
             footerInfo = nil
         case .fixed(let height):
             if let _ = footerInfo {
+                footerInfo!.originY = lastOriginY
                 footerInfo!.height = height
                 footerInfo!.heightState = .fixed
             }
@@ -779,6 +780,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
             }
         case .estimated(let height):
             if let _ = footerInfo {
+                footerInfo!.originY = lastOriginY
                 if footerInfo!.heightState == .estimated {
                     footerInfo!.height = height
                 }

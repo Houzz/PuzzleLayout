@@ -287,7 +287,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                             }
                         }
                         else {
-                            for (index, layout) in sectionsLayoutInfo.enumerated() {
+                            for (index, _) in sectionsLayoutInfo.enumerated() {
                                 sectionsLayoutInfo[index].sectionIndex = index
                                 sectionsLayoutInfo[index].numberOfItemsInSection = collectionView!.numberOfItems(inSection: index)
                                 if let updates = sectionUpdates[index] , updates.isEmpty == false {

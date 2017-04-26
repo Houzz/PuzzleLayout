@@ -592,7 +592,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
         
         if shouldInvalidate {
-            if originalSize.height != preferredSize.height {
+            if originalSize.height.roundToNearestHalf != preferredSize.height.roundToNearestHalf {
                 preferredSize.width = originalSize.width
                 return true
             }
@@ -1040,3 +1040,9 @@ private let kInvalidateForFooterHeightChange = "FooterHeight"
 private let kInvalidateHeaderForPreferredHeight = "PreferredHeaderHeight"
 private let kInvalidateForSectionInsetsChange = "SectionInsets"
 private let kInvalidateForRowSpacingChange = "RowSpacing"
+
+extension CGFloat {
+    fileprivate var roundToNearestHalf: CGFloat {
+        return floor(self * 2) / 2
+    }
+}

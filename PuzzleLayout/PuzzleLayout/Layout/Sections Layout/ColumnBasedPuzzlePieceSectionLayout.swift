@@ -717,7 +717,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             shouldInvalidate = (
                 ((elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil && headerInfo!.heightState != .fixed)
                     || (elementKind == PuzzleCollectionElementKindSectionFooter && footerInfo != nil && footerInfo!.heightState != .fixed) )
-                    && (preferredSize.height != originalSize.height)
+                    && (preferredSize.height.roundToNearestHalf != originalSize.height.roundToNearestHalf)
             )
         default: break
         }
@@ -1307,3 +1307,9 @@ private let kInvalidateForHeaderEstimatedHeightChange = "HeaderEstimatedHeight"
 private let kInvalidateForFooterEstimatedHeightChange = "FooterEstimatedHeight"
 private let kInvalidateHeaderForPreferredHeight = "PreferredHeaderHeight"
 private let kInvalidateForRowAlignmentChange = "RowAlignment"
+
+extension CGFloat {
+    fileprivate var roundToNearestHalf: CGFloat {
+        return floor(self * 2) / 2
+    }
+}

@@ -95,7 +95,7 @@ fileprivate class HeaderLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    override func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+    override func prepare(for reason: InvalidationReason, updates: [SectionUpdate]?) {
         if headerHeight == 0 || itemsInfo.isEmpty || collectionViewWidth != sectionWidth {
             collectionViewWidth = sectionWidth
             prepareHeaderFrames()

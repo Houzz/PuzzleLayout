@@ -91,7 +91,7 @@ fileprivate class SwitchablePhotosLayout: PuzzlePieceSectionLayout {
         }
     }
     
-    override func prepare(didReloadData: Bool, didUpdateDataSourceCounts: Bool, didResetLayout: Bool) {
+    override func prepare(for reason: InvalidationReason, updates: [SectionUpdate]?) {
         if bigItemSize.height == 0 || itemsFrame.isEmpty || collectionViewWidth != sectionWidth {
             collectionViewWidth = sectionWidth
             prepareMosaic()

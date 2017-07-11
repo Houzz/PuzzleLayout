@@ -11,7 +11,7 @@ import UIKit
 //MARK: - QuickCollectionViewDataSourcePuzzleLayout
 
 /// Extension of UICollectionViewDataSource
-public protocol QuickCollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
+public protocol QuickCollectionViewDataSourcePuzzleLayout : QuickCollectionViewDataSource {
     
     /**
      Asking for section layout.

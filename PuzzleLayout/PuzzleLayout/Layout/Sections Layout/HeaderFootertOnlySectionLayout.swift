@@ -9,7 +9,7 @@
 import UIKit
 
 /// A layout for showing only header and/or footer
-public class HeaderFootertOnlySectionLayout : PuzzlePieceSectionLayout {
+public class HeaderFootertOnlySectionLayout : QuickPuzzlePieceSectionLayout {
     //MARK: - Public
     
     /**

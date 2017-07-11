@@ -8,16 +8,16 @@
 
 import UIKit
 
-public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, PuzzlePieceSectionLayoutSeperatable {
+public class QuickColumnBasedPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLayout, PuzzlePieceSectionLayoutSeperatable {
     
     //MARK: - Public
     
-    /** 
+    /**
      The margins used to lay out content in a section
      
      Section insets reflect the spacing at the outer edges of the section. The margins affect the initial position of the header view, the minimum space on either side of each line of items, and the distance from the last line to the footer view. The margin insets do not affect the size of the header and footer views in the non scrolling direction.
      The default edge insets are all set to 0.
-    */
+     */
     public var sectionInsets: UIEdgeInsets = .zero {
         didSet {
             if let ctx = invalidationContext(with: kInvalidateForRowInfoChange) {
@@ -35,12 +35,12 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             }
         }
     }
-
+    
     /**
-    The minimum spacing to use between items in the same row.
- 
-    This value represents the minimum spacing between items in the same row. This spacing is used to compute how many items can fit in a single line, but after the number of items is determined, the actual spacing may possibly be adjusted upward.
-    The default value of this property is 0.
+     The minimum spacing to use between items in the same row.
+     
+     This value represents the minimum spacing between items in the same row. This spacing is used to compute how many items can fit in a single line, but after the number of items is determined, the actual spacing may possibly be adjusted upward.
+     The default value of this property is 0.
      */
     public var minimumInteritemSpacing: CGFloat = 0 {
         didSet {
@@ -59,12 +59,12 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             }
         }
     }
-
+    
     /**
-    The minimum spacing to use between lines of items in the grid.
- 
-    This value represents the minimum spacing between successive rows. This spacing is not applied to the space between the header and the first line or between the last line and the footer.
-    The default value of this property is 0.
+     The minimum spacing to use between lines of items in the grid.
+     
+     This value represents the minimum spacing between successive rows. This spacing is not applied to the space between the header and the first line or between the last line and the footer.
+     The default value of this property is 0.
      */
     public var minimumLineSpacing: CGFloat = 0 {
         didSet {
@@ -76,7 +76,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             }
         }
     }
-
+    
     /// The column type if cells shouldn't be self-sized. Othersize, nil.
     public private(set) var columnType: ColumnType? = .itemSize(size: CGSize(width: 50, height: 50))
     
@@ -150,7 +150,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
      The default height type to use for section header. The default height is no header.
      
      Section header is positioned a section origin (0,0) in section coordinate system (Section insets top doesn't affect it).
-    */
+     */
     public var headerHeight: HeadeFooterHeightSize = .none {
         didSet {
             if let ctx = self.invalidationContext(with: kInvalidateForHeaderEstimatedHeightChange) {
@@ -237,7 +237,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     }
     
     public var bottomGutterInsets: UIEdgeInsets
-
+    
     /// Reset the layout
     public func resetLayout() {
         if let ctx = self.invalidationContext(with: kInvalidateForResetLayout) {
@@ -278,10 +278,10 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
      - parameter showBottomGutter: A Boolean value indicating whether should add view on section bottom insets.
      */
     public init(columnType: ColumnType, sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
-         headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
-         footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
-         separatorLineStyle: PuzzlePieceSeparatorLineStyle = .all, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
-         showTopGutter: Bool = false, topGutterInsets: UIEdgeInsets = .zero, showBottomGutter: Bool = false, bottomGutterInsets: UIEdgeInsets = .zero) {
+                headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
+                footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
+                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .all, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
+                showTopGutter: Bool = false, topGutterInsets: UIEdgeInsets = .zero, showBottomGutter: Bool = false, bottomGutterInsets: UIEdgeInsets = .zero) {
         self.columnType = columnType
         self.sectionInsets = sectionInsets
         self.minimumInteritemSpacing = minimumInteritemSpacing
@@ -332,11 +332,11 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
      - parameter showBottomGutter: A Boolean value indicating whether should add view on section bottom insets.
      */
     public init(estimatedColumnType: ColumnType, rowAlignment: RowAlignmentOnItemSelfSizing = .alignCenter,
-         sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
-         headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
-         footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
-         separatorLineStyle: PuzzlePieceSeparatorLineStyle = .all, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
-         showTopGutter: Bool = false, topGutterInsets: UIEdgeInsets = .zero, showBottomGutter: Bool = false, bottomGutterInsets: UIEdgeInsets = .zero) {
+                sectionInsets: UIEdgeInsets = .zero, minimumInteritemSpacing: CGFloat = 0, minimumLineSpacing: CGFloat = 0,
+                headerHeight: HeadeFooterHeightSize = .none, sectionHeaderPinToVisibleBounds: Bool = false,
+                footerHeight: HeadeFooterHeightSize = .none, sectionFooterPinToVisibleBounds: Bool = false,
+                separatorLineStyle: PuzzlePieceSeparatorLineStyle = .all, separatorLineInsets: UIEdgeInsets = .zero, separatorLineColor: UIColor? = nil,
+                showTopGutter: Bool = false, topGutterInsets: UIEdgeInsets = .zero, showBottomGutter: Bool = false, bottomGutterInsets: UIEdgeInsets = .zero) {
         self.estimatedColumnType = estimatedColumnType
         self.rowAlignment = rowAlignment
         self.sectionInsets = sectionInsets
@@ -765,7 +765,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     
     fileprivate var collectionViewWidth: CGFloat = 0
     
-    //MARK: - Private 
+    //MARK: - Private
     fileprivate func numberOfColumns(from itemSize: CGSize) -> Int {
         guard itemSize.width != 0 else {
             return 0
@@ -789,7 +789,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     private func prepareItemsFromScratch() {
         updateItemSizeAndNumberOfColumns()
         let heightState: ItemHeightState = (estimatedColumnType != nil) ? .estimated : .fixed
-
+        
         itemsInfo = [ItemInfo](repeating: ItemInfo(heightState: heightState), count: numberOfItemsInSection)
         guard numberOfColumnsInRow != 0 else {
             assert(false, "Number of columns can't be 0")
@@ -851,14 +851,14 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         case .itemSize(let itemSize):
             self.itemSize = itemSize
             self.numberOfColumnsInRow = numberOfColumns(from: itemSize)
-        case .dynamicItemSize(let closure):
+        case .quickDynamicItemSize(let closure):
             self.itemSize = closure(self, collectionViewWidth)
             self.numberOfColumnsInRow = numberOfColumns(from: itemSize)
         case .numberOfColumns(let numberOfColumns, let height):
             self.itemSize = CGSize(width: 0, height: height)
             self.numberOfColumnsInRow = Int(numberOfColumns)
             self.itemSize.width = itemWidth(from: self.numberOfColumnsInRow)
-        case .dynamicNumberOfColumns(let closure):
+        case .quickDynamicNumberOfColumns(let closure):
             let res = closure(self, collectionViewWidth)
             self.itemSize = CGSize(width: 0, height: res.itemHeight)
             self.numberOfColumnsInRow = Int(res.numberOfColumns)
@@ -867,8 +867,8 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             self.numberOfColumnsInRow = Int(numberOfColumns)
             self.itemSize.width = itemWidth(from: self.numberOfColumnsInRow)
             self.itemSize.height = (self.itemSize.width * heightWidthRatio) + heightConstant
-        case .quickDynamicNumberOfColumns(_): break
-        case .quickDynamicItemSize(_): break
+        case .dynamicNumberOfColumns(_): break
+        case .dynamicItemSize(_): break
         }
         
         updateActualInteritemSpacing()
@@ -996,7 +996,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     
     private func updateItemsOriginYForSingleColumn(forceUpdateOrigin: Bool = false, updateItemHeight: Bool = false) {
         guard let _ = itemsInfo else { return }
-
+        
         let originX = (collectionViewWidth - itemSize.width) * 0.5
         var lastOriginY: CGFloat = (headerInfo?.maxOriginY ?? 0) + sectionInsets.top
         let estiamted: Bool = (estimatedColumnType != nil)
@@ -1144,15 +1144,15 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     
     /*
      1. Section insets or minimum inter-item spacing changed & based on item size:
-        1.1. Compute number of column
-        1.2. Number of columns did change:
-            1.2.1. Fix origin X & origin Y
-            1.2.2. Fix row height
-            1.2.3. Fix row index
-            1.2.4. fix item index at row
-        1.3. Number of columns didn’t change:
-            1.3.1 Number of columns is 1: Do nothing.
-            1.3.2 Number of columns is bigger than 1: Update origin X
+     1.1. Compute number of column
+     1.2. Number of columns did change:
+     1.2.1. Fix origin X & origin Y
+     1.2.2. Fix row height
+     1.2.3. Fix row index
+     1.2.4. fix item index at row
+     1.3. Number of columns didn’t change:
+     1.3.1 Number of columns is 1: Do nothing.
+     1.3.2 Number of columns is bigger than 1: Update origin X
      */
     private func itemSizeBased_fixForRowInfoChange() {
         let updatedNumberOfColumns = numberOfColumns(from: self.itemSize)
@@ -1175,10 +1175,10 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     
     /*
      1. Section insets or minimum inter-item spacing changed & based on number of columns:
-        1.1. Compute item width
-        1.2. Compute actual interitem spacing
-        1.3. Update origin X and item width
-        1.4. If height state isn’t fixed. Set it as estimated.
+     1.1. Compute item width
+     1.2. Compute actual interitem spacing
+     1.3. Update origin X and item width
+     1.4. If height state isn’t fixed. Set it as estimated.
      */
     private func columnsNumberBased_fixForRowInfoChange() {
         self.itemSize.width = itemWidth(from: self.numberOfColumnsInRow)

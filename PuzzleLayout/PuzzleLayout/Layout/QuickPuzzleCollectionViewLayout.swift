@@ -328,8 +328,8 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
         return proposedContentOffset
     }
     
-    override public func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        
+    public override func items(in rect: CGRect) -> [ItemKey] {
+        var _allAttributes: [ItemKey] = []
         var allAttributes: [PuzzleCollectionViewLayoutAttributes] = []
         var lastY: CGFloat = 0
         
@@ -365,6 +365,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                         item.layoutMargins = collectionView!.layoutMargins
                         item.center.y += lastY
                         allAttributes.append(item)
+                        _allAttributes.append(item.key)
                         
                         if item.representedElementCategory == .supplementaryView {
                             //Pin header/footer if needed
@@ -409,6 +410,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                                     separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
                                 }
                                 allAttributes.append(separatorLine)
+                                _allAttributes.append(ItemKey(indexPath: separatorLine.indexPath, kind: PuzzleCollectionElementKindSeparatorLine, category: .decorationView))
                             }
                         }
                     }
@@ -426,6 +428,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                                 header.zIndex = PuzzleCollectionHeaderFooterZIndex
                                 allAttributes.append(header)
                                 sectionHeader = header
+                                _allAttributes.append(ItemKey(indexPath: header.indexPath, kind: PuzzleCollectionElementKindSectionHeader, category: .supplementaryView))
                             }
                         }
                         
@@ -436,6 +439,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                                 footer.zIndex = PuzzleCollectionHeaderFooterZIndex
                                 allAttributes.append(footer)
                                 sectionFooter = footer
+                                _allAttributes.append(ItemKey(indexPath: footer.indexPath, kind: PuzzleCollectionElementKindSectionFooter, category: .supplementaryView))
                             }
                         }
                         
@@ -474,8 +478,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
             lastY += sectionHeight
             // ----- Update before next iteration
         }
-        
-        return allAttributes
+        return _allAttributes
     }
     
     override public func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
@@ -967,4 +970,10 @@ private enum QuickCollectionViewUpdate {
     case deleteItems(at: [IndexPath])
     case reloadItems(at: [IndexPath])
     case moveItem(at: IndexPath, to: IndexPath)
+}
+
+extension UICollectionViewLayoutAttributes {
+    fileprivate var key: ItemKey {
+        return ItemKey(indexPath: indexPath, kind: representedElementKind, category: representedElementCategory)
+    }
 }

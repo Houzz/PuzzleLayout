@@ -535,7 +535,7 @@ public final class QuickRowsPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLay
             if showTopGutter && sectionInsets.top != 0 {
                 let originY: CGFloat = headerInfo?.maxOriginY ?? 0
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
-                gutterAttributes.frame = CGRect(x: 0, y: originY, width: collectionViewWidth, height: sectionInsets.top)
+                gutterAttributes.frame = CGRect(x: topGutterInsets.left, y: originY + topGutterInsets.top, width: collectionViewWidth - topGutterInsets.right - topGutterInsets.left, height: sectionInsets.top - topGutterInsets.top - topGutterInsets.bottom)
                 if let gutterColor = separatorLineColor {
                     gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
@@ -561,7 +561,7 @@ public final class QuickRowsPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLay
                 }
                 
                 let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: elementKind, with: indexPath)
-                gutterAttributes.frame = CGRect(x: 0, y: maxY - sectionInsets.bottom, width: collectionViewWidth, height: sectionInsets.bottom)
+                gutterAttributes.frame = CGRect(x: bottomGutterInsets.left, y: maxY - sectionInsets.bottom + bottomGutterInsets.top, width: collectionViewWidth - bottomGutterInsets.right - bottomGutterInsets.left, height: sectionInsets.bottom - bottomGutterInsets.top - bottomGutterInsets.bottom)
                 if let gutterColor = separatorLineColor {
                     gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
                 }
@@ -578,6 +578,22 @@ public final class QuickRowsPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLay
     }
     
     //PreferredAttributes Invalidation
+    override public func shouldCalculatePreferredLayout(for elementCategory: InvalidationElementCategory, withOriginalSize originalSize: CGSize) -> Bool {
+        var shouldInvalidate = false
+        switch elementCategory {
+        case .cell(let index):
+            shouldInvalidate = (index < numberOfItemsInSection) && rowsInfo[index].heightState == .estimated
+        case .supplementaryView(_, let elementKind):
+            shouldInvalidate = (
+                (elementKind == PuzzleCollectionElementKindSectionHeader && headerInfo != nil && headerInfo!.heightState == .estimated)
+                    || (elementKind == PuzzleCollectionElementKindSectionFooter && footerInfo != nil && footerInfo!.heightState == .estimated)
+            )
+        default: break
+        }
+        
+        return shouldInvalidate
+    }
+    
     override public func shouldInvalidate(for elementCategory: InvalidationElementCategory, forPreferredSize preferredSize: inout CGSize, withOriginalSize originalSize: CGSize) -> Bool {
         var shouldInvalidate = false
         switch elementCategory {

@@ -722,14 +722,35 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
         return context
     }
     
-    override public func shouldInvalidateLayout(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
+    override public func shouldCalculatePreferredLayout(forOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
+        if originalAttributes.representedElementCategory == .decorationView {
+            if originalAttributes.representedElementKind == PuzzleCollectionElementKindSeparatorLine || originalAttributes.representedElementKind == PuzzleCollectionElementKindSectionTopGutter || originalAttributes.representedElementKind == PuzzleCollectionElementKindSectionBottomGutter {
+                return false
+            }
+        }
         
+        //Check if the section layout which generate 'originalAttributes' want to invalidate it for 'preferredAttributes'
+        let layout = sectionsLayoutInfo[originalAttributes.indexPath.section]
+        let invalidationType: InvalidationElementCategory
+        switch originalAttributes.representedElementCategory {
+        case .cell:
+            invalidationType = .cell(index: originalAttributes.indexPath.item)
+        case .supplementaryView:
+            invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+        case .decorationView:
+            invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+        }
+        
+        return layout.shouldCalculatePreferredLayout(for: invalidationType, withOriginalSize: originalAttributes.size)
+    }
+    
+    override public func shouldInvalidateLayout(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
         if preferredAttributes.representedElementCategory == .decorationView {
             if preferredAttributes.representedElementKind == PuzzleCollectionElementKindSeparatorLine || preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionTopGutter || preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionBottomGutter {
                 return false
             }
         }
-        
+
         //Check if the section layout which generate 'originalAttributes' want to invalidate it for 'preferredAttributes'
         let layout = sectionsLayoutInfo[originalAttributes.indexPath.section]
         let invalidationType: InvalidationElementCategory
@@ -877,6 +898,7 @@ fileprivate struct InvalidationInfoForBoundsChange {
 
 fileprivate class ColoredDecorationView : UICollectionReusableView {
     fileprivate override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        super.apply(layoutAttributes)
         let dict = (layoutAttributes as! PuzzleCollectionViewLayoutAttributes).info as? [AnyHashable:Any]
         backgroundColor = dict?[PuzzleCollectionColoredViewColorKey] as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
     }

@@ -306,6 +306,10 @@ public class QuickPuzzlePieceSectionLayout {
     
     
     // -------- Item attributes invalidation
+    public func shouldCalculatePreferredLayout(for elementCategory: InvalidationElementCategory, withOriginalSize originalSize: CGSize) -> Bool {
+        return false
+    }
+    
     /**
      Asks the layout object if changes to a self-sizing cell require a layout update.
      When a collection view includes self-sizing cells, the cells are given the opportunity to modify their own layout attributes before those attributes are applied. A self-sizing cell might do this to specify a different cell size than the one the layout object provides. When the cell provides a different set of attributes, the collection view calls this method to determine if the cell’s change requires a larger layout refresh.

@@ -772,6 +772,9 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
     
     override public func invalidationContext(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutInvalidationContext {
         let ctx = super.invalidationContext(forPreferredLayoutAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) as! QuickPuzzleCollectionViewLayoutInvalidationContext
+        
+        invalidateContextInVisibleRect(with: ctx)
+        
         let sectionIndex = originalAttributes.indexPath.section
         let layout = sectionsLayoutInfo[sectionIndex]
         
@@ -888,6 +891,44 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
             lastY += sectionHeight
         }
     }
+    
+    private func invalidateContextInVisibleRect(with context: UICollectionViewLayoutInvalidationContext) {
+        var cells = [IndexPath]()
+        var decorations = [String:[IndexPath]]()
+        var supplementries = [String:[IndexPath]]()
+        var adjustedRect = CGRect(x: collectionView!.contentOffset.x, y: collectionView!.contentOffset.y, width: collectionView!.bounds.size.width, height: collectionView!.bounds.size.height)
+        adjustedRect.origin.y -= collectionView!.bounds.size.height / 2.0
+        adjustedRect.size.height += collectionView!.bounds.size.height
+        
+        for item in items(in: adjustedRect) {
+            switch item.category {
+            case .decorationView:
+                if let kind = item.kind {
+                    var indexPaths = decorations[kind] ?? [IndexPath]()
+                    indexPaths.append(item.indexPath)
+                    decorations[kind] = indexPaths
+                }
+            case .cell:
+                cells.append(item.indexPath)
+            case .supplementaryView:
+                if let kind = item.kind {
+                    var indexPaths = supplementries[kind] ?? [IndexPath]()
+                    indexPaths.append(item.indexPath)
+                    supplementries[kind] = indexPaths
+                }
+            }
+        }
+        for (kind, indexPaths) in decorations {
+            context.invalidateDecorationElements(ofKind: kind, at: indexPaths)
+        }
+        
+        context.invalidateItems(at: cells)
+        
+        for (kind, indexPaths) in decorations {
+            context.invalidateSupplementaryElements(ofKind: kind, at: indexPaths)
+        }
+    }
+
 }
 
 //MARK: - Private Util

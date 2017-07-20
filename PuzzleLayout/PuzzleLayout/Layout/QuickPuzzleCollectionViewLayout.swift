@@ -361,6 +361,8 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                     var sectionFooter: PuzzleCollectionViewLayoutAttributes?
                     
                     for item in items {
+                        item.layoutMargins = collectionView!.layoutMargins
+                        item.center.y += lastY
                         allAttributes.append(item.key)
                         
                         if item.representedElementCategory == .supplementaryView {
@@ -392,8 +394,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                         else {
                             let separatorFrame = CGRect(x: item.frame.minX + layout.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layout.separatorLineInsets.left + layout.separatorLineInsets.right), height: 0.5)
                             if rect.intersects(separatorFrame) {
-                                let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSeparatorLine, with: item.indexPath)
-                                allAttributes.append(ItemKey(indexPath: separatorLine.indexPath, kind: PuzzleCollectionElementKindSeparatorLine, category: .decorationView))
+                                allAttributes.append(ItemKey(indexPath: item.indexPath, kind: PuzzleCollectionElementKindSeparatorLine, category: .decorationView))
                             }
                         }
                     }

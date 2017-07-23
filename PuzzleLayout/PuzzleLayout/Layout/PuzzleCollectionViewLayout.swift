@@ -296,9 +296,9 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                             }
                         }
                     }
-                case .otherReason:
+                case .otherReason, .changePreferredLayoutAttributes:
                     for sectionLayout in sectionsLayoutInfo {
-                        sectionLayout.prepare(for: .otherReason, updates: nil)
+                        sectionLayout.prepare(for: invalidation.reason, updates: nil)
                     }
                 }
             }

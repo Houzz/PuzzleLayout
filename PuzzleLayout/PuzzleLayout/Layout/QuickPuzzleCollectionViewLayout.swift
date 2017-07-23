@@ -151,7 +151,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
         else {
             let invalidationInfo = ctx.invalidationInfo
             if let layout = ctx.invalidateSectionLayoutData {
-                layout.invalidate(for: .otherReason, with: invalidationInfo[layout.sectionIndex!])
+                layout.invalidate(for: (ctx.invalidationElementCategory != nil ? .changePreferredLayoutAttributes : .otherReason), with: invalidationInfo[layout.sectionIndex!])
             }
             else {
                 
@@ -296,9 +296,9 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                             }
                         }
                     }
-                case .otherReason:
+                case .otherReason, .changePreferredLayoutAttributes:
                     for sectionLayout in sectionsLayoutInfo {
-                        sectionLayout.prepare(for: .otherReason, updates: nil)
+                        sectionLayout.prepare(for: invalidation.reason, updates: nil)
                     }
                 }
             }
@@ -778,6 +778,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
         
         (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
         ctx.invalidateSectionLayoutData = layout
+        ctx.invalidationElementCategory = invalidationType
         if let info = layout.invalidationInfo(for: invalidationType, forPreferredSize: preferredAttributes.size, withOriginalSize: originalAttributes.size) {
             ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
         }
@@ -879,44 +880,6 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
             lastY += sectionHeight
         }
     }
-    
-    private func invalidateContextInVisibleRect(with context: UICollectionViewLayoutInvalidationContext) {
-        var cells = [IndexPath]()
-        var decorations = [String:[IndexPath]]()
-        var supplementries = [String:[IndexPath]]()
-        var adjustedRect = CGRect(x: collectionView!.contentOffset.x, y: collectionView!.contentOffset.y, width: collectionView!.bounds.size.width, height: collectionView!.bounds.size.height)
-        adjustedRect.origin.y -= collectionView!.bounds.size.height / 2.0
-        adjustedRect.size.height += collectionView!.bounds.size.height
-        
-        for item in items(in: adjustedRect) {
-            switch item.category {
-            case .decorationView:
-                if let kind = item.kind {
-                    var indexPaths = decorations[kind] ?? [IndexPath]()
-                    indexPaths.append(item.indexPath)
-                    decorations[kind] = indexPaths
-                }
-            case .cell:
-                cells.append(item.indexPath)
-            case .supplementaryView:
-                if let kind = item.kind {
-                    var indexPaths = supplementries[kind] ?? [IndexPath]()
-                    indexPaths.append(item.indexPath)
-                    supplementries[kind] = indexPaths
-                }
-            }
-        }
-        for (kind, indexPaths) in decorations {
-            context.invalidateDecorationElements(ofKind: kind, at: indexPaths)
-        }
-        
-        context.invalidateItems(at: cells)
-        
-        for (kind, indexPaths) in decorations {
-            context.invalidateSupplementaryElements(ofKind: kind, at: indexPaths)
-        }
-    }
-
 }
 
 //MARK: - Private Util
@@ -974,10 +937,4 @@ private enum QuickCollectionViewUpdate {
     case deleteItems(at: [IndexPath])
     case reloadItems(at: [IndexPath])
     case moveItem(at: IndexPath, to: IndexPath)
-}
-
-extension UICollectionViewLayoutAttributes {
-    fileprivate var key: ItemKey {
-        return ItemKey(indexPath: indexPath, kind: representedElementKind, category: representedElementCategory)
-    }
 }

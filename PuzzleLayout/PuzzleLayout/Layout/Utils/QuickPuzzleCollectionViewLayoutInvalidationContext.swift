@@ -11,6 +11,8 @@ import UIKit
 /// A collection view invalidation context allowing keeping invalidation info for each section layout
 final public class QuickPuzzleCollectionViewLayoutInvalidationContext : UICollectionViewLayoutInvalidationContext {
     
+    public var invalidationElementCategory: InvalidationElementCategory?
+    
     /// Dictionary for saving invalidation info for each section layout
     private var _invalidationInfo: [Int:Any] = [:]
     

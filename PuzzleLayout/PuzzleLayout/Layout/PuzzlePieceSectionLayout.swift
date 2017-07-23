@@ -69,6 +69,8 @@ public enum InvalidationReason : Int {
     
     /// Invalidating for other reason (For example, self-sizing invalidation, collection view width changed, a specific section layout ask for invalidation)
     case otherReason
+    
+    case changePreferredLayoutAttributes
 }
 
 //MARK: - PuzzlePieceSectionLayout

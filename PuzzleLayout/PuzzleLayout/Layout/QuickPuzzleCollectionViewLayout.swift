@@ -351,31 +351,27 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                 //Ask for layout attributes depend the required data info required
                 
                 //Get items without specifying any information about section origin. Then update for each layout attributes its origin Y
-                var items: [PuzzleCollectionViewLayoutAttributes]
+                var items: [ItemKey]
                 
                 //"layoutAttributesForElements(atSection:in:) is required when 'dataRequiredForLayoutAttributes' == .none"
-                items = layout.layoutAttributesForElements(in: rectInSectionBounds, sectionIndex: sectionIndex)
+                items = layout.layoutItems(in: rectInSectionBounds, sectionIndex: sectionIndex)
                 if items.isEmpty == false {
                     //Update for each layout attributes its origin Y
-                    var sectionHeader: PuzzleCollectionViewLayoutAttributes?
-                    var sectionFooter: PuzzleCollectionViewLayoutAttributes?
+                    var sectionHeader: ItemKey?
+                    var sectionFooter: ItemKey?
                     
                     for item in items {
-                        item.layoutMargins = collectionView!.layoutMargins
-                        item.center.y += lastY
-                        allAttributes.append(item.key)
+                        allAttributes.append(item)
                         
-                        if item.representedElementCategory == .supplementaryView {
+                        if let kind = item.kind, item.category == .supplementaryView {
                             //Pin header/footer if needed
-                            switch item.representedElementKind! {
+                            switch kind {
                             case PuzzleCollectionElementKindSectionHeader:
                                 if layout.shouldPinHeaderSupplementaryView() {
-                                    item.zIndex = PuzzleCollectionHeaderFooterZIndex
                                     sectionHeader = item
                                 }
                             case PuzzleCollectionElementKindSectionFooter:
                                 if layout.shouldPinFooterSupplementaryView() {
-                                    item.zIndex = PuzzleCollectionHeaderFooterZIndex
                                     sectionFooter = item
                                 }
                             default: break
@@ -384,18 +380,15 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                         
                         //Add separator lines if needed
                         if (
-                            item.representedElementCategory != .cell
-                                || layout.separatorLineStyle == .none
-                                || (layout.separatorLineStyle == .allButLastItem
-                                    && item.indexPath.item + 1 == layout.numberOfItemsInSection)
+                            item.category != .cell
+                            || layout.separatorLineStyle == .none
+                            || (layout.separatorLineStyle == .allButLastItem
+                                && item.indexPath.item + 1 == layout.numberOfItemsInSection)
                             ) {
                             //No separator line
                         }
                         else {
-                            let separatorFrame = CGRect(x: item.frame.minX + layout.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layout.separatorLineInsets.left + layout.separatorLineInsets.right), height: 0.5)
-                            if rect.intersects(separatorFrame) {
-                                allAttributes.append(ItemKey(indexPath: item.indexPath, kind: PuzzleCollectionElementKindSeparatorLine, category: .decorationView))
-                            }
+                            allAttributes.append(ItemKey(indexPath: item.indexPath, kind: PuzzleCollectionElementKindSeparatorLine, category: .decorationView))
                         }
                     }
                     
@@ -404,17 +397,11 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                         let shouldPinFooter = layout.shouldPinFooterSupplementaryView()
                         
                         if shouldPinHeader && sectionHeader == nil {
-                            if let header = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) {
-                                sectionHeader = header
-                                allAttributes.append(ItemKey(indexPath: header.indexPath, kind: PuzzleCollectionElementKindSectionHeader, category: .supplementaryView))
-                            }
+                            allAttributes.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionHeader, category: .supplementaryView))
                         }
                         
                         if shouldPinFooter && sectionFooter == nil {
-                            if let footer = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) {
-                                sectionFooter = footer
-                                allAttributes.append(ItemKey(indexPath: footer.indexPath, kind: PuzzleCollectionElementKindSectionFooter, category: .supplementaryView))
-                            }
+                            allAttributes.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionFooter, category: .supplementaryView))
                         }
                     }
                 }

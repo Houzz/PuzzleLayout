@@ -506,31 +506,21 @@ public class QuickColumnBasedPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLa
         }
     }
     
-    override public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
-        var attributesInRect = [PuzzleCollectionViewLayoutAttributes]()
+    override public func layoutItems(in rect: CGRect, sectionIndex: Int) -> [ItemKey] {
+        var itemsInRect = [ItemKey]()
         guard numberOfItemsInSection != 0 else {
             return []
         }
         
         if let headerInfo = headerInfo, headerInfo.intersects(with: rect) {
-            attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))!)
+            itemsInRect.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionHeader, category: .supplementaryView))
         }
         
         if showTopGutter && sectionInsets.top != 0 {
             let originY: CGFloat = headerInfo?.maxOriginY ?? 0
             let topGutterFrame = CGRect(x: topGutterInsets.left, y: originY + topGutterInsets.top, width: collectionViewWidth - topGutterInsets.right - topGutterInsets.left, height: sectionInsets.top - topGutterInsets.top - topGutterInsets.bottom)
             if rect.intersects(topGutterFrame) {
-                let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionTopGutter, with: IndexPath(item: 0, section: sectionIndex))
-                gutterAttributes.frame = topGutterFrame
-                if let gutterColor = separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
-                }
-                else if let gutterColor = parentLayout?.separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
-                }
-                
-                gutterAttributes.zIndex = PuzzleCollectionSeparatorsViewZIndex
-                attributesInRect.append(gutterAttributes)
+                itemsInRect.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionTopGutter, category: .decorationView))
             }
         }
         
@@ -548,13 +538,7 @@ public class QuickColumnBasedPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLa
             }
             
             if itemFrame.intersects(rect) {
-                let itemAttributes = PuzzleCollectionViewLayoutAttributes(forCellWith: IndexPath(item: itemIndex, section: sectionIndex))
-                itemAttributes.frame = itemFrame
-                if itemInfo.heightState != .estimated {
-                    itemAttributes.cachedSize = itemFrame.size
-                }
-                
-                attributesInRect.append(itemAttributes)
+                itemsInRect.append(ItemKey(indexPath: IndexPath(item: itemIndex, section: sectionIndex), kind: nil, category: .cell))
             } else if rect.maxY < itemInfo.frame.minY {
                 break
             }
@@ -575,25 +559,15 @@ public class QuickColumnBasedPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLa
             
             let bottonGutterFrame = CGRect(x: bottomGutterInsets.left, y: maxY - sectionInsets.bottom + bottomGutterInsets.top, width: collectionViewWidth - bottomGutterInsets.right - bottomGutterInsets.left, height: sectionInsets.bottom - bottomGutterInsets.top - bottomGutterInsets.bottom)
             if rect.intersects(bottonGutterFrame) {
-                let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionBottomGutter, with: IndexPath(item: 0, section: sectionIndex))
-                gutterAttributes.frame = bottonGutterFrame
-                if let gutterColor = separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
-                }
-                else if let gutterColor = parentLayout?.separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
-                }
-                
-                gutterAttributes.zIndex = PuzzleCollectionSeparatorsViewZIndex
-                attributesInRect.append(gutterAttributes)
+                itemsInRect.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionBottomGutter, category: .decorationView))
             }
         }
         
         if let footerInfo = footerInfo, footerInfo.intersects(with: rect) {
-            attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex))!)
+            itemsInRect.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionFooter, category: .supplementaryView))
         }
         
-        return attributesInRect
+        return itemsInRect
     }
     
     override public func layoutAttributesForItem(at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {

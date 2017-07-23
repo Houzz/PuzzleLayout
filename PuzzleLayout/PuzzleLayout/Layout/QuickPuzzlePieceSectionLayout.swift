@@ -137,8 +137,8 @@ public class QuickPuzzlePieceSectionLayout {
      
      - returns: An array of PuzzleCollectionViewLayoutAttributes objects representing the layout information for the cells and views. The default implementation returns empty list.
      */
-    public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
-        assert(false, "'layoutAttributesForElements(in:sectionIndex:)' Should be implemented by subclass")
+    public func layoutItems(in rect: CGRect, sectionIndex: Int) -> [ItemKey] {
+        assert(false, "'layoutItems(in:sectionIndex:)' Should be implemented by subclass")
         return []
     }
     

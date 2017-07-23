@@ -191,35 +191,25 @@ public class HeaderFootertOnlySectionLayout : QuickPuzzlePieceSectionLayout {
         }
     }
     
-    override public func layoutAttributesForElements(in rect: CGRect, sectionIndex: Int) -> [PuzzleCollectionViewLayoutAttributes] {
-        var attributesInRect = [PuzzleCollectionViewLayoutAttributes]()
+    override public func layoutItems(in rect: CGRect, sectionIndex: Int) -> [ItemKey] {
+        var itemsInRect = [ItemKey]()
         
         if let headerInfo = headerInfo, headerInfo.intersects(with: rect) {
-            attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))!)
+            itemsInRect.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionHeader, category: .supplementaryView))
         }
         
         if showGutter && (headerInfo != nil || footerInfo != nil) && insets != 0 {
             let topGutterFrame = CGRect(x: 0, y: (headerInfo?.height ?? 0), width: collectionViewWidth, height: insets)
             if rect.intersects(topGutterFrame) {
-                let gutterAttributes = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSectionTopGutter, with: IndexPath(item: 0, section: sectionIndex))
-                gutterAttributes.frame = topGutterFrame
-                if let gutterColor = separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
-                }
-                else if let gutterColor = parentLayout?.separatorLineColor {
-                    gutterAttributes.info = [PuzzleCollectionColoredViewColorKey : gutterColor]
-                }
-                
-                gutterAttributes.zIndex = PuzzleCollectionSeparatorsViewZIndex
-                attributesInRect.append(gutterAttributes)
+                itemsInRect.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionTopGutter, category: .decorationView))
             }
         }
         
         if let footerInfo = footerInfo, footerInfo.intersects(with: rect) {
-            attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex))!)
+            itemsInRect.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionFooter, category: .supplementaryView))
         }
         
-        return attributesInRect
+        return itemsInRect
     }
     
     override public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {

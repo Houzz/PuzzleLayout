@@ -21,7 +21,7 @@ import UIKit
     internal(set) var isPinned: Bool = false
     
     ///The layout margins of the collection view
-    internal(set) var layoutMargins: UIEdgeInsets = .zero
+    internal(set) public var layoutMargins: UIEdgeInsets = .zero
     
     override public func copy(with zone: NSZone? = nil) -> Any {
         let c = super.copy(with: zone)

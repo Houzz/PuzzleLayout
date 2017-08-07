@@ -1197,7 +1197,7 @@ public class QuickColumnBasedPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLa
             return true
         }
         else if oldItemsNumber < updatedItemsNumber {
-            itemsInfo! += [ItemInfo](repeating: ItemInfo(heightState: heightState), count: updatedItemsNumber-oldItemsNumber)
+            itemsInfo! += [ItemInfo](repeating: ItemInfo(heightState: heightState, frame: CGRect(origin: .zero, size: itemSize)), count: updatedItemsNumber-oldItemsNumber)
             return true
         }
         else { return false }

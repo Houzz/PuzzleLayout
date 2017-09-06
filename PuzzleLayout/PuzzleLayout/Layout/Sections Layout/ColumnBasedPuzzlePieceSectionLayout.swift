@@ -790,7 +790,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
         updateItemSizeAndNumberOfColumns()
         let heightState: ItemHeightState = (estimatedColumnType != nil) ? .estimated : .fixed
 
-        itemsInfo = [ItemInfo](repeating: ItemInfo(heightState: heightState), count: numberOfItemsInSection)
+        itemsInfo = [ItemInfo](repeating: ItemInfo(heightState: heightState, frame: CGRect(origin: .zero, size: itemSize)), count: numberOfItemsInSection)
         guard numberOfColumnsInRow != 0 else {
             assert(false, "Number of columns can't be 0")
             return
@@ -1205,7 +1205,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             return true
         }
         else if oldItemsNumber < updatedItemsNumber {
-            itemsInfo! += [ItemInfo](repeating: ItemInfo(heightState: heightState), count: updatedItemsNumber-oldItemsNumber)
+            itemsInfo! += [ItemInfo](repeating: ItemInfo(heightState: heightState, frame: CGRect(origin: .zero, size: itemSize)), count: updatedItemsNumber-oldItemsNumber)
             return true
         }
         else { return false }
@@ -1288,7 +1288,7 @@ private struct ItemInfo: CustomStringConvertible {
     var needInvalidation: Bool = false
     var rowHeight: CGFloat = 0
     
-    init(heightState: ItemHeightState, frame: CGRect = .zero) {
+    init(heightState: ItemHeightState, frame: CGRect) {
         self.heightState = heightState
         self.frame = frame
         self.rowHeight = frame.height

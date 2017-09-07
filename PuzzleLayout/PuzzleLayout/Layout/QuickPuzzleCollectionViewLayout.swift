@@ -239,7 +239,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                                     layout.prepare(for: .reloadData, updates: nil)
                                 }
                             case .moveSection(let fromIndex, let toIndex):
-                                swap(&sectionsLayoutInfo[fromIndex], &sectionsLayoutInfo[toIndex])
+                                sectionsLayoutInfo.swapAt(fromIndex, toIndex)
                             case .insertItems(let indexPaths):
                                 var updates: [Int:[Int]] = [:]
                                 for indexPath in indexPaths {

@@ -400,7 +400,7 @@ public final class QuickRowsPuzzlePieceSectionLayout: QuickPuzzlePieceSectionLay
                         }
                     }
                 case .moveItem(let fromIndex, let toIndex):
-                    swap(&rowsInfo[fromIndex], &rowsInfo[toIndex])
+                    rowsInfo.swapAt(fromIndex, toIndex)
                 }
             }
             

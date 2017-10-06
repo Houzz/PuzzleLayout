@@ -928,7 +928,7 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
 }
 
 public extension UICollectionView {
-    public func reloadDataToPreventCachingBug() {
+    @objc public func reloadDataToPreventCachingBug() {
         let puzzleLayout = collectionViewLayout as? PuzzleCollectionViewLayout
         puzzleLayout?.reloadingDataForInvalidationBug = true
         self.reloadData()
@@ -995,20 +995,20 @@ private let swizzling: (UICollectionView.Type) -> () = { collectionView in
         let originalMethod = class_getInstanceMethod(collectionView, swap.from)
         let swizzledMethod = class_getInstanceMethod(collectionView, swap.to)
         
-        method_exchangeImplementations(originalMethod, swizzledMethod)
+        method_exchangeImplementations(originalMethod!, swizzledMethod!)
     }
 }
 
 extension UICollectionView {
-    
-    open override class func initialize() {
-        guard self == UICollectionView.self else {
-            return
-        }
-        
-        swizzling(self)
-    }
-    
+// Implmented in ObjC cause Swift 4 doesn't allow override +initialize
+//    open override class func initialize() {
+//        guard self == UICollectionView.self else {
+//            return
+//        }
+//
+//        swizzling(self)
+//    }
+
     @objc fileprivate func myInsertSections(_ sections: IndexSet) {
         if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
             if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
@@ -1043,7 +1043,7 @@ extension UICollectionView {
     }
     
     
-    @objc fileprivate func myInsertItems(at indexPaths: [IndexPath]) {
+    @objc(myInsertItemsAtIndexPaths:) fileprivate func myInsertItems(at indexPaths: [IndexPath]) {
         if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
             if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
             puzzle.dataSourceUpdates!.append(.insertItems(at: indexPaths))
@@ -1051,7 +1051,7 @@ extension UICollectionView {
         self.myInsertItems(at: indexPaths)
     }
     
-    @objc fileprivate func myDeleteItems(at indexPaths: [IndexPath]) {
+    @objc(myDeleteItemsAtIndexPaths:) fileprivate func myDeleteItems(at indexPaths: [IndexPath]) {
         if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
             if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
             puzzle.dataSourceUpdates!.append(.deleteItems(at: indexPaths))
@@ -1059,7 +1059,7 @@ extension UICollectionView {
         self.myDeleteItems(at: indexPaths)
     }
     
-    @objc fileprivate func myReloadItems(at indexPaths: [IndexPath]) {
+    @objc(myReloadItemsAtIndexPaths:) fileprivate func myReloadItems(at indexPaths: [IndexPath]) {
         if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
             if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
             puzzle.dataSourceUpdates!.append(.reloadItems(at: indexPaths))
@@ -1067,7 +1067,7 @@ extension UICollectionView {
         self.myReloadItems(at: indexPaths)
     }
     
-    @objc fileprivate func myMoveItem(at indexPath: IndexPath, to newIndexPath: IndexPath) {
+    @objc(myMoveItemAtIndexPath:toIndexPath:) fileprivate func myMoveItem(at indexPath: IndexPath, to newIndexPath: IndexPath) {
         if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
             if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
             puzzle.dataSourceUpdates!.append(.moveItem(at: indexPath, to: newIndexPath))

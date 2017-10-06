@@ -15,7 +15,7 @@ import UIKit
     public var cachedSize: CGSize? = nil
     
     ///info property can be used by 'PuzzlePieceSectionLayout' to send more data about the cell. This can't be achieved by subclassing 'PuzzleCollectionViewLayoutAttributes' since it's a final.
-    public var info: Any? = nil
+    @objc public var info: Any? = nil
     
     ///This property is set to true only for headers & footers which are currrently pinned to collection bounds.
     internal(set) var isPinned: Bool = false

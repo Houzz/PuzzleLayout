@@ -9,8 +9,8 @@
 import UIKit
 
 /// An enum for Header & Footer required size
-public enum HeadeFooterHeightSize : CustomStringConvertible {
-    
+public enum HeadeFooterHeightSize : CustomStringConvertible, Equatable {
+
     /// No header/footer
     case none
     
@@ -27,11 +27,23 @@ public enum HeadeFooterHeightSize : CustomStringConvertible {
         }
     }
     
+    public static func ==(lhs: HeadeFooterHeightSize, rhs: HeadeFooterHeightSize) -> Bool {
+        return lhs.getNumericSize() == rhs.getNumericSize()
+    }
+    
     public var description: String {
         switch self {
         case .none: return "None"
         case .fixed(let height): return "Fixed: \(height)"
         case .estimated(let height): return "Estimated: \(height)"
+        }
+    }
+    
+    private func getNumericSize() -> CGFloat? {
+        switch self {
+        case .none: return nil
+        case .fixed(let height): return height
+        case .estimated(let height): return height
         }
     }
 }

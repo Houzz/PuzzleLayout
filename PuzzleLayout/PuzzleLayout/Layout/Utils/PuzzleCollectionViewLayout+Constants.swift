@@ -21,10 +21,10 @@ public let PuzzleCollectionElementKindSectionBottomGutter = "!_SectionBottomGutt
 public let PuzzleCollectionColoredViewColorKey = "!_BackgroundColor_!"
 
 /// An element kind for 'PuzzleCollectionViewLayout' headers. This string is equal to the flow layout element kind for headers, which makes it easy to create header in storyboard.
-public let PuzzleCollectionElementKindSectionHeader: String = UICollectionElementKindSectionHeader
+public let PuzzleCollectionElementKindSectionHeader: String = UICollectionView.elementKindSectionHeader
 
 /// An element kind for 'PuzzleCollectionViewLayout' footers. This string is equal to the flow layout element kind for footers, which makes it easy to create footer in storyboard.
-public let PuzzleCollectionElementKindSectionFooter: String = UICollectionElementKindSectionFooter
+public let PuzzleCollectionElementKindSectionFooter: String = UICollectionView.elementKindSectionFooter
 
 /// A Z index of separator lines, top & bottom gutters
 public let PuzzleCollectionSeparatorsViewZIndex = 2

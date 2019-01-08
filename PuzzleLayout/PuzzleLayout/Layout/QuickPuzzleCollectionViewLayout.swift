@@ -423,9 +423,8 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
     }
     
     override public func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        let layout = sectionsLayoutInfo[indexPath.section]
-        
-        if let item = layout.layoutAttributesForItem(at: indexPath) {
+        if let layout = sectionsLayoutInfo[safe: indexPath.section],
+            let item = layout.layoutAttributesForItem(at: indexPath) {
             item.layoutMargins = collectionView!.layoutMargins
             let originY = self.originY(forSectionAt: indexPath.section)
             item.center.y += originY

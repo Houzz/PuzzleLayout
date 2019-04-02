@@ -110,7 +110,7 @@ public class PuzzlePieceSectionLayout {
      */
     public var separatorLineInsets: UIEdgeInsets = .zero {
         didSet {
-            if separatorLineInsets != .none, let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle) {
+            if separatorLineInsets != .zero, let ctx = self.invalidationContextForSeparatorLines(for: separatorLineStyle) {
                 parentLayout!.invalidateLayout(with: ctx)
             }
         }

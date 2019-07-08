@@ -18,7 +18,7 @@ import UIKit
     @objc public var info: Any? = nil
     
     ///This property is set to true only for headers & footers which are currrently pinned to collection bounds.
-    internal(set) var isPinned: Bool = false
+    var isPinned: Bool = false
     
     ///The layout margins of the collection view
     internal(set) public var layoutMargins: UIEdgeInsets = .zero

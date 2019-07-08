@@ -928,7 +928,7 @@ fileprivate class ColoredDecorationView : UICollectionReusableView {
 }
 
 public extension UICollectionView {
-    @objc public func reloadDataToPreventCachingBug() {
+    @objc func reloadDataToPreventCachingBug() {
         let puzzleLayout = collectionViewLayout as? PuzzleCollectionViewLayout
         puzzleLayout?.reloadingDataForInvalidationBug = true
         self.reloadData()

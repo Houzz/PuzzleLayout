@@ -442,11 +442,12 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         }
         
         for row in 0 ..< numberOfItemsInSection {
-            let rowInfo = rowsInfo[row]
-            if rowInfo.intersects(with: rect) {
-                attributesInRect.append(layoutAttributesForItem(at: IndexPath(item: row, section: sectionIndex))!)
-            } else if rect.maxY < rowInfo.originY {
-                break
+            if let rowInfo = rowsInfo[safe: row] {
+                if rowInfo.intersects(with: rect) {
+                    attributesInRect.append(layoutAttributesForItem(at: IndexPath(item: row, section: sectionIndex))!)
+                } else if rect.maxY < rowInfo.originY {
+                    break
+                }
             }
         }
         

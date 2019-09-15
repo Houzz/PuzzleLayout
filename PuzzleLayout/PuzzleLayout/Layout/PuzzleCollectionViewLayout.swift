@@ -775,6 +775,9 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }
         
         //Check if the section layout which generate 'originalAttributes' want to invalidate it for 'preferredAttributes'
+        if originalAttributes.indexPath.count == 0 {
+            return false
+        }
         let layout = sectionsLayoutInfo[originalAttributes.indexPath.section]
         let invalidationType: InvalidationElementCategory
         switch preferredAttributes.representedElementCategory {

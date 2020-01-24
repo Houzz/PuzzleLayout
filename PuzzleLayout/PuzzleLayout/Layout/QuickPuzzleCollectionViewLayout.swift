@@ -8,18 +8,18 @@
 
 import UIKit
 
-//MARK: - CollectionViewDataSourcePuzzleLayout
+//MARK: - QuickCollectionViewDataSourcePuzzleLayout
 
 /// Extension of UICollectionViewDataSource
-public protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSource {
+public protocol QuickCollectionViewDataSourcePuzzleLayout : QuickCollectionViewDataSource {
     
     /**
      Asking for section layout.
      
-     *A good practice for using 'PuzzleCollectionViewLayout' is to set for each 'PuzzlePieceSectionLayout' an identifier. When this function get called, try to dequeue a section layout with the identifier from 'collectionViewLayout' by calling 'sectionLayout(for:)'. Only if the nil returned, create a new 'PuzzlePieceSectionLayout' and return it. In addition, each section must(!!!) have different 'PuzzlePieceSectionLayout' object.*
+     *A good practice for using 'PuzzleCollectionViewLayout' is to set for each 'QuickPuzzlePieceSectionLayout' an identifier. When this function get called, try to dequeue a section layout with the identifier from 'collectionViewLayout' by calling 'sectionLayout(for:)'. Only if the nil returned, create a new 'QuickPuzzlePieceSectionLayout' and return it. In addition, each section must(!!!) have different 'QuickPuzzlePieceSectionLayout' object.*
      **
      
-     **Don't use same 'PuzzlePieceSectionLayout' object for multiple section, even if their should have same layout, since each 'PuzzlePieceSectionLayout' keeps data related to its section location in the collection view and its elements.**
+     **Don't use same 'QuickPuzzlePieceSectionLayout' object for multiple section, even if their should have same layout, since each 'QuickPuzzlePieceSectionLayout' keeps data related to its section location in the collection view and its elements.**
      
      - parameter collectionView: The collection view.
      
@@ -28,8 +28,8 @@ public protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSourc
      - parameter index: The section index.
      
      - returns: The section layout responsible for layouting the elements in the given section index.
-    */
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: PuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> PuzzlePieceSectionLayout
+     */
+    func collectionView(_ collectionView: QuickCollectionView, layout collectionViewLayout: QuickPuzzleCollectionViewLayout, layoutForSectionAtIndex index: Int) -> QuickPuzzlePieceSectionLayout
 }
 
 //MARK: - PuzzleCollectionViewLayout
@@ -38,14 +38,14 @@ public protocol CollectionViewDataSourcePuzzleLayout : UICollectionViewDataSourc
  This is the main class of puzzle layout. Puzzle layout let you define a different layout for each section. You can use one of ready-to-use layouts: 'RowsPuzzlePieceSectionLayout', 'ColumnBasedPuzzlePieceSectionLayout', or write one by your own. A section piece layout can be grid based layout, or any complex layouy you can think of. Puzzle layout make it easy to dynamiclly change sections order, adding new sections & removing old ones. No need to re-write the entire collection view layout. Writing new section puzzle piece layout is much more easy, since you can focus only on the section needs, without think about other sections layout.
  ** Puzzle layout is a vertical layout **
  
- When setting collection view layout as 'PuzzleCollectionViewLayout', collection view data source must conform to 'CollectionViewDataSourcePuzzleLayout'
+ When setting collection view layout as 'PuzzleCollectionViewLayout', collection view data source must conform to 'QuickCollectionViewDataSourcePuzzleLayout, layout'
  
  'PuzzleCollectionViewLayout' is final and can't be subclassed. 'PuzzleCollectionViewLayout' is supported for Swift only.
  */
-final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
+final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
     
     /// The list of current sections layout
-    fileprivate var sectionsLayoutInfo: [PuzzlePieceSectionLayout] = []
+    fileprivate var sectionsLayoutInfo: [QuickPuzzlePieceSectionLayout] = []
     
     //MARK: - Init
     override public init() {
@@ -68,7 +68,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     
     /// Reload all sections layout. When this function get called, collection view data source will get 'collectionView(_:layout:layoutForSectionAtIndex:)' called for each section.
     public func reloadSectionsLayout() {
-        let context = PuzzleCollectionViewLayoutInvalidationContext(invalidateSectionsLayout: true)
+        let context = QuickPuzzleCollectionViewLayoutInvalidationContext(invalidateSectionsLayout: true)
         invalidateLayout(with: context)
     }
     
@@ -78,9 +78,9 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
      - parameter identifier: The section layout identifier.
      
      - returns: The section layout with same identifier, if such exist.
-    */
-    public func sectionLayout(for identifier: String) -> PuzzlePieceSectionLayout? {
-        return sectionsLayoutInfo.filter ({ (layout: PuzzlePieceSectionLayout) -> Bool in
+     */
+    public func sectionLayout(for identifier: String) -> QuickPuzzlePieceSectionLayout? {
+        return sectionsLayoutInfo.filter ({ (layout: QuickPuzzlePieceSectionLayout) -> Bool in
             if let layoutIdentifier = layout.identifier {
                 return layoutIdentifier == identifier
             }
@@ -93,7 +93,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     /// A UIColor value indicating the default color to be used for separator lines & section gutters.
     public var separatorLineColor: UIColor? {
         didSet {
-            let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+            let ctx = QuickPuzzleCollectionViewLayoutInvalidationContext()
             for (sectionIndex, sectionInfo) in sectionsLayoutInfo.enumerated() {
                 switch sectionInfo.separatorLineStyle {
                 case .allButLastItem:
@@ -117,7 +117,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     override public class var invalidationContextClass : AnyClass {
-        return PuzzleCollectionViewLayoutInvalidationContext.self
+        return QuickPuzzleCollectionViewLayoutInvalidationContext.self
     }
     
     override public var collectionViewContentSize: CGSize {
@@ -130,8 +130,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     override public func invalidateLayout(with context: UICollectionViewLayoutInvalidationContext) {
-        guard let ctx = (context as? PuzzleCollectionViewLayoutInvalidationContext) else {
-            assert(false, "Invalidation context should be of type 'PuzzleCollectionViewLayoutInvalidationContext'")
+        guard let ctx = (context as? QuickPuzzleCollectionViewLayoutInvalidationContext) else {
+            assert(false, "Invalidation context should be of type 'QuickPuzzleCollectionViewLayoutInvalidationContext'")
             return
         }
         
@@ -151,7 +151,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         else {
             let invalidationInfo = ctx.invalidationInfo
             if let layout = ctx.invalidateSectionLayoutData {
-                layout.invalidate(for: .otherReason, with: invalidationInfo[layout.sectionIndex!])
+                layout.invalidate(for: (ctx.invalidationElementCategory != nil ? .changePreferredLayoutAttributes : .otherReason), with: invalidationInfo[layout.sectionIndex!])
             }
             else {
                 
@@ -195,8 +195,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     fileprivate var reloadingDataForInvalidationBug: Bool = false
-    fileprivate var dataSourceUpdates: [CollectionViewUpdate]?
-    fileprivate var invalidationReasons: [(reason: InvalidationReason, updates: [CollectionViewUpdate]?)]?
+    fileprivate var dataSourceUpdates: [QuickCollectionViewUpdate]?
+    fileprivate var invalidationReasons: [(reason: InvalidationReason, updates: [QuickCollectionViewUpdate]?)]?
     
     override public func prepare() {
         if let invalidationReasons = invalidationReasons {
@@ -209,7 +209,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                     }
                     break reasonsLoop //No need to continue processing all other reasons
                 case .reloadDataForUpdateDataSourceCounts:
-                    if let dataSource = collectionView!.dataSource as? CollectionViewDataSourcePuzzleLayout {
+                    if let dataSource = collectionView!.dataSource as? QuickCollectionViewDataSourcePuzzleLayout {
                         var sectionUpdates: [Int:[SectionUpdate]] = [:]
                         for update in invalidation.updates ?? [] {
                             switch update {
@@ -239,7 +239,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                                     layout.prepare(for: .reloadData, updates: nil)
                                 }
                             case .moveSection(let fromIndex, let toIndex):
-                                swap(&sectionsLayoutInfo[fromIndex], &sectionsLayoutInfo[toIndex])
+                                sectionsLayoutInfo.swapAt(fromIndex, toIndex)
                             case .insertItems(let indexPaths):
                                 var updates: [Int:[Int]] = [:]
                                 for indexPath in indexPaths {
@@ -296,9 +296,9 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                             }
                         }
                     }
-                case .otherReason:
+                case .otherReason, .changePreferredLayoutAttributes:
                     for sectionLayout in sectionsLayoutInfo {
-                        sectionLayout.prepare(for: .otherReason, updates: nil)
+                        sectionLayout.prepare(for: invalidation.reason, updates: nil)
                     }
                 }
             }
@@ -307,11 +307,11 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         invalidationReasons = nil
         super.prepare()
     }
-
+    
     public override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
         var lastY: CGFloat = 0
         let width = collectionView!.bounds.width
-
+        
         for sectionIndex in 0 ..< sectionsLayoutInfo.count {
             let layout = sectionsLayoutInfo[sectionIndex]
             assert(sectionIndex == layout.sectionIndex!, "Something went wrong. This shouldn't happen")
@@ -324,13 +324,12 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             }
             lastY += sectionHeight
         }
-
+        
         return proposedContentOffset
     }
     
-    override public func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        
-        var allAttributes: [PuzzleCollectionViewLayoutAttributes] = []
+    public override func items(in rect: CGRect) -> [ItemKey] {
+        var allItems: [ItemKey] = []
         var lastY: CGFloat = 0
         
         let width = collectionView!.bounds.width
@@ -352,38 +351,28 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                 //Ask for layout attributes depend the required data info required
                 
                 //Get items without specifying any information about section origin. Then update for each layout attributes its origin Y
-                var items: [PuzzleCollectionViewLayoutAttributes]
+                var items: [ItemKey]
                 
                 //"layoutAttributesForElements(atSection:in:) is required when 'dataRequiredForLayoutAttributes' == .none"
-                items = layout.layoutAttributesForElements(in: rectInSectionBounds, sectionIndex: sectionIndex)
+                items = layout.layoutItems(in: rectInSectionBounds, sectionIndex: sectionIndex)
                 if items.isEmpty == false {
                     //Update for each layout attributes its origin Y
-                    var sectionHeader: PuzzleCollectionViewLayoutAttributes?
-                    var sectionFooter: PuzzleCollectionViewLayoutAttributes?
+                    var sectionHeader: ItemKey?
+                    var sectionFooter: ItemKey?
                     
                     for item in items {
-                        item.layoutMargins = collectionView!.layoutMargins
-                        item.center.y += lastY
-                        allAttributes.append(item)
+                        allItems.append(item)
                         
-                        if item.representedElementCategory == .supplementaryView {
+                        if let kind = item.kind, item.category == .supplementaryView {
                             //Pin header/footer if needed
-                            switch item.representedElementKind! {
+                            switch kind {
                             case PuzzleCollectionElementKindSectionHeader:
                                 if layout.shouldPinHeaderSupplementaryView() {
-                                    item.zIndex = PuzzleCollectionHeaderFooterZIndex
                                     sectionHeader = item
-                                }
-                                else {
-                                    item.zIndex = 0
                                 }
                             case PuzzleCollectionElementKindSectionFooter:
                                 if layout.shouldPinFooterSupplementaryView() {
-                                    item.zIndex = PuzzleCollectionHeaderFooterZIndex
                                     sectionFooter = item
-                                }
-                                else {
-                                    item.zIndex = 0
                                 }
                             default: break
                             }
@@ -391,7 +380,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                         
                         //Add separator lines if needed
                         if (
-                            item.representedElementCategory != .cell
+                            item.category != .cell
                             || layout.separatorLineStyle == .none
                             || (layout.separatorLineStyle == .allButLastItem
                                 && item.indexPath.item + 1 == layout.numberOfItemsInSection)
@@ -399,17 +388,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                             //No separator line
                         }
                         else {
-                            let separatorFrame = CGRect(x: item.frame.minX + layout.separatorLineInsets.left, y: item.frame.maxY - 0.5, width: item.bounds.width - (layout.separatorLineInsets.left + layout.separatorLineInsets.right), height: 0.5)
-                            if rect.intersects(separatorFrame) {
-                                let separatorLine = PuzzleCollectionViewLayoutAttributes(forDecorationViewOfKind: PuzzleCollectionElementKindSeparatorLine, with: item.indexPath)
-                                separatorLine.layoutMargins = collectionView!.layoutMargins
-                                separatorLine.frame = separatorFrame
-                                separatorLine.zIndex = PuzzleCollectionSeparatorsViewZIndex
-                                if let color = layout.separatorLineColor ?? separatorLineColor {
-                                    separatorLine.info = [PuzzleCollectionColoredViewColorKey : color]
-                                }
-                                allAttributes.append(separatorLine)
-                            }
+                            allItems.append(ItemKey(indexPath: item.indexPath, kind: PuzzleCollectionElementKindSeparatorLine, category: .decorationView))
                         }
                     }
                     
@@ -417,46 +396,12 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                         let shouldPinHeader = layout.shouldPinHeaderSupplementaryView()
                         let shouldPinFooter = layout.shouldPinFooterSupplementaryView()
                         
-                        let contentOffsetY = collectionView!.bounds.minY + collectionView!.contentInset.top
-                        
                         if shouldPinHeader && sectionHeader == nil {
-                            if let header = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) {
-                                header.layoutMargins = collectionView!.layoutMargins
-                                header.center.y += lastY
-                                header.zIndex = PuzzleCollectionHeaderFooterZIndex
-                                allAttributes.append(header)
-                                sectionHeader = header
-                            }
+                            allItems.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionHeader, category: .supplementaryView))
                         }
                         
                         if shouldPinFooter && sectionFooter == nil {
-                            if let footer = layout.layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) {
-                                footer.layoutMargins = collectionView!.layoutMargins
-                                footer.center.y += lastY
-                                footer.zIndex = PuzzleCollectionHeaderFooterZIndex
-                                allAttributes.append(footer)
-                                sectionFooter = footer
-                            }
-                        }
-                        
-                        if let header = sectionHeader {
-                            let y = header.frame.minY
-                            if sectionFrame.minY < contentOffsetY {
-                                let maxY = (sectionFooter?.frame.minY ?? sectionFrame.maxY) - header.frame.height
-                                header.frame.origin.y = min(contentOffsetY, maxY)
-                            }
-                            
-                            header.isPinned = (y != header.frame.minY)
-                        }
-                        
-                        if let footer = sectionFooter {
-                            let contentY = (sectionHeader?.frame.maxY ?? contentOffsetY)
-                            let y = footer.frame.minY
-                            if sectionFrame.maxY > contentY {
-                                let minY = max(collectionView!.bounds.maxY - footer.frame.height, sectionFrame.minY)
-                                footer.frame.origin.y = min(sectionFrame.maxY - footer.frame.height, minY)
-                            }
-                            footer.isPinned = (y != footer.frame.minY)
+                            allItems.append(ItemKey(indexPath: IndexPath(item: 0, section: sectionIndex), kind: PuzzleCollectionElementKindSectionFooter, category: .supplementaryView))
                         }
                     }
                 }
@@ -464,8 +409,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             else if sectionFrame.minY >= rect.maxY { //Section isn't intersecting with rect. Remaining sections can't intersect with rect too, so stop looping
                 break
             }
-//            else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
-//            }
+            //            else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
+            //            }
             
             // ----- End check if section intersects & get its elements layout attributes
             
@@ -474,14 +419,12 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             lastY += sectionHeight
             // ----- Update before next iteration
         }
-        
-        return allAttributes
+        return allItems
     }
     
     override public func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        let layout = sectionsLayoutInfo[indexPath.section]
-        
-        if let item = layout.layoutAttributesForItem(at: indexPath) {
+        if let layout = sectionsLayoutInfo[safe: indexPath.section],
+            let item = layout.layoutAttributesForItem(at: indexPath) {
             item.layoutMargins = collectionView!.layoutMargins
             let originY = self.originY(forSectionAt: indexPath.section)
             item.center.y += originY
@@ -724,8 +667,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
                         invalidationInfo.footersIndexPathToPin.append(footerToPin.indexPath)
                     }
                 }
-//                else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
-//                }
+                //                else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
+                //                }
                 
                 lastY += sectionHeight
             }
@@ -747,7 +690,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     override public func invalidationContext(forBoundsChange newBounds: CGRect) -> UICollectionViewLayoutInvalidationContext {
         
         let oldBounds = collectionView!.bounds
-        let context = super.invalidationContext(forBoundsChange: newBounds) as! PuzzleCollectionViewLayoutInvalidationContext
+        let context = super.invalidationContext(forBoundsChange: newBounds) as! QuickPuzzleCollectionViewLayoutInvalidationContext
         
         if newBounds.width != oldBounds.width {
             invalidateForWidthChange(byBoundsChange: newBounds, oldBounds: oldBounds, with: context)
@@ -766,14 +709,37 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         return context
     }
     
-    override public func shouldInvalidateLayout(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
+    override public func shouldCalculatePreferredLayout(forOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
+        if originalAttributes.representedElementCategory == .decorationView {
+            if originalAttributes.representedElementKind == PuzzleCollectionElementKindSeparatorLine || originalAttributes.representedElementKind == PuzzleCollectionElementKindSectionTopGutter || originalAttributes.representedElementKind == PuzzleCollectionElementKindSectionBottomGutter {
+                return false
+            }
+        }
         
+        //Check if the section layout which generate 'originalAttributes' want to invalidate it for 'preferredAttributes'
+        let layout = sectionsLayoutInfo[originalAttributes.indexPath.section]
+        let invalidationType: InvalidationElementCategory
+        switch originalAttributes.representedElementCategory {
+        case .cell:
+            invalidationType = .cell(index: originalAttributes.indexPath.item)
+        case .supplementaryView:
+            invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+        case .decorationView:
+            invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+        @unknown default:
+            fatalError()
+        }
+        
+        return layout.shouldCalculatePreferredLayout(for: invalidationType, withOriginalSize: originalAttributes.size)
+    }
+    
+    override public func shouldInvalidateLayout(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> Bool {
         if preferredAttributes.representedElementCategory == .decorationView {
             if preferredAttributes.representedElementKind == PuzzleCollectionElementKindSeparatorLine || preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionTopGutter || preferredAttributes.representedElementKind == PuzzleCollectionElementKindSectionBottomGutter {
                 return false
             }
         }
-        
+
         //Check if the section layout which generate 'originalAttributes' want to invalidate it for 'preferredAttributes'
         let layout = sectionsLayoutInfo[originalAttributes.indexPath.section]
         let invalidationType: InvalidationElementCategory
@@ -796,7 +762,10 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
     }
     
     override public func invalidationContext(forPreferredLayoutAttributes preferredAttributes: UICollectionViewLayoutAttributes, withOriginalAttributes originalAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutInvalidationContext {
-        let ctx = super.invalidationContext(forPreferredLayoutAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) as! PuzzleCollectionViewLayoutInvalidationContext
+        let ctx = super.invalidationContext(forPreferredLayoutAttributes: preferredAttributes, withOriginalAttributes: originalAttributes) as! QuickPuzzleCollectionViewLayoutInvalidationContext
+        
+        invalidateContextInVisibleRect(with: ctx)
+        
         let sectionIndex = originalAttributes.indexPath.section
         let layout = sectionsLayoutInfo[sectionIndex]
         
@@ -814,23 +783,24 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         
         (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size
         ctx.invalidateSectionLayoutData = layout
+        ctx.invalidationElementCategory = invalidationType
         if let info = layout.invalidationInfo(for: invalidationType, forPreferredSize: preferredAttributes.size, withOriginalSize: originalAttributes.size) {
             ctx.setInvalidationInfo(info, forSectionAtIndex: sectionIndex)
         }
         return ctx
     }
-
+    
     //MARK: - Prepare sections layout
     private func prepareSectionsLayout() {
-        guard let dataSource = collectionView!.dataSource as? CollectionViewDataSourcePuzzleLayout else {
-            assert(false, "To use this layout, collection view data source must conform to 'CollectionViewDataSourcePuzzleLayout'")
+        guard let dataSource = collectionView!.dataSource as? QuickCollectionViewDataSourcePuzzleLayout else {
+            assert(false, "To use this layout, collection view data source must conform to 'QuickCollectionViewDataSourcePuzzleLayout, layout'")
             return
         }
         
         let numberOfSections = collectionView!.numberOfSections
         if numberOfSections > 0 {
             let oldLayouts = sectionsLayoutInfo
-            var newLayouts: [PuzzlePieceSectionLayout] = [PuzzlePieceSectionLayout](repeating: PuzzlePieceSectionLayout(), count: numberOfSections)
+            var newLayouts: [QuickPuzzlePieceSectionLayout] = [QuickPuzzlePieceSectionLayout](repeating: QuickPuzzlePieceSectionLayout(), count: numberOfSections)
             for layout in oldLayouts {
                 layout.parentLayout = nil
                 layout.sectionIndex = nil
@@ -885,7 +855,7 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
         }
     }
     
-    private func invalidateForWidthChange(byBoundsChange newBounds: CGRect, oldBounds: CGRect, with context: PuzzleCollectionViewLayoutInvalidationContext) {
+    private func invalidateForWidthChange(byBoundsChange newBounds: CGRect, oldBounds: CGRect, with context: QuickPuzzleCollectionViewLayoutInvalidationContext) {
         var lastY: CGFloat = 0
         for sectionLayout in sectionsLayoutInfo {
             let sectionHeight = sectionLayout.heightOfSection
@@ -909,8 +879,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             else if oldFrameIntersection.minY >= oldBounds.maxY && newFrameIntersection.minY >= newBounds.maxY { //Section isn't intersecting with rect. Remaining sections can't intersect with rect too, so stop looping
                 break
             }
-//            else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
-//            }
+            //            else { //Section isn't intersecting with rect. But, next sections might intersect with rect, so don't stop looping
+            //            }
             
             lastY += sectionHeight
         }
@@ -925,24 +895,16 @@ fileprivate struct InvalidationInfoForBoundsChange {
 
 fileprivate class ColoredDecorationView : UICollectionReusableView {
     fileprivate override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        super.apply(layoutAttributes)
         let dict = (layoutAttributes as! PuzzleCollectionViewLayoutAttributes).info as? [AnyHashable:Any]
         backgroundColor = dict?[PuzzleCollectionColoredViewColorKey] as? UIColor ?? UIColor(red: 214/255, green: 214/255, blue: 214/255, alpha: 1)
     }
 }
 
-public extension UICollectionView {
-    public func reloadDataToPreventCachingBug() {
-        let puzzleLayout = collectionViewLayout as? PuzzleCollectionViewLayout
-        puzzleLayout?.reloadingDataForInvalidationBug = true
-        self.reloadData()
-        puzzleLayout?.reloadingDataForInvalidationBug = false
-    }
-}
-
-//MARK: - PuzzlePieceSectionLayout
-extension PuzzlePieceSectionLayout {
+//MARK: - QuickPuzzlePieceSectionLayout
+extension QuickPuzzlePieceSectionLayout {
     
-    internal func invalidationContextForSeparatorLines(for newStyle: PuzzlePieceSeparatorLineStyle, oldStyle: PuzzlePieceSeparatorLineStyle? = nil) -> PuzzleCollectionViewLayoutInvalidationContext? {
+    internal func invalidationContextForSeparatorLines(for newStyle: PuzzlePieceSeparatorLineStyle, oldStyle: PuzzlePieceSeparatorLineStyle? = nil) -> QuickPuzzleCollectionViewLayoutInvalidationContext? {
         let _oldStyle = oldStyle ?? newStyle
         if newStyle == _oldStyle && newStyle == .none {
             return nil
@@ -962,7 +924,7 @@ extension PuzzlePieceSectionLayout {
             }
         }
         
-        let ctx = PuzzleCollectionViewLayoutInvalidationContext()
+        let ctx = QuickPuzzleCollectionViewLayoutInvalidationContext()
         ctx.invalidateSectionLayoutData = self
         let numberOfItems = (newStyle == .all || _oldStyle == .all) ? layoutInfo.numberOfItemsInSection : (layoutInfo.numberOfItemsInSection - 1)
         ctx.invalidateDecorationElements(ofKind: PuzzleCollectionElementKindSeparatorLine, at: IndexPath.indexPaths(for: sectionIndex, itemsRange: 0..<numberOfItems))
@@ -971,7 +933,7 @@ extension PuzzlePieceSectionLayout {
 }
 
 //MARK: UICollectionView utility
-private enum CollectionViewUpdate {
+private enum QuickCollectionViewUpdate {
     case insertSections(at: IndexSet)
     case deleteSections(at: IndexSet)
     case reloadSections(at: IndexSet)
@@ -980,101 +942,4 @@ private enum CollectionViewUpdate {
     case deleteItems(at: [IndexPath])
     case reloadItems(at: [IndexPath])
     case moveItem(at: IndexPath, to: IndexPath)
-}
-
-private let swizzling: (UICollectionView.Type) -> () = { collectionView in
-    let selectorsToSwap: [(from: Selector, to: Selector)] = [
-        (from: #selector(collectionView.insertSections(_:)), to: #selector(collectionView.myInsertSections(_:))),
-        (from: #selector(collectionView.deleteSections(_:)), to: #selector(collectionView.myDeleteSections(_:))),
-//        (from: #selector(collectionView.reloadSections(_:)), to: #selector(collectionView.myReloadSections(_:))),
-        (from: #selector(collectionView.moveSection(_:toSection:)), to: #selector(collectionView.myMoveSection(_:toSection:))),
-        (from: #selector(collectionView.insertItems(at:)), to: #selector(collectionView.myInsertItems(at:))),
-        (from: #selector(collectionView.deleteItems(at:)), to: #selector(collectionView.myDeleteItems(at:))),
-        (from: #selector(collectionView.reloadItems(at:)), to: #selector(collectionView.myReloadItems(at:))),
-        (from: #selector(collectionView.moveItem(at:to:)), to: #selector(collectionView.myMoveItem(at:to:))),
-    ]
-    
-    for swap in selectorsToSwap {
-        let originalMethod = class_getInstanceMethod(collectionView, swap.from)
-        let swizzledMethod = class_getInstanceMethod(collectionView, swap.to)
-        
-        method_exchangeImplementations(originalMethod, swizzledMethod)
-    }
-}
-
-extension UICollectionView {
-    
-    open override class func initialize() {
-        guard self == UICollectionView.self else {
-            return
-        }
-        
-        swizzling(self)
-    }
-    
-    @objc fileprivate func myInsertSections(_ sections: IndexSet) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.insertSections(at: sections))
-        }
-        
-        self.myInsertSections(sections)
-    }
-    
-    @objc fileprivate func myDeleteSections(_ sections: IndexSet) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.deleteSections(at: sections))
-        }
-        self.myDeleteSections(sections)
-    }
-    
-    @objc fileprivate func myReloadSections(_ sections: IndexSet) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.reloadSections(at: sections))
-        }
-        self.myReloadSections(sections)
-    }
-    
-    @objc fileprivate func myMoveSection(_ section: Int, toSection newSection: Int) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.moveSection(at: section, to: newSection))
-        }
-        self.myMoveSection(section, toSection: newSection)
-    }
-    
-    
-    @objc fileprivate func myInsertItems(at indexPaths: [IndexPath]) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.insertItems(at: indexPaths))
-        }
-        self.myInsertItems(at: indexPaths)
-    }
-    
-    @objc fileprivate func myDeleteItems(at indexPaths: [IndexPath]) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.deleteItems(at: indexPaths))
-        }
-        self.myDeleteItems(at: indexPaths)
-    }
-    
-    @objc fileprivate func myReloadItems(at indexPaths: [IndexPath]) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.reloadItems(at: indexPaths))
-        }
-        self.myReloadItems(at: indexPaths)
-    }
-    
-    @objc fileprivate func myMoveItem(at indexPath: IndexPath, to newIndexPath: IndexPath) {
-        if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
-            if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }
-            puzzle.dataSourceUpdates!.append(.moveItem(at: indexPath, to: newIndexPath))
-        }
-        self.myMoveItem(at: indexPath, to: newIndexPath)
-    }
 }

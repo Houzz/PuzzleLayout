@@ -787,6 +787,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
         case .decorationView:
             invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+        @unknown default:
+            preconditionFailure()
         }
         
         if layout.shouldInvalidate(for: invalidationType, forPreferredSize: &preferredAttributes.size, withOriginalSize: originalAttributes.size) {
@@ -809,6 +811,8 @@ final public class PuzzleCollectionViewLayout: UICollectionViewLayout {
             invalidationType = .supplementaryView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
         case .decorationView:
             invalidationType = .decorationView(index: originalAttributes.indexPath.item, elementKind: originalAttributes.representedElementKind!)
+        @unknown default:
+            preconditionFailure()
         }
         
         (preferredAttributes as? PuzzleCollectionViewLayoutAttributes)?.cachedSize = preferredAttributes.size

@@ -512,7 +512,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             return []
         }
         
-        if let headerInfo = headerInfo, headerInfo.intersects(with: rect) {
+        if let headerInfo, headerInfo.intersects(with: rect) {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
@@ -589,7 +589,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
             }
         }
         
-        if let footerInfo = footerInfo, footerInfo.intersects(with: rect) {
+        if let footerInfo, footerInfo.intersects(with: rect) {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
@@ -624,7 +624,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
     override public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         switch elementKind {
         case PuzzleCollectionElementKindSectionHeader:
-            if let headerInfo = headerInfo {
+            if let headerInfo {
                 let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
                 let frame = CGRect(x: 0, y: headerInfo.originY, width: collectionViewWidth, height: headerInfo.height)
                 itemAttributes.frame = frame
@@ -635,7 +635,7 @@ public class ColumnBasedPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzz
                 return itemAttributes
             } else { return nil }
         case PuzzleCollectionElementKindSectionFooter:
-            if let footerInfo = footerInfo {
+            if let footerInfo {
                 let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
                 let frame = CGRect(x: 0, y: footerInfo.originY, width: collectionViewWidth, height: footerInfo.height)
                 itemAttributes.frame = frame

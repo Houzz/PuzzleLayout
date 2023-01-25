@@ -419,7 +419,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
             return []
         }
         
-        if let headerInfo = headerInfo, headerInfo.intersects(with: rect) {
+        if let headerInfo, headerInfo.intersects(with: rect) {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
@@ -479,7 +479,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
             }
         }
         
-        if let footerInfo = footerInfo, footerInfo.intersects(with: rect) {
+        if let footerInfo, footerInfo.intersects(with: rect) {
             attributesInRect.append(layoutAttributesForSupplementaryView(ofKind: PuzzleCollectionElementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex))!)
         }
         
@@ -504,7 +504,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
     override public func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> PuzzleCollectionViewLayoutAttributes? {
         switch elementKind {
         case PuzzleCollectionElementKindSectionHeader:
-            if let headerInfo = headerInfo {
+            if let headerInfo {
                 let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
                 let frame = CGRect(x: 0, y: headerInfo.originY, width: collectionViewWidth, height: headerInfo.height)
                 itemAttributes.frame = frame
@@ -516,7 +516,7 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
             }
             else { return nil }
         case PuzzleCollectionElementKindSectionFooter:
-            if let footerInfo = footerInfo {
+            if let footerInfo {
                 let itemAttributes = PuzzleCollectionViewLayoutAttributes(forSupplementaryViewOfKind: elementKind, with: indexPath)
                 let frame = CGRect(x: 0, y: footerInfo.originY, width: collectionViewWidth, height: footerInfo.height)
                 itemAttributes.frame = frame
@@ -904,13 +904,13 @@ public final class RowsPuzzlePieceSectionLayout: PuzzlePieceSectionLayout, Puzzl
         
         var lastOriginY: CGFloat = 0
         let firstItemForInvalidation: Int
-        if let index = index {
+        if let index {
             lastOriginY = rowsInfo[index].maxOriginY
             firstItemForInvalidation = index + 1
         }
         else if invalidateHeader {
             firstItemForInvalidation = 0
-            if let headerInfo = headerInfo {
+            if let headerInfo {
                 lastOriginY = headerInfo.maxOriginY + sectionInsets.top
             }
             else {

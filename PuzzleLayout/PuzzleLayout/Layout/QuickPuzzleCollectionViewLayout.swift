@@ -199,7 +199,7 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
     fileprivate var invalidationReasons: [(reason: InvalidationReason, updates: [QuickCollectionViewUpdate]?)]?
     
     override public func prepare() {
-        if let invalidationReasons = invalidationReasons {
+        if let invalidationReasons {
             reasonsLoop: for invalidation in invalidationReasons {
                 switch invalidation.reason {
                 case .reloadData, .changeCollectionViewLayoutOrDataSource, .resetLayout:
@@ -659,11 +659,11 @@ final public class QuickPuzzleCollectionViewLayout: QuickCollectionViewLayout {
                 
                 if oldFrameIntersection.height > 0 || newFrameIntersection.height > 0 {
                     
-                    if let headerToPin = headerToPin {
+                    if let headerToPin {
                         invalidationInfo.headersIndexPathToPin.append(headerToPin.indexPath)
                     }
                     
-                    if let footerToPin = footerToPin {
+                    if let footerToPin {
                         invalidationInfo.footersIndexPathToPin.append(footerToPin.indexPath)
                     }
                 }
@@ -910,7 +910,7 @@ extension QuickPuzzlePieceSectionLayout {
             return nil
         }
         
-        guard let sectionIndex = sectionIndex else {
+        guard let sectionIndex else {
             return nil
         }
         

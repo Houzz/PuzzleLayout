@@ -441,7 +441,7 @@ extension PuzzlePieceSectionLayout {
      - returns: The index path of the item. If parentLayout is nil, returns nil.
      */
     public func indexPath(forIndex index: Int) -> IndexPath? {
-        guard let sectionIndex = sectionIndex else {
+        guard let sectionIndex else {
             return nil
         }
         
@@ -466,7 +466,7 @@ extension PuzzlePieceSectionLayout {
      - returns: If parentLayout is nil, returns nil. Otherwise, the invalidation context.
      */
     public func invalidationContext(with info: Any) -> PuzzleCollectionViewLayoutInvalidationContext? {
-        guard let sectionIndex = sectionIndex else {
+        guard let sectionIndex else {
             return nil
         }
         
@@ -485,7 +485,7 @@ extension PuzzlePieceSectionLayout {
      - returns: If parentLayout is nil, returns false. Otherwise, returns true.
      */
     @discardableResult public func setInvalidationInfo(_ info: Any?, at context: PuzzleCollectionViewLayoutInvalidationContext) -> Bool {
-        guard let sectionIndex = sectionIndex else {
+        guard let sectionIndex else {
             return false
         }
         

@@ -380,7 +380,7 @@ extension QuickPuzzlePieceSectionLayout {
      - returns: The index path of the item. If parentLayout is nil, returns nil.
      */
     public func indexPath(forIndex index: Int) -> IndexPath? {
-        guard let sectionIndex = sectionIndex else {
+        guard let sectionIndex else {
             return nil
         }
         
@@ -405,7 +405,7 @@ extension QuickPuzzlePieceSectionLayout {
      - returns: If parentLayout is nil, returns nil. Otherwise, the invalidation context.
      */
     public func invalidationContext(with info: Any) -> QuickPuzzleCollectionViewLayoutInvalidationContext? {
-        guard let sectionIndex = sectionIndex else {
+        guard let sectionIndex else {
             return nil
         }
         
@@ -424,7 +424,7 @@ extension QuickPuzzlePieceSectionLayout {
      - returns: If parentLayout is nil, returns false. Otherwise, returns true.
      */
     @discardableResult public func setInvalidationInfo(_ info: Any?, at context: QuickPuzzleCollectionViewLayoutInvalidationContext) -> Bool {
-        guard let sectionIndex = sectionIndex else {
+        guard let sectionIndex else {
             return false
         }
         

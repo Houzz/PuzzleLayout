@@ -11,7 +11,7 @@ import UIKit
 //MARK: - PuzzlePieceSectionLayout
 
 /// A base class for section layout. Should not be used directly, Only as subclass. This layout is responsible for layouting all elements in one section, and only one. One instance should be used for multiple sections.
-public class QuickPuzzlePieceSectionLayout {
+@MainActor public class QuickPuzzlePieceSectionLayout {
     
     /// An section identifier. Can be used for re-use.
     public var identifier: String?

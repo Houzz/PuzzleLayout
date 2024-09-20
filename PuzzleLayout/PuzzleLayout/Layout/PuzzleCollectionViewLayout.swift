@@ -986,36 +986,7 @@ private enum CollectionViewUpdate {
     case moveItem(at: IndexPath, to: IndexPath)
 }
 
-private let swizzling: (UICollectionView.Type) -> () = { collectionView in
-    let selectorsToSwap: [(from: Selector, to: Selector)] = [
-        (from: #selector(collectionView.insertSections(_:)), to: #selector(collectionView.myInsertSections(_:))),
-        (from: #selector(collectionView.deleteSections(_:)), to: #selector(collectionView.myDeleteSections(_:))),
-        (from: #selector(collectionView.reloadSections(_:)), to: #selector(collectionView.myReloadSections(_:))),
-        (from: #selector(collectionView.moveSection(_:toSection:)), to: #selector(collectionView.myMoveSection(_:toSection:))),
-        (from: #selector(collectionView.insertItems(at:)), to: #selector(collectionView.myInsertItems(at:))),
-        (from: #selector(collectionView.deleteItems(at:)), to: #selector(collectionView.myDeleteItems(at:))),
-        (from: #selector(collectionView.reloadItems(at:)), to: #selector(collectionView.myReloadItems(at:))),
-        (from: #selector(collectionView.moveItem(at:to:)), to: #selector(collectionView.myMoveItem(at:to:))),
-    ]
-    
-    for swap in selectorsToSwap {
-        let originalMethod = class_getInstanceMethod(collectionView, swap.from)
-        let swizzledMethod = class_getInstanceMethod(collectionView, swap.to)
-        
-        method_exchangeImplementations(originalMethod!, swizzledMethod!)
-    }
-}
-
 extension UICollectionView {
-// Implmented in ObjC cause Swift 4 doesn't allow override +initialize
-//    open override class func initialize() {
-//        guard self == UICollectionView.self else {
-//            return
-//        }
-//
-//        swizzling(self)
-//    }
-
     @objc fileprivate func myInsertSections(_ sections: IndexSet) {
         if let puzzle = collectionViewLayout as? PuzzleCollectionViewLayout {
             if puzzle.dataSourceUpdates == nil { puzzle.dataSourceUpdates = [] }

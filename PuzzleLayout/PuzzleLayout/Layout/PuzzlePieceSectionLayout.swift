@@ -22,7 +22,7 @@ public enum PuzzlePieceSeparatorLineStyle : Int {
 }
 
 /// A protocol for section support gutters
-public protocol PuzzlePieceSectionLayoutSeperatable {
+@MainActor public protocol PuzzlePieceSectionLayoutSeperatable {
     var sectionInsets: UIEdgeInsets { get set }
     var showTopGutter: Bool { get set }
     var showBottomGutter: Bool { get set }
@@ -76,7 +76,7 @@ public enum InvalidationReason : Int {
 //MARK: - PuzzlePieceSectionLayout
 
 /// A base class for section layout. Should not be used directly, Only as subclass. This layout is responsible for layouting all elements in one section, and only one. One instance should be used for multiple sections.
-public class PuzzlePieceSectionLayout {
+@MainActor public class PuzzlePieceSectionLayout {
     
     /// An section identifier. Can be used for re-use.
     public var identifier: String?
